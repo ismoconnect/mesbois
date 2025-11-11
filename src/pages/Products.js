@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { FiFilter, FiGrid, FiList, FiStar, FiShoppingCart, FiTag, FiTruck, FiShield } from 'react-icons/fi';
-import { products as catalogue } from '../data/catalogue';
+import { products as catalogue } from '../data/catalogue.js';
 import ProductQuickView from '../components/ProductQuickView';
 import { useCart } from '../contexts/CartContext';
 import toast from 'react-hot-toast';
@@ -98,6 +98,50 @@ const CategoryButton = styled.button`
   cursor: pointer;
 `;
 
+const StatsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-top: 30px;
+
+  @media (max-width: 768px) {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+    margin-top: 8px;
+  }
+`;
+
+const StatCard = styled.div`
+  color: white;
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+  min-height: 120px;
+
+  @media (max-width: 768px) {
+    padding: 6px;
+    border-radius: 8px;
+    min-height: 66px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  @media (max-width: 768px) {
+    h4 { font-size: 12px; margin: 0 0 2px 0; line-height: 1.1; }
+    p { font-size: 10px; margin: 0; }
+    svg { width: 16px; height: 16px; margin-bottom: 4px; }
+  }
+
+  @media (max-width: 400px) {
+    h4 { font-size: 10px; }
+    p { font-size: 9px; }
+    svg { width: 14px; height: 14px; }
+  }
+`;
+
 const PageHeader = styled.div`
   margin-bottom: 40px;
   
@@ -125,22 +169,25 @@ const PageSubtitle = styled.p`
   font-size: 16px;
   
   @media (max-width: 768px) {
-    font-size: 13.5px;
+    font-size: 12px;
     margin-top: 0;
     margin-bottom: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 `;
 
 const FiltersSection = styled.div`
   background: white;
-  padding: 30px;
+  padding: 24px;
   border-radius: 12px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  margin-bottom: 40px;
+  margin-bottom: 30px;
   
   @media (max-width: 768px) {
-    padding: 16px;
-    margin-bottom: 20px;
+    padding: 12px;
+    margin-bottom: 16px;
   }
 `;
 
@@ -148,11 +195,11 @@ const FiltersHeader = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 20px;
+  margin-bottom: 14px;
   
   @media (max-width: 480px) {
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
     align-items: stretch;
   }
 `;
@@ -200,16 +247,16 @@ const ViewToggleButton = styled.button`
 const FiltersGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 20px;
+  gap: 16px;
   
   @media (max-width: 768px) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
+    gap: 8px;
   }
   
   @media (max-width: 480px) {
     grid-template-columns: 1fr;
-    gap: 10px;
+    gap: 8px;
   }
 `;
 
@@ -217,16 +264,17 @@ const FilterGroup = styled.div`
   label {
     display: block;
     font-weight: 500;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     color: #333;
+    font-size: 14px;
   }
   
-  select, input {
+  select, input:not([type='checkbox']) {
     width: 100%;
-    padding: 10px;
+    padding: 8px;
     border: 2px solid #e0e0e0;
     border-radius: 6px;
-    font-size: 14px;
+    font-size: 13px;
     outline: none;
     transition: border-color 0.3s ease;
     
@@ -236,38 +284,67 @@ const FilterGroup = styled.div`
   }
 `;
 
+const CheckboxLabel = styled.label`
+  display: inline-flex;
+  align-items: center;
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+  line-height: 1.2;
+  cursor: pointer;
+  padding: 4px 0;
+
+  input[type='checkbox'] {
+    width: 16px;
+    height: 16px;
+    margin-left: 6px;
+    vertical-align: middle;
+    position: relative;
+    top: 0.5px;
+  }
+`;
+
 const SearchInput = styled.input`
   width: 100%;
-  padding: 12px 40px 12px 16px;
+  padding: 10px 16px;
   border: 2px solid #e0e0e0;
-  border-radius: 25px;
+  border-radius: 14px;
   font-size: 14px;
   outline: none;
   transition: border-color 0.3s ease;
-  margin-bottom: 20px;
+  margin-bottom: 12px;
   
   &:focus {
     border-color: #2c5530;
   }
   
   @media (max-width: 768px) {
-    padding: 10px 16px;
+    padding: 8px 12px;
     border-radius: 10px;
+    font-size: 13px;
   }
 `;
 
 const ProductsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 30px;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: 12px;
   margin-bottom: 40px;
+
+  @media (max-width: 1400px) {
+    grid-template-columns: repeat(6, 1fr);
+  }
+
+  @media (max-width: 1200px) {
+    grid-template-columns: repeat(5, 1fr);
+  }
   
   @media (max-width: 992px) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 16px;
   }
   
-  @media (max-width: 400px) {
+  @media (max-width: 600px) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
   }
@@ -683,7 +760,14 @@ const Products = () => {
   };
 
   // Options dynamiques pour filtres
-  const uniqueCategories = Array.from(new Set(allProducts.map(p => (p.category || '').trim()).filter(Boolean)));
+  const fixedCategories = [
+    { value: 'bûches', label: 'Bois de chauffage' },
+    { value: 'accessoires', label: 'Accessoires' },
+    { value: 'bûches densifiées', label: 'Bûches densifiées' },
+    { value: 'pellets', label: 'Pellets' },
+    { value: 'poêles', label: 'Poêles' }
+  ];
+  const uniqueCategories = fixedCategories;
   const typesSource = allProducts.filter(p => {
     // restreindre par catégorie si sélectionnée
     if (filters.category) return p.category === filters.category;
@@ -746,36 +830,7 @@ const Products = () => {
   const averageRating = ratings.length ? (ratings.reduce((a, b) => a + b, 0) / ratings.length) : 4.7;
   const averageRatingFormatted = averageRating.toFixed(1);
 
-  // Vue initiale: seulement les cartes de catégories avec images
-  if (!mainCategory) {
-    return (
-      <ProductsContainer>
-        <PageHeader>
-          <PageTitle>Nos Produits</PageTitle>
-          <PageSubtitle>
-            Choisissez une catégorie pour afficher les produits
-          </PageSubtitle>
-          <CategoryCards>
-            <CategoryCard to={"/products?main=bois"} style={{ '--bg-img': "url('https://images.unsplash.com/photo-1482192505345-5655af888cc4?q=80&w=1600&auto=format&fit=crop')" }}>
-              <span>Bois de chauffage</span>
-            </CategoryCard>
-            <CategoryCard to={"/products?main=accessoires"} style={{ '--bg-img': "url('https://images.unsplash.com/photo-1516035069371-29a1b244cc32?q=80&w=1600&auto=format&fit=crop')" }}>
-              <span>Accessoires</span>
-            </CategoryCard>
-            <CategoryCard to={"/products?main=buches-densifiees"} style={{ '--bg-img': "url('https://images.unsplash.com/photo-1527061011665-3652c757a4d7?q=80&w=1600&auto=format&fit=crop')" }}>
-              <span>Bûches densifiées</span>
-            </CategoryCard>
-            <CategoryCard to={"/products?main=pellets"} style={{ '--bg-img': "url('https://images.unsplash.com/photo-1615485737594-3b42cfaa6a8a?q=80&w=1600&auto=format&fit=crop')" }}>
-              <span>Pellets de bois</span>
-            </CategoryCard>
-            <CategoryCard to={"/products?main=poeles"} style={{ '--bg-img': "url('https://images.unsplash.com/photo-1556911261-6bd341186b66?q=80&w=1600&auto=format&fit=crop')" }}>
-              <span>Poêles</span>
-            </CategoryCard>
-          </CategoryCards>
-        </PageHeader>
-      </ProductsContainer>
-    );
-  }
+  
 
   // Vue lorsqu'une catégorie est sélectionnée: filtres + produits
   return (
@@ -785,79 +840,33 @@ const Products = () => {
         <PageSubtitle>
           Découvrez notre large gamme de bois de chauffage de qualité
         </PageSubtitle>
-        <CategoriesNav>
-          <CategoryButton $active={mainCategory==='bois'} onClick={() => setActiveMainCategory('bois')}>
-            Bois de chauffage
-          </CategoryButton>
-          <CategoryButton $active={mainCategory==='accessoires'} onClick={() => setActiveMainCategory('accessoires')}>
-            Accessoires
-          </CategoryButton>
-          <CategoryButton $active={mainCategory==='buches-densifiees'} onClick={() => setActiveMainCategory('buches-densifiees')}>
-            Bûches densifiées
-          </CategoryButton>
-          <CategoryButton $active={mainCategory==='pellets'} onClick={() => setActiveMainCategory('pellets')}>
-            Pellets de bois
-          </CategoryButton>
-          <CategoryButton $active={mainCategory==='poeles'} onClick={() => setActiveMainCategory('poeles')}>
-            Poêles
-          </CategoryButton>
-        </CategoriesNav>
         
         {/* Statistiques rapides */}
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
-          gap: '20px', 
-          marginTop: '30px' 
-        }}>
-          <div style={{ 
-            background: 'linear-gradient(135deg, #2c5530, #27ae60)', 
-            color: 'white', 
-            padding: '20px', 
-            borderRadius: '12px', 
-            textAlign: 'center' 
-          }}>
-            <FiTag size={32} style={{ marginBottom: '10px' }} />
-            <h4 style={{ margin: '0 0 5px 0', fontSize: '18px' }}>{totalProducts} Produits</h4>
-            <p style={{ margin: 0, opacity: 0.9, fontSize: '14px' }}>Dans notre catalogue</p>
-          </div>
-          
-          <div style={{ 
-            background: 'linear-gradient(135deg, #27ae60, #2ecc71)', 
-            color: 'white', 
-            padding: '20px', 
-            borderRadius: '12px', 
-            textAlign: 'center' 
-          }}>
-            <FiTruck size={32} style={{ marginBottom: '10px' }} />
-            <h4 style={{ margin: '0 0 5px 0', fontSize: '18px' }}>Livraison</h4>
-            <p style={{ margin: 0, opacity: 0.9, fontSize: '14px' }}>24-48h partout en France</p>
-          </div>
-          
-          <div style={{ 
-            background: 'linear-gradient(135deg, #f39c12, #e67e22)', 
-            color: 'white', 
-            padding: '20px', 
-            borderRadius: '12px', 
-            textAlign: 'center' 
-          }}>
-            <FiStar size={32} style={{ marginBottom: '10px' }} />
-            <h4 style={{ margin: '0 0 5px 0', fontSize: '18px' }}>{averageRatingFormatted}/5</h4>
-            <p style={{ margin: 0, opacity: 0.9, fontSize: '14px' }}>Note moyenne clients</p>
-          </div>
-          
-          <div style={{ 
-            background: 'linear-gradient(135deg, #e74c3c, #c0392b)', 
-            color: 'white', 
-            padding: '20px', 
-            borderRadius: '12px', 
-            textAlign: 'center' 
-          }}>
-            <FiShield size={32} style={{ marginBottom: '10px' }} />
-            <h4 style={{ margin: '0 0 5px 0', fontSize: '18px' }}>Garantie</h4>
-            <p style={{ margin: 0, opacity: 0.9, fontSize: '14px' }}>Qualité certifiée</p>
-          </div>
-        </div>
+        <StatsGrid>
+          <StatCard style={{ background: 'linear-gradient(135deg, #2c5530, #27ae60)' }}>
+            <FiTag size={24} style={{ marginBottom: '6px' }} />
+            <h4>{totalProducts} Produits</h4>
+            <p style={{ margin: 0, opacity: 0.9 }}>Dans notre catalogue</p>
+          </StatCard>
+
+          <StatCard style={{ background: 'linear-gradient(135deg, #27ae60, #2ecc71)' }}>
+            <FiTruck size={24} style={{ marginBottom: '6px' }} />
+            <h4>Livraison</h4>
+            <p style={{ margin: 0, opacity: 0.9 }}>24-48h partout en France</p>
+          </StatCard>
+
+          <StatCard style={{ background: 'linear-gradient(135deg, #f39c12, #e67e22)' }}>
+            <FiStar size={24} style={{ marginBottom: '6px' }} />
+            <h4>{averageRatingFormatted}/5</h4>
+            <p style={{ margin: 0, opacity: 0.9 }}>Note moyenne clients</p>
+          </StatCard>
+
+          <StatCard style={{ background: 'linear-gradient(135deg, #e74c3c, #c0392b)' }}>
+            <FiShield size={24} style={{ marginBottom: '6px' }} />
+            <h4>Garantie</h4>
+            <p style={{ margin: 0, opacity: 0.9 }}>Qualité certifiée</p>
+          </StatCard>
+        </StatsGrid>
       </PageHeader>
 
       <FiltersSection>
@@ -899,9 +908,13 @@ const Products = () => {
               onChange={(e) => handleFilterChange('category', e.target.value)}
             >
               <option value="">Toutes les catégories</option>
-              {uniqueCategories.map(cat => (
-                <option key={cat} value={cat}>{cat.charAt(0).toUpperCase() + cat.slice(1)}</option>
-              ))}
+              {uniqueCategories.map(cat => {
+                const value = typeof cat === 'string' ? cat : cat.value;
+                const label = typeof cat === 'string' ? (cat.charAt(0).toUpperCase() + cat.slice(1)) : cat.label;
+                return (
+                  <option key={value} value={value}>{label}</option>
+                );
+              })}
             </select>
           </FilterGroup>
 
@@ -939,14 +952,14 @@ const Products = () => {
           </FilterGroup>
 
           <FilterGroup>
-            <label>
+            <CheckboxLabel>
+              En stock uniquement
               <input
                 type="checkbox"
                 checked={filters.available}
                 onChange={(e) => handleFilterChange('available', e.target.checked)}
               />
-              En stock uniquement
-            </label>
+            </CheckboxLabel>
           </FilterGroup>
         </FiltersGrid>
 
@@ -964,6 +977,29 @@ const Products = () => {
           >
             Effacer les filtres
           </button>
+        </div>
+        {/* Catégories principales déplacées sous la carte de filtres */}
+        <div style={{ marginTop: '16px' }}>
+          <CategoriesNav>
+            <CategoryButton $active={!mainCategory} onClick={() => setActiveMainCategory('')}>
+              Voir tout
+            </CategoryButton>
+            <CategoryButton $active={mainCategory==='bois'} onClick={() => setActiveMainCategory('bois')}>
+              Bois de chauffage
+            </CategoryButton>
+            <CategoryButton $active={mainCategory==='accessoires'} onClick={() => setActiveMainCategory('accessoires')}>
+              Accessoires
+            </CategoryButton>
+            <CategoryButton $active={mainCategory==='buches-densifiees'} onClick={() => setActiveMainCategory('buches-densifiees')}>
+              Bûches densifiées
+            </CategoryButton>
+            <CategoryButton $active={mainCategory==='pellets'} onClick={() => setActiveMainCategory('pellets')}>
+              Pellets de bois
+            </CategoryButton>
+            <CategoryButton $active={mainCategory==='poeles'} onClick={() => setActiveMainCategory('poeles')}>
+              Poêles
+            </CategoryButton>
+          </CategoriesNav>
         </div>
       </FiltersSection>
 
