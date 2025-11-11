@@ -167,8 +167,6 @@ const Login = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const from = '/dashboard';
-
   // Rediriger si déjà connecté (uniquement quand on est sur la page /login)
   React.useEffect(() => {
     const path = typeof window !== 'undefined' ? window.location.pathname : '';

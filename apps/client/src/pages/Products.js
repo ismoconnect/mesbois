@@ -615,29 +615,34 @@ const Products = () => {
 
   // Pagination (mobile uniquement)
   const [currentPage, setCurrentPage] = useState(1);
-  const [isMobile, setIsMobile] = useState(false);
   const [itemsPerPage, setItemsPerPage] = useState(10); // mobile: 10, desktop: 8
 
   useEffect(() => {
     const mq = typeof window !== 'undefined' ? window.matchMedia('(max-width: 768px)') : null;
     const update = () => {
       const mobile = mq ? mq.matches : false;
-      setIsMobile(mobile);
       setItemsPerPage(mobile ? 10 : 8);
     };
     update();
-    if (mq && mq.addEventListener) mq.addEventListener('change', update);
-    else if (mq && mq.addListener) mq.addListener(update);
+    if (mq && mq.addEventListener) {
+      mq.addEventListener('change', update);
+    } else if (mq && mq.addListener) {
+      mq.addListener(update);
+    }
     return () => {
-      if (mq && mq.removeEventListener) mq.removeEventListener('change', update);
-      else if (mq && mq.removeListener) mq.removeListener(update);
+      if (mq && mq.removeEventListener) {
+        mq.removeEventListener('change', update);
+      } else if (mq && mq.removeListener) {
+        mq.removeListener(update);
+      }
     };
   }, []);
 
   // Réinitialiser la page si les filtres changent
+  const filtersKey = React.useMemo(() => JSON.stringify(filters), [filters]);
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, JSON.stringify(filters), mainCategory]);
+  }, [searchTerm, filtersKey, mainCategory]);
 
   // Synchronise la catégorie principale avec l'URL
   useEffect(() => {
