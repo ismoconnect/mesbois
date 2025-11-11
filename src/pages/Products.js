@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { FiFilter, FiGrid, FiList, FiStar, FiShoppingCart, FiTag, FiTruck, FiShield } from 'react-icons/fi';
 import { products as catalogue } from '../data/catalogue.js';
@@ -26,53 +26,7 @@ const ProductsContainer = styled.div`
   }
 `;
 
-const CategoryCards = styled.div`
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 12px;
-  margin: 16px 0 24px;
-
-  @media (max-width: 900px) {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  @media (max-width: 600px) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-`;
-
-const CategoryCard = styled(Link)`
-  position: relative;
-  display: block;
-  height: 140px;
-  border-radius: 12px;
-  overflow: hidden;
-  background: #eef3ee;
-  text-decoration: none;
-  border: 2px solid #e0e0e0;
-  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
-
-  &:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,.08); border-color: #2c5530; }
-
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background-image: linear-gradient(to bottom, rgba(0,0,0,0) 40%, rgba(0,0,0,.45)), var(--bg-img);
-    background-size: cover;
-    background-position: center;
-  }
-
-  span {
-    position: absolute;
-    left: 12px;
-    bottom: 12px;
-    color: #fff;
-    font-weight: 800;
-    letter-spacing: .2px;
-    text-shadow: 0 2px 6px rgba(0,0,0,.4);
-  }
-`;
+ 
 
 const CategoriesNav = styled.div`
   display: grid;
@@ -823,7 +777,6 @@ const Products = () => {
 
   // Statistiques dynamiques (après définition de filteredProducts)
   const totalProducts = allProducts.length;
-  const visibleCount = filteredProducts.length;
   const ratings = allProducts
     .map(p => (typeof p.rating === 'number' ? p.rating : 0))
     .filter(n => n > 0);
