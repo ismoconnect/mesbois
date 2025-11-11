@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 import { FiTruck, FiShield, FiStar, FiHeart } from 'react-icons/fi';
-import { useCart } from '../contexts/CartContext';
-import toast from 'react-hot-toast';
+ 
 
 const HomeContainer = styled.div`
   max-width: 1200px;
@@ -785,7 +784,7 @@ const CTASection = styled.section`
 const Home = () => {
   const [email, setEmail] = useState('');
   
-  const { addToCart } = useCart();
+  
 
   // Données de démonstration pour les produits phares
  
@@ -799,11 +798,7 @@ const Home = () => {
     }
   };
 
-  const handleAddToCart = (product) => {
-    if (!product) return;
-    addToCart(product, 1);
-    toast.success('Produit ajouté au panier');
-  };
+  
 
  
 
