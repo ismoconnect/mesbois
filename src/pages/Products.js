@@ -281,23 +281,15 @@ const SearchInput = styled.input`
 
 const ProductsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(10, minmax(0, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
   margin-bottom: 40px;
 
-  @media (max-width: 1400px) {
-    grid-template-columns: repeat(6, 1fr);
-  }
-
-  @media (max-width: 1200px) {
-    grid-template-columns: repeat(5, 1fr);
-  }
-  
   @media (max-width: 992px) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 16px;
   }
-  
+
   @media (max-width: 600px) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;

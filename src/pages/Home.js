@@ -24,6 +24,55 @@ const HomeContainer = styled.div`
   }
 `;
 
+const CategoriesNav = styled.div`
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 6px;
+  order: 2;
+
+  @media (max-width: 900px) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  @media (max-width: 600px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+`;
+
+const CategoryCard = styled(Link)`
+  position: relative;
+  display: block;
+  height: 140px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #eef3ee;
+  text-decoration: none;
+  border: 2px solid #e0e0e0;
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+
+  &:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,.08); border-color: #2c5530; }
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: linear-gradient(to bottom, rgba(0,0,0,0) 40%, rgba(0,0,0,.45)), var(--bg-img);
+    background-size: cover;
+    background-position: center;
+  }
+
+  span {
+    position: absolute;
+    left: 12px;
+    bottom: 12px;
+    color: #fff;
+    font-weight: 800;
+    letter-spacing: .2px;
+    text-shadow: 0 2px 6px rgba(0,0,0,.4);
+  }
+`;
+
 const HeroSection = styled.section`
   background: linear-gradient(135deg, #58ad71 0%, #3a7a4b 100%);
   color: #ffffff;
@@ -463,8 +512,12 @@ const ProductsSection = styled.section`
 
 const ProductsHeader = styled.div`
   text-align: center;
-  margin-bottom: 12px;
+  margin-bottom: 6px;
   order: 1;
+  
+  h2 {
+    margin-bottom: 6px;
+  }
   
   @media (max-width: 768px) {
     order: 1;
@@ -474,7 +527,7 @@ const ProductsHeader = styled.div`
 const ProductsSubtitle = styled.p`
   color: #666;
   max-width: 720px;
-  margin: 10px auto 0;
+  margin: 6px auto 0;
 `;
 
 const ProductsStats = styled.div`
@@ -1133,106 +1186,31 @@ const Home = () => {
         <HeroWave />
       </HeroSection>
 
-      {/* Produits phares */}
+      {/* Catégories uniquement */}
       <ProductsSection>
         <ProductsHeader>
-          <SectionTitle>Nos produits phares</SectionTitle>
+          <SectionTitle>Catégories</SectionTitle>
           <ProductsSubtitle>
-            Découvrez notre sélection de bois de chauffage de qualité supérieure, 
-            soigneusement sélectionnés pour leur performance et leur durabilité.
+            Choisissez une catégorie pour afficher les produits correspondants
           </ProductsSubtitle>
         </ProductsHeader>
-
-        {/* Statistiques des produits */}
-        <ProductsStats>
-          <StatsGrid>
-            <StatItem>
-              <FiTrendingUp size={32} />
-              <h4>Qualité Premium</h4>
-              <p>Tous nos produits sont certifiés et contrôlés</p>
-            </StatItem>
-            <StatItem>
-              <FiClock size={32} />
-              <h4>Livraison Rapide</h4>
-              <p>Expédition sous 24-48h partout en France</p>
-            </StatItem>
-            <StatItem>
-              <FiShield size={32} />
-              <h4>Garantie Qualité</h4>
-              <p>Satisfaction garantie ou remboursé</p>
-            </StatItem>
-            <StatItem>
-              <FiUsers size={32} />
-              <h4>Service Client</h4>
-              <p>Support dédié pour vous accompagner</p>
-            </StatItem>
-          </StatsGrid>
-        </ProductsStats>
-
-        {/* Grille des produits */}
-        <ProductsGrid>
-          {featuredProducts.map((product, index) => (
-            <ProductCardEnhanced key={product.id} style={{ '--card-index': index }}>
-              <ProductImageContainer>
-                <ProductImage 
-                  src={product.image} 
-                  alt={product.name}
-                  onError={(e) => {
-                    e.target.src = '/placeholder-wood.jpg';
-                  }}
-                />
-                <ProductBadges>
-                  {product.sale && <Badge type="sale">Promo</Badge>}
-                  {product.new && <Badge type="new">Nouveau</Badge>}
-                </ProductBadges>
-              </ProductImageContainer>
-              
-              <ProductContent>
-                <ProductHeader>
-                  <ProductName>{product.name}</ProductName>
-                  <ProductPrice>{product.price}€</ProductPrice>
-                </ProductHeader>
-                
-                <ProductDescription>{product.description}</ProductDescription>
-                
-                <ProductInfo>
-                  <ProductRating>
-                    <div className="stars">
-                      {[...Array(5)].map((_, i) => (
-                        <FiStar 
-                          key={i} 
-                          size={14} 
-                          fill={i < Math.floor(product.rating) ? '#f39c12' : 'none'} 
-                        />
-                      ))}
-                    </div>
-                    <span className="rating-text">
-                      {product.rating} ({product.reviewCount})
-                    </span>
-                  </ProductRating>
-                  
-                  <ProductStock inStock={product.stock > 0}>
-                    {product.stock > 0 ? 'En stock' : 'Rupture'}
-                  </ProductStock>
-                </ProductInfo>
-                
-                <ProductActions>
-                  <AddToCartButton onClick={() => handleAddToCart(product)}>
-                    <FiShoppingCart size={16} />
-                    Ajouter
-                  </AddToCartButton>
-                  <ViewButton as="button" onClick={() => openQuickView(product)}>
-                    Voir
-                  </ViewButton>
-                </ProductActions>
-              </ProductContent>
-            </ProductCardEnhanced>
-          ))}
-        </ProductsGrid>
-        
-        <ViewAllButton to="/products">
-          Voir tous les produits
-        </ViewAllButton>
+        <CategoriesNav>
+          <CategoryCard to="/products?main=bois" style={{ '--bg-img': "url('https://images.unsplash.com/photo-1527061011665-3652c757a4d7?q=80&w=1600&auto=format&fit=crop')" }}>
+            <span>Bois de chauffage</span>
+          </CategoryCard>
+          <CategoryCard to="/products?main=accessoires" style={{ '--bg-img': "url('https://images.unsplash.com/photo-1527061011665-3652c757a4d7?q=80&w=1600&auto=format&fit=crop')" }}>
+            <span>Accessoires</span>
+          </CategoryCard>
+          <CategoryCard to="/products?main=buches-densifiees" style={{ '--bg-img': "url('https://images.unsplash.com/photo-1527061011665-3652c757a4d7?q=80&w=1600&auto=format&fit=crop')" }}>
+            <span>Bûches densifiées</span>
+          </CategoryCard>
+          <CategoryCard to="/products?main=pellets" style={{ '--bg-img': "url('https://images.unsplash.com/photo-1615485737594-3b42cfaa6a8a?q=80&w=1600&auto=format&fit=crop')" }}>
+            <span>Pellets de bois</span>
+          </CategoryCard>
+          <CategoryCard to="/products?main=poeles" style={{ '--bg-img': "url('https://images.unsplash.com/photo-1556911261-6bd341186b66?q=80&w=1600&auto=format&fit=crop')" }}>
+            <span>Poêles</span>
+          </CategoryCard>
+        </CategoriesNav>
       </ProductsSection>
 
       <ProductQuickView 
