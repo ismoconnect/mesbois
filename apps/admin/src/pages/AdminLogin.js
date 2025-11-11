@@ -1,16 +1,22 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
+import { FiMail, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth, db } from '../firebase/config';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 const Container = styled.div`
-  min-height: 100vh;
+  position: fixed;
+  inset: 0;
+  height: 100vh;
+  width: 100vw;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 32px 16px;
+  padding: 24px 16px; /* réduit pour éviter tout scroll sur petits écrans */
+  overflow: hidden;   /* empêche le scroll */
+  overscroll-behavior: none;
   background: radial-gradient(1000px 500px at 10% -10%, #d9f0db 0%, transparent 60%),
               radial-gradient(800px 400px at 90% 110%, #e8f4ea 0%, transparent 60%),
               #f5f7f6;
@@ -20,10 +26,11 @@ const Card = styled.div`
   background: #fff;
   border: 1px solid #e6eae7;
   border-radius: 16px;
-  padding: 28px;
+  padding: 28px 24px;
   box-shadow: 0 20px 60px rgba(44, 85, 48, 0.15);
   width: 100%;
-  max-width: 440px;
+  max-width: 480px;
+  margin: 0 8px; /* évite que la carte colle aux bords */
 `;
 
 const Title = styled.h1`
@@ -40,8 +47,12 @@ const Subtitle = styled.p`
 
 const Field = styled.div`
   display: grid;
-  gap: 6px;
-  margin-bottom: 12px;
+  gap: 8px;          /* espace label/champ un peu plus grand */
+  margin-bottom: 14px;/* espace entre champs */
+`;
+
+const InputGroup = styled.div`
+  position: relative;
 `;
 
 const Label = styled.label`
@@ -52,19 +63,41 @@ const Label = styled.label`
 
 const Input = styled.input`
   width: 100%;
-  padding: 10px 12px;
+  box-sizing: border-box;
+  padding: 10px 12px 10px 44px; /* espace pour l'icône gauche */
   border: 2px solid #e0e0e0;
   border-radius: 8px;
   font-size: 14px;
   outline: none;
   transition: border-color .2s ease, box-shadow .2s ease;
   &:focus { border-color: #2c5530; box-shadow: 0 0 0 4px rgba(44,85,48,.08); }
+  &.error { border-color: #e74c3c; box-shadow: 0 0 0 4px rgba(231,76,60,.08); }
+`;
+
+const LeftIcon = styled.div`
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  transform: translateY(-50%);
+  color: #7a8a7c;
+`;
+
+const PasswordToggle = styled.button`
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  color: #2c5530;
+  cursor: pointer;
 `;
 
 const Actions = styled.div`
   display: flex;
+  width: 100%;
   gap: 10px;
-  margin-top: 10px;
+  margin-top: 16px;
 `;
 
 const Button = styled.button`
@@ -76,6 +109,8 @@ const Button = styled.button`
   font-weight: 800;
   cursor: pointer;
   width: 100%;
+  box-sizing: border-box;
+  display: block;
   transition: transform .06s ease, background .2s ease;
   &:hover { background: #234725; }
   &:active { transform: translateY(1px); }
@@ -97,6 +132,7 @@ const AdminLogin = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
@@ -139,11 +175,35 @@ const AdminLogin = () => {
         {error ? <Helper style={{ color: '#e74c3c' }}>{error}</Helper> : <Subtitle>Accès réservé aux administrateurs habilités</Subtitle>}
         <Field>
           <Label>Email</Label>
-          <Input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="admin@email.com" />
+          <InputGroup>
+            <LeftIcon><FiMail size={18} /></LeftIcon>
+            <Input
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder="admin@email.com"
+              className={error ? 'error' : ''}
+              autoComplete="username"
+              inputMode="email"
+            />
+          </InputGroup>
         </Field>
         <Field>
           <Label>Mot de passe</Label>
-          <Input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" />
+          <InputGroup>
+            <LeftIcon><FiLock size={18} /></LeftIcon>
+            <Input
+              type={showPassword ? 'text' : 'password'}
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              placeholder="••••••••"
+              className={error ? 'error' : ''}
+              autoComplete="current-password"
+            />
+            <PasswordToggle type="button" onClick={() => setShowPassword(s => !s)} aria-label="Afficher le mot de passe">
+              {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+            </PasswordToggle>
+          </InputGroup>
         </Field>
         <Actions>
           <Button type="button" onClick={handleLogin} disabled={loading}>{loading ? 'Connexion…' : 'Se connecter'}</Button>

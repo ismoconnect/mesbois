@@ -7,31 +7,21 @@ import { auth } from '../firebase/config';
 const Shell = styled.div`
   min-height: 100vh;
   background: #f5f7f6;
-  display: grid;
-  grid-template-columns: 240px 1fr;
-  grid-template-rows: 56px 1fr;
-  grid-template-areas:
-    'sidebar header'
-    'sidebar content';
-
-  @media (max-width: 900px) {
-    grid-template-columns: 1fr;
-    grid-template-rows: 56px auto 1fr;
-    grid-template-areas:
-      'header'
-      'sidebar'
-      'content';
-  }
 `;
 
 const HeaderBar = styled.header`
-  grid-area: header;
   background: #ffffff;
   border-bottom: 1px solid #e6eae7;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 16px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 56px;
+  z-index: 30;
 `;
 
 const Brand = styled(Link)`
@@ -44,10 +34,22 @@ const Brand = styled(Link)`
 `;
 
 const Sidebar = styled.aside`
-  grid-area: sidebar;
   background: #ffffff;
   border-right: 1px solid #e6eae7;
   padding: 16px 12px;
+  position: fixed;
+  top: 56px; /* sous le header */
+  left: 0;
+  width: 240px;
+  bottom: 0;
+  overflow: hidden; /* ne scroll plus */
+
+  @media (max-width: 900px) {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+  }
 `;
 
 const NavItem = styled(Link)`
@@ -62,11 +64,29 @@ const NavItem = styled(Link)`
 `;
 
 const Content = styled.main`
-  grid-area: content;
   padding: 24px 16px;
+  padding-top: calc(56px + 16px);
+  /* Détache visuellement le contenu de la sidebar: retrait augmenté */
+  padding-left: calc(240px + 56px);
+  height: 100vh;
+  overflow: auto; /* seul le contenu scrolle */
   @media (min-width: 768px) {
-    padding: 32px 24px;
+    padding-right: 24px;
+    padding-bottom: 24px;
   }
+  @media (max-width: 900px) {
+    padding-left: 16px;
+    padding-top: calc(56px + 16px);
+    height: auto;
+    overflow: visible;
+  }
+`;
+
+const Inner = styled.div`
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  gap: 16px;
 `;
 
 const LogoutBtn = styled.button`
@@ -96,9 +116,16 @@ const AdminLayout = ({ children }) => {
       </HeaderBar>
       <Sidebar>
         <NavItem to="/dashboard">Tableau de bord</NavItem>
+        <NavItem to="/users">Utilisateurs</NavItem>
+        <NavItem to="/orders">Commandes</NavItem>
+        <NavItem to="/carts">Paniers</NavItem>
         <NavItem to="/images">Images de la Home</NavItem>
       </Sidebar>
-      <Content>{children}</Content>
+      <Content>
+        <Inner>
+          {children}
+        </Inner>
+      </Content>
     </Shell>
   );
 };

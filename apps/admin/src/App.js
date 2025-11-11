@@ -3,6 +3,12 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminImages from './pages/AdminImages';
+import Users from './pages/Users';
+import UserDetail from './pages/UserDetail';
+import Orders from './pages/Orders';
+import OrderDetail from './pages/OrderDetail';
+import Carts from './pages/Carts';
+import CartDetail from './pages/CartDetail';
 import AdminRoute from './components/Auth/AdminRoute';
 import AdminLayout from './layout/AdminLayout';
 
@@ -17,6 +23,66 @@ const App = () => {
           <AdminRoute>
             <AdminLayout>
               <AdminDashboard />
+            </AdminLayout>
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/users"
+        element={
+          <AdminRoute>
+            <AdminLayout>
+              <Users />
+            </AdminLayout>
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/users/:uid"
+        element={
+          <AdminRoute>
+            <AdminLayout>
+              <UserDetail />
+            </AdminLayout>
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/orders"
+        element={
+          <AdminRoute>
+            <AdminLayout>
+              <Orders />
+            </AdminLayout>
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/orders/:id"
+        element={
+          <AdminRoute>
+            <AdminLayout>
+              <OrderDetail />
+            </AdminLayout>
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/carts"
+        element={
+          <AdminRoute>
+            <AdminLayout>
+              <Carts />
+            </AdminLayout>
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/carts/:uid"
+        element={
+          <AdminRoute>
+            <AdminLayout>
+              <CartDetail />
             </AdminLayout>
           </AdminRoute>
         }
