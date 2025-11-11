@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 import { FiTruck, FiShield, FiStar, FiHeart } from 'react-icons/fi';
-import ProductQuickView from '../components/ProductQuickView';
 import { useCart } from '../contexts/CartContext';
 import toast from 'react-hot-toast';
 
@@ -785,8 +784,7 @@ const CTASection = styled.section`
 
 const Home = () => {
   const [email, setEmail] = useState('');
-  const [quickViewOpen, setQuickViewOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState(null);
+  
   const { addToCart } = useCart();
 
   // Données de démonstration pour les produits phares
@@ -809,10 +807,7 @@ const Home = () => {
 
  
 
-  const handleQuickViewAddToCart = (product) => {
-    if (!product) return;
-    handleAddToCart(product);
-  };
+  
 
   return (
     <HomeContainer>
@@ -888,12 +883,7 @@ const Home = () => {
         </CategoriesNav>
       </ProductsSection>
 
-      <ProductQuickView 
-        open={quickViewOpen}
-        product={selectedProduct}
-        onClose={() => setQuickViewOpen(false)}
-        onAddToCart={handleQuickViewAddToCart}
-      />
+      
 
       {/* Statistiques */}
       <StatsSection>
