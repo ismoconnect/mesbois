@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
-import { FiTruck, FiShield, FiStar, FiHeart, FiTrendingUp, FiUsers, FiShoppingCart, FiClock } from 'react-icons/fi';
+import { FiTruck, FiShield, FiStar, FiHeart } from 'react-icons/fi';
 import ProductQuickView from '../components/ProductQuickView';
 import { useCart } from '../contexts/CartContext';
 import toast from 'react-hot-toast';
@@ -530,20 +530,7 @@ const ProductsSubtitle = styled.p`
   margin: 6px auto 0;
 `;
 
-const ProductsStats = styled.div`
-  margin: 12px 0 20px;
-  order: 2;
-  
-  @media (max-width: 768px) {
-    order: 4; /* After ViewAllButton on mobile */
-    background: #ffffff;
-    border: 1px solid #e6eae7;
-    border-radius: 12px;
-    padding: 24px 16px; /* doubled height */
-    min-height: 96px; /* ensure visibly taller */
-    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
-  }
-`;
+ 
 
 const StatsGrid = styled.div`
   display: grid;
@@ -561,230 +548,9 @@ const StatsGrid = styled.div`
   }
 `;
 
-const StatItem = styled.div`
-  text-align: center;
-  padding: 16px;
-  background: #f8f9fa;
-  border-radius: 10px;
-  
-  @media (max-width: 768px) {
-    flex: 1 1 0;
-    min-width: 0;
-    text-align: center;
-    padding: 0 4px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    white-space: normal;
-    border: 0;
+ 
 
-    svg {
-      flex: 0 0 auto;
-      width: 16px;
-      height: 16px;
-    }
-    h4 {
-      margin: 0;
-      font-size: 12px;
-      line-height: 1.2;
-      font-weight: 700;
-      text-align: center;
-    }
-    p {
-      display: none;
-    }
-  }
-`;
-
-const ProductsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 16px;
-  order: 3;
-  
-  @media (max-width: 768px) {
-    order: 2; /* Immediately after header/subtitle */
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-  }
-`;
-
-const ProductCardEnhanced = styled.div`
-  border: 1px solid #e6eae7;
-  border-radius: 12px;
-  overflow: hidden;
-  background: #fff;
-  
-  @media (max-width: 768px) {
-    border-radius: 10px;
-  }
-`;
-
-const ProductImageContainer = styled.div`
-  position: relative;
-  aspect-ratio: 4/3;
-  overflow: hidden;
-  
-  @media (max-width: 768px) {
-    aspect-ratio: 1 / 1; /* reduce height on mobile */
-  }
-`;
-
-const ProductImage = styled.img`
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-`;
-
-const ProductBadges = styled.div`
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  display: flex;
-  gap: 6px;
-`;
-
-const Badge = styled.span`
-  padding: 4px 8px;
-  font-size: 12px;
-  border-radius: 999px;
-  color: #fff;
-  background: ${props => (props.type === 'sale' ? '#e74c3c' : '#27ae60')};
-`;
-
-const ProductContent = styled.div`
-  padding: 12px;
-  
-  @media (max-width: 768px) {
-    padding: 8px;
-  }
-`;
-
-const ProductHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 6px;
-`;
-
-const ProductName = styled.h4`
-  font-size: 16px;
-  margin: 0;
-  color: #1e3a22;
-  
-  @media (max-width: 768px) {
-    font-size: 14px;
-  }
-`;
-
-const ProductPrice = styled.span`
-  font-weight: 700;
-  color: #2c5530;
-  
-  @media (max-width: 768px) {
-    font-size: 14px;
-  }
-`;
-
-const ProductDescription = styled.p`
-  font-size: 14px;
-  color: #55625a;
-  
-  @media (max-width: 768px) {
-    display: none; /* hide to make cards shorter */
-  }
-`;
-
-const ProductInfo = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 8px;
-`;
-
-const ProductRating = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 6px;
-`;
-
-const ProductStock = styled.span`
-  font-size: 12px;
-  color: ${props => (props.inStock ? '#27ae60' : '#e74c3c')};
-`;
-
-const ProductActions = styled.div`
-  display: flex;
-  gap: 10px;
-  margin-top: 12px;
-  
-  @media (max-width: 768px) {
-    gap: 8px;
-    margin-top: 8px;
-  }
-`;
-
-const AddToCartButton = styled.button`
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: #2c5530;
-  color: white;
-  padding: 8px 12px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  
-  @media (max-width: 768px) {
-    padding: 6px 10px;
-    border-radius: 6px;
-  }
-`;
-
-const ViewButton = styled(Link)`
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 1px solid #cfd6d1;
-  color: #2c5530;
-  text-decoration: none;
-  font-weight: 600;
-  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
-  -webkit-tap-highlight-color: transparent;
-  
-  &:hover {
-    background: #2c5530;
-    color: #ffffff;
-    border-color: #2c5530;
-  }
-  
-  @media (max-width: 768px) {
-    padding: 6px 10px;
-    border-radius: 6px;
-  }
-`;
-
-const ViewAllButton = styled(Link)`
-  display: inline-block;
-  margin: 16px auto 0;
-  padding: 10px 16px;
-  border-radius: 8px;
-  background: #2c5530;
-  color: white;
-  text-decoration: none;
-  order: 4;
-  
-  @media (max-width: 768px) {
-    order: 3; /* place above stats on mobile */
-    margin-top: 12px;
-  }
-`;
+ 
 
 const StatsSection = styled.section`
   padding: 28px 0;
@@ -1024,92 +790,7 @@ const Home = () => {
   const { addToCart } = useCart();
 
   // Données de démonstration pour les produits phares
-  const featuredProducts = [
-    {
-      id: '1',
-      name: 'Bûches de Chêne Premium',
-      description: 'Bûches de chêne séchées 2 ans, idéales pour un feu de longue durée avec une excellente valeur calorifique.',
-      price: 45.99,
-      category: 'bûches',
-      type: 'chêne',
-      stock: 150,
-      image: 'https://images.unsplash.com/photo-1544966503-7cc4acb4c1a9?w=400',
-      rating: 4.8,
-      reviewCount: 127,
-      sale: false,
-      new: false
-    },
-    {
-      id: '2',
-      name: 'Granulés de Bois Certifiés',
-      description: 'Granulés de bois certifiés DIN Plus, parfaits pour poêles et chaudières à granulés.',
-      price: 6.99,
-      category: 'granulés',
-      type: 'mélange',
-      stock: 200,
-      image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400',
-      rating: 4.9,
-      reviewCount: 89,
-      sale: true,
-      new: false
-    },
-    {
-      id: '3',
-      name: 'Bûches de Hêtre Séchées',
-      description: 'Bûches de hêtre séchées naturellement, excellent pouvoir calorifique et flamme vive.',
-      price: 42.50,
-      category: 'bûches',
-      type: 'hêtre',
-      stock: 120,
-      image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400',
-      rating: 4.7,
-      reviewCount: 95,
-      sale: false,
-      new: true
-    },
-    {
-      id: '4',
-      name: 'Pellets Premium',
-      description: 'Pellets de qualité premium, faible taux de cendre et haute performance énergétique.',
-      price: 8.50,
-      category: 'pellets',
-      type: 'premium',
-      stock: 180,
-      image: 'https://images.unsplash.com/photo-1584464491033-06628f3a6b7b?w=400',
-      rating: 4.6,
-      reviewCount: 76,
-      sale: false,
-      new: false
-    },
-    {
-      id: '5',
-      name: 'Kit Allumage Naturel',
-      description: 'Kit complet pour allumer votre feu facilement avec des produits naturels et écologiques.',
-      price: 12.99,
-      category: 'allumage',
-      type: 'naturel',
-      stock: 85,
-      image: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400',
-      rating: 4.5,
-      reviewCount: 43,
-      sale: true,
-      new: false
-    },
-    {
-      id: '6',
-      name: 'Bûches de Charme',
-      description: 'Bûches de charme séchées, combustion lente et régulière, parfait pour la nuit.',
-      price: 48.99,
-      category: 'bûches',
-      type: 'charme',
-      stock: 95,
-      image: 'https://images.unsplash.com/photo-1580674684081-7617fbf3d745?w=400',
-      rating: 4.8,
-      reviewCount: 112,
-      sale: false,
-      new: false
-    }
-  ];
+ 
 
   const handleNewsletterSubmit = (e) => {
     e.preventDefault();
@@ -1126,13 +807,7 @@ const Home = () => {
     toast.success('Produit ajouté au panier');
   };
 
-  const openQuickView = (product) => {
-    setSelectedProduct(product);
-    setQuickViewOpen(true);
-    if (typeof window !== 'undefined') {
-      window.scrollTo({ top: 0, behavior: 'auto' });
-    }
-  };
+ 
 
   const handleQuickViewAddToCart = (product) => {
     if (!product) return;
