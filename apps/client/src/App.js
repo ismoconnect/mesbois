@@ -8,7 +8,7 @@ import Header from './components/Layout/Header';
 import styled from 'styled-components';
 import PrivateRoute from './components/Auth/PrivateRoute';
 
-// Pages
+// Pages (client) – eager where needed
 import Home from './pages/Home';
 import Products from './pages/Products';
 import ProductDetail from './pages/ProductDetail';
@@ -22,6 +22,7 @@ import OrderDetail from './pages/OrderDetail';
 import OrderReview from './pages/OrderReview';
 import About from './pages/About';
 import Contact from './pages/Contact';
+
 import Settings from './pages/Settings';
 import Dashboard from './pages/Dashboard';
 
@@ -42,12 +43,17 @@ function RootLayout() {
   const path = location.pathname || '';
   const isDashboard = path === '/dashboard';
   const isDashboardArea = isDashboard || path.startsWith('/dashboard/') || path === '/profile' || path === '/orders' || path.startsWith('/orders/') || path === '/settings' || path.startsWith('/settings/');
+  const isMinimalArea = isDashboardArea;
   return (
     <AppContainer className="App">
-      {!isDashboardArea && <Header />}
-      <Layout $noHeader={isDashboardArea}>
+      {!isMinimalArea && <Header />}
+      {isMinimalArea ? (
         <Outlet />
-      </Layout>
+      ) : (
+        <Layout $noHeader={isMinimalArea}>
+          <Outlet />
+        </Layout>
+      )}
       <Toaster 
         position="top-right"
         toastOptions={{
@@ -82,6 +88,7 @@ const router = createBrowserRouter(
       <Route index element={<Home />} />
       <Route path="products" element={<Products />} />
       <Route path="product/:id" element={<ProductDetail />} />
+      
       <Route path="cart" element={<Cart />} />
       <Route path="checkout" element={<Checkout />} />
       <Route path="login" element={<Login />} />

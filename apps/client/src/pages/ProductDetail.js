@@ -4,20 +4,19 @@ import styled from 'styled-components';
 import { FiStar, FiShoppingCart, FiTruck, FiShield, FiArrowLeft, FiPlus, FiMinus } from 'react-icons/fi';
 import { useCart } from '../contexts/CartContext';
 import { getProductById } from '../firebase/products';
+import { products as catalogue } from '../data/catalogue.js';
 import toast from 'react-hot-toast';
 
-const FullScreenWrapper = styled.div`
-  position: fixed;
-  inset: 0;
-  background: #ffffff;
-  z-index: 9999;
-  overflow: auto;
-`;
+ 
 
 const ProductDetailContainer = styled.div`
-  max-width: 1200px;
+  max-width: 1000px;
   margin: 0 auto;
-  padding: 40px 20px;
+  padding: 24px 16px;
+
+  @media (max-width: 768px) {
+    padding: 16px 12px;
+  }
 `;
 
 const BackButton = styled.button`
@@ -29,41 +28,55 @@ const BackButton = styled.button`
   color: #2c5530;
   cursor: pointer;
   font-weight: 500;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
   
   &:hover {
     color: #1e3a22;
+  }
+  
+  @media (max-width: 768px) {
+    margin-bottom: 12px;
   }
 `;
 
 const ProductContainer = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 60px;
+  gap: 32px;
   background: white;
   border-radius: 12px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  padding: 40px;
+  padding: 24px;
+  
+  @media (max-width: 992px) {
+    gap: 24px;
+    padding: 20px;
+  }
   
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
-    gap: 30px;
+    gap: 16px;
+    padding: 16px;
   }
 `;
 
 const ProductImage = styled.img`
   width: 100%;
-  height: 400px;
+  height: 320px;
   object-fit: contain; /* show the entire product without cropping */
   border-radius: 12px;
   background: #ffffff; /* neutral backdrop around contained image */
   
+  @media (max-width: 992px) {
+    height: 280px;
+  }
+  
   @media (max-width: 768px) {
-    height: 320px;
+    height: 240px;
   }
   
   @media (max-width: 480px) {
-    height: 260px;
+    height: 200px;
   }
 `;
 
@@ -200,9 +213,9 @@ const AddToCartButton = styled.button`
 
 const Features = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 20px;
-  margin-top: 40px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-top: 24px;
 `;
 
 const Feature = styled.div`
@@ -264,11 +277,58 @@ const ProductDetail = () => {
       try {
         setLoading(true);
         const result = await getProductById(id);
-        
-        if (result.success) {
+
+        if (result.success && result.data) {
           setProduct(result.data);
         } else {
-          setError(result.error);
+          // Fallback local catalogue
+          const mapMainToCategory = (main) => {
+            const m = (main || '').toLowerCase();
+            if (['bois', 'bûches', 'buches', 'charbon'].includes(m)) return 'bûches';
+            if (['pellets', 'granulés', 'granules'].includes(m)) return 'pellets';
+            if (['allumage', 'accessoires'].includes(m)) return 'accessoires';
+            if (['poêles', 'poeles'].includes(m)) return 'poêles';
+            if (['bûches densifiées', 'buches densifiees', 'densifiees'].includes(m)) return 'bûches densifiées';
+            return '';
+          };
+
+          const buildFromCatalogue = (p, idx) => ({
+            id: p.id || `p-${idx}`,
+            name: p.name,
+            description: [p.vendor, p.regularPrice ? `(Prix régulier ${p.regularPrice}€)` : null].filter(Boolean).join(' · '),
+            price: p.price,
+            regularPrice: p.regularPrice,
+            category: mapMainToCategory(p.main),
+            type: '',
+            stock: 1,
+            image: '/placeholder-wood.jpg',
+            rating: 0,
+            reviewCount: 0,
+            sale: p.regularPrice ? p.price < p.regularPrice : false,
+            new: false,
+            weight: '',
+            dimensions: '',
+            humidity: '',
+            calorificValue: ''
+          });
+
+          let local = null;
+          if (id && id.startsWith('p-')) {
+            const idx = parseInt(id.split('-')[1], 10);
+            if (!Number.isNaN(idx) && idx >= 0 && idx < catalogue.length) {
+              local = buildFromCatalogue(catalogue[idx], idx);
+            }
+          }
+          if (!local) {
+            const idx = catalogue.findIndex(p => String(p.id) === String(id));
+            if (idx !== -1) local = buildFromCatalogue(catalogue[idx], idx);
+          }
+
+          if (local) {
+            setProduct(local);
+          } else {
+            setError(result.error || 'Produit non trouvé');
+          }
         }
       } catch (err) {
         setError('Erreur lors du chargement du produit');
@@ -325,27 +385,26 @@ const ProductDetail = () => {
   const cartItem = getCartItem(product.id);
 
   return (
-    <FullScreenWrapper>
-      <ProductDetailContainer>
-        <BackButton onClick={() => navigate(-1)}>
-          <FiArrowLeft size={20} />
-          Retour
-        </BackButton>
+    <ProductDetailContainer>
+      <BackButton onClick={() => navigate(-1)}>
+        <FiArrowLeft size={20} />
+        Retour
+      </BackButton>
+      
+      <ProductContainer>
+        <div>
+          <ProductImage 
+            src={product.image || '/placeholder-wood.jpg'} 
+            alt={product.name}
+            onError={(e) => {
+              e.target.src = '/placeholder-wood.jpg';
+            }}
+          />
+        </div>
         
-        <ProductContainer>
-          <div>
-            <ProductImage 
-              src={product.image || '/placeholder-wood.jpg'} 
-              alt={product.name}
-              onError={(e) => {
-                e.target.src = '/placeholder-wood.jpg';
-              }}
-            />
-          </div>
-          
-          <ProductInfo>
-            <h1>{product.name}</h1>
-            <div className="price">{product.price}€</div>
+        <ProductInfo>
+          <h1>{product.name}</h1>
+          <div className="price">{product.price}€</div>
             
             <Rating>
               <div className="stars">
@@ -427,7 +486,6 @@ const ProductDetail = () => {
           </ProductInfo>
         </ProductContainer>
       </ProductDetailContainer>
-    </FullScreenWrapper>
   );
 };
 

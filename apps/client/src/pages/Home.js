@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../firebase/config';
 import { FiTruck, FiShield, FiStar, FiHeart } from 'react-icons/fi';
  
 
@@ -783,7 +785,36 @@ const CTASection = styled.section`
 
 const Home = () => {
   const [email, setEmail] = useState('');
+  const [categoryImages, setCategoryImages] = useState({
+    bois: "https://images.unsplash.com/photo-1527061011665-3652c757a4d7?q=80&w=1600&auto=format&fit=crop",
+    accessoires: "https://images.unsplash.com/photo-1527061011665-3652c757a4d7?q=80&w=1600&auto=format&fit=crop",
+    buches_densifiees: "https://images.unsplash.com/photo-1527061011665-3652c757a4d7?q=80&w=1600&auto=format&fit=crop",
+    pellets: "https://images.unsplash.com/photo-1615485737594-3b42cfaa6a8a?q=80&w=1600&auto=format&fit=crop",
+    poeles: "https://images.unsplash.com/photo-1556911261-6bd341186b66?q=80&w=1600&auto=format&fit=crop"
+  });
   
+  React.useEffect(() => {
+    let mounted = true;
+    const run = async () => {
+      try {
+        const ref = doc(db, 'settings', 'home');
+        const snap = await getDoc(ref);
+        if (mounted && snap.exists()) {
+          const data = snap.data() || {};
+          const ci = data.categoryImages || {};
+          setCategoryImages(prev => ({
+            bois: ci.bois || prev.bois,
+            accessoires: ci.accessoires || prev.accessoires,
+            buches_densifiees: ci.buches_densifiees || prev.buches_densifiees,
+            pellets: ci.pellets || prev.pellets,
+            poeles: ci.poeles || prev.poeles,
+          }));
+        }
+      } catch (e) {}
+    };
+    run();
+    return () => { mounted = false; };
+  }, []);
   
 
   // Données de démonstration pour les produits phares
@@ -860,19 +891,19 @@ const Home = () => {
           </ProductsSubtitle>
         </ProductsHeader>
         <CategoriesNav>
-          <CategoryCard to="/products?main=bois" style={{ '--bg-img': "url('https://images.unsplash.com/photo-1527061011665-3652c757a4d7?q=80&w=1600&auto=format&fit=crop')" }}>
+          <CategoryCard to="/products?main=bois" style={{ '--bg-img': `url('${categoryImages.bois}')` }}>
             <span>Bois de chauffage</span>
           </CategoryCard>
-          <CategoryCard to="/products?main=accessoires" style={{ '--bg-img': "url('https://images.unsplash.com/photo-1527061011665-3652c757a4d7?q=80&w=1600&auto=format&fit=crop')" }}>
+          <CategoryCard to="/products?main=accessoires" style={{ '--bg-img': `url('${categoryImages.accessoires}')` }}>
             <span>Accessoires</span>
           </CategoryCard>
-          <CategoryCard to="/products?main=buches-densifiees" style={{ '--bg-img': "url('https://images.unsplash.com/photo-1527061011665-3652c757a4d7?q=80&w=1600&auto=format&fit=crop')" }}>
+          <CategoryCard to="/products?main=buches-densifiees" style={{ '--bg-img': `url('${categoryImages.buches_densifiees}')` }}>
             <span>Bûches densifiées</span>
           </CategoryCard>
-          <CategoryCard to="/products?main=pellets" style={{ '--bg-img': "url('https://images.unsplash.com/photo-1615485737594-3b42cfaa6a8a?q=80&w=1600&auto=format&fit=crop')" }}>
+          <CategoryCard to="/products?main=pellets" style={{ '--bg-img': `url('${categoryImages.pellets}')` }}>
             <span>Pellets de bois</span>
           </CategoryCard>
-          <CategoryCard to="/products?main=poeles" style={{ '--bg-img': "url('https://images.unsplash.com/photo-1556911261-6bd341186b66?q=80&w=1600&auto=format&fit=crop')" }}>
+          <CategoryCard to="/products?main=poeles" style={{ '--bg-img': `url('${categoryImages.poeles}')` }}>
             <span>Poêles</span>
           </CategoryCard>
         </CategoriesNav>

@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { FiFilter, FiGrid, FiList, FiStar, FiShoppingCart, FiTag, FiTruck, FiShield } from 'react-icons/fi';
 import { products as catalogue } from '../data/catalogue.js';
-import ProductQuickView from '../components/ProductQuickView';
 import { useCart } from '../contexts/CartContext';
 import toast from 'react-hot-toast';
 
@@ -281,13 +280,13 @@ const SearchInput = styled.input`
 
 const ProductsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
-  margin-bottom: 40px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
 
   @media (max-width: 992px) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 16px;
+    gap: 12px;
   }
 
   @media (max-width: 600px) {
@@ -302,28 +301,57 @@ const ProductsList = styled.div`
   gap: 20px;
 `;
 
+const PaginationBar = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 12px 0 4px;
+
+  @media (min-width: 769px) {
+    justify-content: flex-end;
+  }
+`;
+
+const PageButton = styled.button`
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 2px solid ${p => p.$active ? '#2c5530' : '#e0e0e0'};
+  background: ${p => p.$active ? '#2c5530' : '#fff'};
+  color: ${p => p.$active ? '#fff' : '#2c5530'};
+  font-weight: 700;
+  font-size: 13px;
+  min-width: 36px;
+`;
+
+const PageInfo = styled.span`
+  font-size: 13px;
+  color: #666;
+  margin-left: 6px;
+`;
+
 // Composants pour les cartes produits améliorées
 const ProductCardEnhanced = styled.div`
   background: white;
-  border-radius: 16px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+  border-radius: 14px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
   overflow: hidden;
-  transition: all 0.3s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
   position: relative;
   
   &:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+    transform: translateY(-4px);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.12);
   }
 `;
 
 const ProductImageContainer = styled.div`
   position: relative;
-  height: 200px;
+  height: 160px;
   overflow: hidden;
   
   @media (max-width: 768px) {
-    height: 130px;
+    height: 120px;
   }
 `;
 
@@ -350,20 +378,20 @@ const ProductBadges = styled.div`
 const Badge = styled.div`
   background: ${props => props.type === 'sale' ? '#e74c3c' : props.type === 'new' ? '#27ae60' : '#2c5530'};
   color: white;
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 16px;
+  font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
   
   @media (max-width: 768px) {
-    padding: 4px 8px;
+    padding: 3px 6px;
     font-size: 10px;
   }
 `;
 
 const ProductContent = styled.div`
-  padding: 25px;
+  padding: 16px;
   
   @media (max-width: 768px) {
     padding: 10px;
@@ -377,12 +405,12 @@ const ProductHeader = styled.div`
   margin-bottom: 15px;
   
   @media (max-width: 768px) {
-    margin-bottom: 10px;
+    margin-bottom: 8px;
   }
 `;
 
 const ProductName = styled.h3`
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
   color: #2c5530;
   margin: 0;
@@ -390,25 +418,25 @@ const ProductName = styled.h3`
   flex: 1;
   
   @media (max-width: 768px) {
-    font-size: 14px;
+    font-size: 13px;
   }
 `;
 
 const ProductPrice = styled.div`
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 700;
   color: #27ae60;
   margin-left: 15px;
   
   @media (max-width: 768px) {
-    font-size: 16px;
+    font-size: 15px;
     margin-left: 8px;
   }
 `;
 
 const ProductDescription = styled.p`
   color: #666;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.5;
   margin-bottom: 15px;
   display: -webkit-box;
@@ -418,7 +446,7 @@ const ProductDescription = styled.p`
   
   @media (max-width: 768px) {
     font-size: 12px;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
   }
 `;
 
@@ -426,10 +454,10 @@ const ProductInfo = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
+  margin-bottom: 12px;
   
   @media (max-width: 768px) {
-    margin-bottom: 8px;
+    margin-bottom: 6px;
   }
 `;
 
@@ -462,8 +490,8 @@ const ProductStock = styled.div`
 const ProductSpecs = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-bottom: 20px;
+  gap: 6px;
+  margin-bottom: 14px;
   font-size: 12px;
   color: #666;
   
@@ -480,7 +508,7 @@ const ProductSpecs = styled.div`
 
 const ProductActions = styled.div`
   display: flex;
-  gap: 10px;
+  gap: 8px;
   
   @media (max-width: 768px) {
     gap: 6px;
@@ -492,7 +520,7 @@ const AddToCartButton = styled.button`
   background: #2c5530;
   color: white;
   border: none;
-  padding: 12px;
+  padding: 10px;
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
@@ -500,8 +528,8 @@ const AddToCartButton = styled.button`
   align-items: center;
   justify-content: center;
   gap: 8px;
-  transition: all 0.3s ease;
-  font-size: 14px;
+  transition: all 0.2s ease;
+  font-size: 13px;
   
   &:hover {
     background: #1e3a22;
@@ -514,8 +542,8 @@ const AddToCartButton = styled.button`
   }
   
   @media (max-width: 768px) {
-    padding: 10px;
-    font-size: 13px;
+    padding: 8px;
+    font-size: 12.5px;
     border-radius: 6px;
     gap: 6px;
   }
@@ -525,15 +553,15 @@ const QuickViewButton = styled.button`
   background: transparent;
   color: #2c5530;
   border: 2px solid #2c5530;
-  padding: 12px 20px;
+  padding: 10px 14px;
   border-radius: 8px;
   font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  transition: all 0.3s ease;
-  font-size: 14px;
+  transition: all 0.2s ease;
+  font-size: 13px;
   cursor: pointer;
   
   &:hover {
@@ -542,8 +570,8 @@ const QuickViewButton = styled.button`
   }
   
   @media (max-width: 768px) {
-    padding: 10px 14px;
-    font-size: 13px;
+    padding: 8px 10px;
+    font-size: 12.5px;
     border-radius: 6px;
     gap: 6px;
   }
@@ -577,12 +605,39 @@ const Products = () => {
     available: searchParams.get('available') === 'true'
   });
 
+  
+
   const [mainCategory, setMainCategory] = useState(searchParams.get('main') || '');
   const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '');
   const [viewMode, setViewMode] = useState('grid');
-  const [quickViewOpen, setQuickViewOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState(null);
+  const navigate = useNavigate();
   const { addToCart } = useCart();
+
+  // Pagination (mobile uniquement)
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isMobile, setIsMobile] = useState(false);
+  const [itemsPerPage, setItemsPerPage] = useState(10); // mobile: 10, desktop: 8
+
+  useEffect(() => {
+    const mq = typeof window !== 'undefined' ? window.matchMedia('(max-width: 768px)') : null;
+    const update = () => {
+      const mobile = mq ? mq.matches : false;
+      setIsMobile(mobile);
+      setItemsPerPage(mobile ? 10 : 8);
+    };
+    update();
+    if (mq && mq.addEventListener) mq.addEventListener('change', update);
+    else if (mq && mq.addListener) mq.addListener(update);
+    return () => {
+      if (mq && mq.removeEventListener) mq.removeEventListener('change', update);
+      else if (mq && mq.removeListener) mq.removeListener(update);
+    };
+  }, []);
+
+  // Réinitialiser la page si les filtres changent
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, JSON.stringify(filters), mainCategory]);
 
   // Synchronise la catégorie principale avec l'URL
   useEffect(() => {
@@ -681,18 +736,7 @@ const Products = () => {
     toast.success('Produit ajouté au panier');
   };
 
-  const openQuickView = (product) => {
-    setSelectedProduct(product);
-    setQuickViewOpen(true);
-    if (typeof window !== 'undefined') {
-      window.scrollTo({ top: 0, behavior: 'auto' });
-    }
-  };
-
-  const handleQuickViewAddToCart = (product) => {
-    if (!product) return;
-    handleAddToCart(product);
-  };
+  
 
   // Logique de filtrage des produits
   const mapToMainCategory = (p) => {
@@ -766,6 +810,30 @@ const Products = () => {
 
     return true;
   });
+
+  // Pagination calculée (après le filtrage)
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / (itemsPerPage || 1)));
+  const startIdx = (currentPage - 1) * itemsPerPage;
+  const endIdx = startIdx + itemsPerPage;
+  const pagedProducts = filteredProducts.slice(startIdx, endIdx);
+
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxToShow = 5;
+    if (totalPages <= maxToShow) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      const start = Math.max(1, Math.min(currentPage - 2, totalPages - (maxToShow - 1)));
+      const end = Math.min(totalPages, start + maxToShow - 1);
+      for (let i = start; i <= end; i++) pages.push(i);
+    }
+    return pages;
+  };
+
+  // Clampe la page si le nombre total change
+  useEffect(() => {
+    setCurrentPage(p => Math.min(p, totalPages));
+  }, [totalPages]);
 
   // Statistiques dynamiques (après définition de filteredProducts)
   const totalProducts = allProducts.length;
@@ -961,7 +1029,7 @@ const Products = () => {
           
           {viewMode === 'grid' ? (
             <ProductsGrid>
-              {filteredProducts.map(product => (
+              {pagedProducts.map(product => (
                 <ProductCardEnhanced key={product.id}>
                   <ProductImageContainer>
                     <ProductImage 
@@ -1026,11 +1094,11 @@ const Products = () => {
                     </ProductSpecs>
                     
                     <ProductActions>
-                      <AddToCartButton onClick={() => handleAddToCart(product.id, product.name)}>
+                      <AddToCartButton onClick={() => handleAddToCart(product)}>
                         <FiShoppingCart size={16} />
                         Ajouter
                       </AddToCartButton>
-                      <QuickViewButton onClick={() => openQuickView(product)}>
+                      <QuickViewButton onClick={() => navigate(`/product/${product.id}`)}>
                         Voir
                       </QuickViewButton>
                     </ProductActions>
@@ -1040,7 +1108,7 @@ const Products = () => {
             </ProductsGrid>
           ) : (
             <ProductsList>
-              {filteredProducts.map(product => (
+              {pagedProducts.map(product => (
                 <ProductCardEnhanced key={product.id} style={{ display: 'flex', flexDirection: 'row' }}>
                   <ProductImageContainer style={{ width: '200px', height: '150px' }}>
                     <ProductImage 
@@ -1086,11 +1154,11 @@ const Products = () => {
                     </ProductInfo>
                     
                     <ProductActions>
-                      <AddToCartButton onClick={() => handleAddToCart(product.id, product.name)}>
+                      <AddToCartButton onClick={() => handleAddToCart(product)}>
                         <FiShoppingCart size={16} />
                         Ajouter
                       </AddToCartButton>
-                      <QuickViewButton onClick={() => openQuickView(product)}>
+                      <QuickViewButton onClick={() => navigate(`/product/${product.id}`)}>
                         Voir
                       </QuickViewButton>
                     </ProductActions>
@@ -1099,12 +1167,27 @@ const Products = () => {
               ))}
             </ProductsList>
           )}
-          <ProductQuickView 
-            open={quickViewOpen}
-            product={selectedProduct}
-            onClose={() => setQuickViewOpen(false)}
-            onAddToCart={handleQuickViewAddToCart}
-          />
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <PaginationBar>
+              <PageButton onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>
+                Précédent
+              </PageButton>
+              {getPageNumbers().map(n => (
+                <PageButton key={n} $active={n === currentPage} onClick={() => setCurrentPage(n)}>
+                  {n}
+                </PageButton>
+              ))}
+              {getPageNumbers()[getPageNumbers().length - 1] < totalPages && (
+                <PageInfo>…</PageInfo>
+              )}
+              <PageButton onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>
+                Suivant
+              </PageButton>
+            </PaginationBar>
+          )}
+
         </>
       )}
     </ProductsContainer>

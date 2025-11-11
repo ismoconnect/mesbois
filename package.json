@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Application web de vente de bois de chauffage",
   "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
   "dependencies": {
     "@testing-library/jest-dom": "^5.16.4",
     "@testing-library/react": "^13.3.0",
@@ -29,7 +32,11 @@
     "dev": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "dev:client": "npm --workspace apps/client start",
+    "build:client": "npm --workspace apps/client run build",
+    "dev:admin": "npm --workspace apps/admin start",
+    "build:admin": "npm --workspace apps/admin run build"
   },
   "eslintConfig": {
     "extends": [

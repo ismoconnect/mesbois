@@ -169,12 +169,13 @@ const Login = () => {
 
   const from = '/dashboard';
 
-  // Rediriger si déjà connecté
+  // Rediriger si déjà connecté (uniquement quand on est sur la page /login)
   React.useEffect(() => {
-    if (user) {
+    const path = typeof window !== 'undefined' ? window.location.pathname : '';
+    if (user && (path === '/login' || path.endsWith('/login'))) {
       navigate('/dashboard', { replace: true });
     }
-  }, [user, navigate, from]);
+  }, [user, navigate]);
 
   const handleChange = (e) => {
     setFormData({

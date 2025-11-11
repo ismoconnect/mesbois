@@ -178,9 +178,10 @@ const Register = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // Rediriger si déjà connecté
+  // Rediriger si déjà connecté (uniquement quand on est sur la page /register)
   React.useEffect(() => {
-    if (user) {
+    const path = typeof window !== 'undefined' ? window.location.pathname : '';
+    if (user && (path === '/register' || path.endsWith('/register'))) {
       navigate('/dashboard', { replace: true });
     }
   }, [user, navigate]);
