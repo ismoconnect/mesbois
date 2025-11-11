@@ -469,12 +469,7 @@ const NoProducts = styled.div`
   }
 `;
 
-const LoadingSpinner = styled.div`
-  text-align: center;
-  padding: 60px 20px;
-  font-size: 18px;
-  color: #2c5530;
-`;
+ 
 
 const Products = () => {
   const [searchParams, setSearchParams] = useSearchParams();

@@ -16,7 +16,6 @@ export const useCart = () => {
 export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([]);
   const { user } = useAuth();
-  const [unsub, setUnsub] = useState(null);
 
   // Charger le panier depuis le localStorage au montage
   useEffect(() => {
@@ -37,11 +36,7 @@ export const CartProvider = ({ children }) => {
 
   // Synchronisation Firestore lorsque l'utilisateur est connecté
   useEffect(() => {
-    // Nettoyer l'éventuel listener précédent
-    if (unsub) {
-      unsub();
-      setUnsub(null);
-    }
+    let unsubFn;
 
     const setup = async () => {
       if (!user) return; // pas connecté: rester en localStorage
@@ -55,7 +50,9 @@ export const CartProvider = ({ children }) => {
           // Merge local->remote (priorité à la plus grande quantity)
           const map = new Map();
           for (const it of remoteItems) map.set(it.id, it);
-          for (const it of cartItems) {
+          const localStr = localStorage.getItem('bois-de-chauffage-cart');
+          const localItems = (() => { try { return JSON.parse(localStr || '[]'); } catch { return []; } })();
+          for (const it of localItems) {
             const prev = map.get(it.id);
             if (!prev) map.set(it.id, it);
             else map.set(it.id, { ...prev, quantity: Math.max(prev.quantity || 0, it.quantity || 0) });
@@ -68,14 +65,16 @@ export const CartProvider = ({ children }) => {
             console.warn('Cart Firestore write skipped (permissions):', e?.code || e);
           }
         } else {
+          const localStr = localStorage.getItem('bois-de-chauffage-cart');
+          const localItems = (() => { try { return JSON.parse(localStr || '[]'); } catch { return []; } })();
           try {
-            await setDoc(cartRef, { items: cartItems, updatedAt: serverTimestamp() }, { merge: true });
+            await setDoc(cartRef, { items: localItems, updatedAt: serverTimestamp() }, { merge: true });
           } catch (e) {
             console.warn('Cart Firestore init skipped (permissions):', e?.code || e);
           }
         }
 
-        const unsubFn = onSnapshot(cartRef, (docSnap) => {
+        unsubFn = onSnapshot(cartRef, (docSnap) => {
           if (docSnap.exists()) {
             const data = docSnap.data();
             const items = Array.isArray(data.items) ? data.items : [];
@@ -84,7 +83,6 @@ export const CartProvider = ({ children }) => {
         }, (e) => {
           console.warn('Cart Firestore listener error (permissions):', e?.code || e);
         });
-        setUnsub(() => unsubFn);
       } catch (e) {
         console.warn('Cart Firestore read skipped (permissions):', e?.code || e);
         return; // rester en local
@@ -94,9 +92,8 @@ export const CartProvider = ({ children }) => {
     setup();
 
     return () => {
-      if (unsub) {
-        unsub();
-        setUnsub(null);
+      if (typeof unsubFn === 'function') {
+        unsubFn();
       }
     };
   }, [user]);

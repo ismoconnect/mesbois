@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { FiHome, FiShoppingBag, FiUser, FiSettings, FiLogOut } from 'react-icons/fi';
 

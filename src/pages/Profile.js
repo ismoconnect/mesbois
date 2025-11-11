@@ -192,7 +192,7 @@ const LogoutButton = styled.button`
 `;
 
 const Profile = () => {
-  const { user, userData, setUserData } = useAuth();
+  const { user, userData } = useAuth();
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);

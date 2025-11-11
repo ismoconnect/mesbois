@@ -200,23 +200,7 @@ const QuantityInput = styled.input`
   }
 `;
 
-const RemoveButton = styled.button`
-  background: #e74c3c;
-  color: white;
-  border: none;
-  padding: 8px;
-  border-radius: 6px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 12px;
-  transition: background-color 0.3s ease;
-  
-  &:hover {
-    background: #c0392b;
-  }
-`;
+ 
 
 const RemoveIconButton = styled.button`
   background: #fff5f5;
@@ -427,7 +411,7 @@ const LoginPrompt = styled.div`
 `;
 
 const Cart = () => {
-  const { cartItems, updateQuantity, removeFromCart, getCartTotal, clearCart } = useCart();
+  const { cartItems, updateQuantity, removeFromCart, getCartTotal } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
 
