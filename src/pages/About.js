@@ -6,6 +6,10 @@ const AboutContainer = styled.div`
   max-width: 1200px;
   margin: 0 auto;
   padding: 40px 20px;
+  
+  @media (max-width: 768px) {
+    padding: 0 16px 20px; /* remove top padding on mobile */
+  }
 `;
 
 const HeroSection = styled.section`
@@ -15,15 +19,21 @@ const HeroSection = styled.section`
   text-align: center;
   border-radius: 12px;
   margin-bottom: 60px;
+  
+  @media (max-width: 768px) {
+    padding: 24px 12px;
+    border-radius: 10px;
+    margin-bottom: 24px;
+  }
 `;
 
 const HeroTitle = styled.h1`
   font-size: 48px;
   font-weight: 700;
-  margin-bottom: 20px;
+  margin: 0 0 12px; /* remove default top margin */
   
   @media (max-width: 768px) {
-    font-size: 36px;
+    font-size: 28px;
   }
 `;
 
@@ -34,12 +44,16 @@ const HeroSubtitle = styled.p`
   margin: 0 auto;
   
   @media (max-width: 768px) {
-    font-size: 18px;
+    font-size: 16px;
   }
 `;
 
 const ContentSection = styled.section`
   margin-bottom: 60px;
+  
+  @media (max-width: 768px) {
+    margin-bottom: 24px;
+  }
 `;
 
 const SectionTitle = styled.h2`
@@ -48,6 +62,11 @@ const SectionTitle = styled.h2`
   color: #2c5530;
   margin-bottom: 30px;
   text-align: center;
+  
+  @media (max-width: 768px) {
+    font-size: 22px;
+    margin-bottom: 16px;
+  }
 `;
 
 const TextContent = styled.div`
@@ -56,6 +75,11 @@ const TextContent = styled.div`
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   padding: 40px;
   margin-bottom: 40px;
+  
+  @media (max-width: 768px) {
+    padding: 16px;
+    margin-bottom: 20px;
+  }
   
   p {
     font-size: 16px;
@@ -77,6 +101,12 @@ const ValuesGrid = styled.div`
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 30px;
   margin-bottom: 60px;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+  }
 `;
 
 const ValueCard = styled.div`
@@ -90,6 +120,11 @@ const ValueCard = styled.div`
   &:hover {
     transform: translateY(-5px);
   }
+  
+  @media (max-width: 768px) {
+    padding: 14px;
+    border-radius: 10px;
+  }
 `;
 
 const ValueIcon = styled.div`
@@ -102,6 +137,11 @@ const ValueIcon = styled.div`
   justify-content: center;
   margin: 0 auto 20px;
   color: white;
+  
+  @media (max-width: 768px) {
+    width: 56px;
+    height: 56px;
+  }
 `;
 
 const ValueTitle = styled.h3`
@@ -109,11 +149,20 @@ const ValueTitle = styled.h3`
   font-weight: 600;
   color: #2c5530;
   margin-bottom: 15px;
+  
+  @media (max-width: 768px) {
+    font-size: 16px;
+    margin-bottom: 8px;
+  }
 `;
 
 const ValueDescription = styled.p`
   color: #666;
   line-height: 1.6;
+  
+  @media (max-width: 768px) {
+    font-size: 13.5px;
+  }
 `;
 
 const TeamSection = styled.section`
@@ -121,6 +170,10 @@ const TeamSection = styled.section`
   border-radius: 12px;
   padding: 60px 40px;
   text-align: center;
+  
+  @media (max-width: 768px) {
+    padding: 20px 16px;
+  }
 `;
 
 const TeamTitle = styled.h2`
@@ -128,6 +181,11 @@ const TeamTitle = styled.h2`
   font-weight: 700;
   color: #2c5530;
   margin-bottom: 20px;
+  
+  @media (max-width: 768px) {
+    font-size: 22px;
+    margin-bottom: 10px;
+  }
 `;
 
 const TeamDescription = styled.p`
@@ -137,6 +195,11 @@ const TeamDescription = styled.p`
   max-width: 600px;
   margin-left: auto;
   margin-right: auto;
+  
+  @media (max-width: 768px) {
+    font-size: 14px;
+    margin-bottom: 16px;
+  }
 `;
 
 const StatsGrid = styled.div`
@@ -144,6 +207,12 @@ const StatsGrid = styled.div`
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 30px;
   margin-top: 40px;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+  }
 `;
 
 const StatCard = styled.div`
@@ -151,6 +220,10 @@ const StatCard = styled.div`
   border-radius: 12px;
   padding: 30px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  
+  @media (max-width: 768px) {
+    padding: 14px;
+  }
 `;
 
 const StatNumber = styled.div`
@@ -158,11 +231,20 @@ const StatNumber = styled.div`
   font-weight: 700;
   color: #2c5530;
   margin-bottom: 10px;
+  
+  @media (max-width: 768px) {
+    font-size: 22px;
+    margin-bottom: 6px;
+  }
 `;
 
 const StatLabel = styled.div`
   color: #666;
   font-size: 16px;
+  
+  @media (max-width: 768px) {
+    font-size: 12.5px;
+  }
 `;
 
 const About = () => {

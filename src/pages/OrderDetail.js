@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import { FiArrowLeft, FiPackage, FiTruck, FiCheckCircle, FiClock, FiXCircle, FiMapPin, FiCreditCard } from 'react-icons/fi';
 import { useAuth } from '../contexts/AuthContext';
 import { getOrderById } from '../firebase/orders';
+import DashboardLayout from '../components/Layout/DashboardLayout';
 
 const OrderDetailContainer = styled.div`
   max-width: 1000px;
@@ -337,170 +338,178 @@ const OrderDetail = () => {
 
   if (loading) {
     return (
-      <OrderDetailContainer>
-        <LoadingSpinner>Chargement de la commande...</LoadingSpinner>
-      </OrderDetailContainer>
+      <DashboardLayout>
+        <OrderDetailContainer>
+          <LoadingSpinner>Chargement de la commande...</LoadingSpinner>
+        </OrderDetailContainer>
+      </DashboardLayout>
     );
   }
 
   if (error) {
     return (
-      <OrderDetailContainer>
-        <ErrorMessage>
-          <h3>Erreur</h3>
-          <p>{error}</p>
-        </ErrorMessage>
-      </OrderDetailContainer>
+      <DashboardLayout>
+        <OrderDetailContainer>
+          <ErrorMessage>
+            <h3>Erreur</h3>
+            <p>{error}</p>
+          </ErrorMessage>
+        </OrderDetailContainer>
+      </DashboardLayout>
     );
   }
 
   if (!order) {
     return (
-      <OrderDetailContainer>
-        <ErrorMessage>
-          <h3>Commande non trouvée</h3>
-          <p>Cette commande n'existe pas ou vous n'y avez pas accès.</p>
-        </ErrorMessage>
-      </OrderDetailContainer>
+      <DashboardLayout>
+        <OrderDetailContainer>
+          <ErrorMessage>
+            <h3>Commande non trouvée</h3>
+            <p>Cette commande n'existe pas ou vous n'y avez pas accès.</p>
+          </ErrorMessage>
+        </OrderDetailContainer>
+      </DashboardLayout>
     );
   }
 
   return (
-    <OrderDetailContainer>
-      <BackButton onClick={() => navigate('/orders')}>
-        <FiArrowLeft size={20} />
-        Retour aux commandes
-      </BackButton>
-      
-      <OrderHeader>
-        <OrderTitle>
-          <FiPackage size={28} />
-          Commande #{order.id.slice(-8)}
-        </OrderTitle>
+    <DashboardLayout>
+      <OrderDetailContainer>
+        <BackButton onClick={() => navigate('/orders')}>
+          <FiArrowLeft size={20} />
+          Retour aux commandes
+        </BackButton>
         
-        <OrderInfo>
-          <InfoItem>
-            <h4>Date de commande</h4>
-            <p>
-              {new Date(order.createdAt.seconds * 1000).toLocaleDateString('fr-FR', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-              })}
-            </p>
-          </InfoItem>
+        <OrderHeader>
+          <OrderTitle>
+            <FiPackage size={28} />
+            Commande #{order.id.slice(-8)}
+          </OrderTitle>
           
-          <InfoItem>
-            <h4>Numéro de commande</h4>
-            <p>{order.id}</p>
-          </InfoItem>
+          <OrderInfo>
+            <InfoItem>
+              <h4>Date de commande</h4>
+              <p>
+                {new Date(order.createdAt.seconds * 1000).toLocaleDateString('fr-FR', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}
+              </p>
+            </InfoItem>
+            
+            <InfoItem>
+              <h4>Numéro de commande</h4>
+              <p>{order.id}</p>
+            </InfoItem>
+            
+            <InfoItem>
+              <h4>Mode de livraison</h4>
+              <p>
+                {order.delivery?.method === 'express' ? 'Livraison express' : 'Livraison standard'}
+              </p>
+            </InfoItem>
+          </OrderInfo>
           
-          <InfoItem>
-            <h4>Mode de livraison</h4>
-            <p>
-              {order.delivery?.method === 'express' ? 'Livraison express' : 'Livraison standard'}
-            </p>
-          </InfoItem>
-        </OrderInfo>
+          <OrderStatus status={order.status}>
+            {getStatusIcon(order.status)}
+            {getStatusText(order.status)}
+          </OrderStatus>
+        </OrderHeader>
         
-        <OrderStatus status={order.status}>
-          {getStatusIcon(order.status)}
-          {getStatusText(order.status)}
-        </OrderStatus>
-      </OrderHeader>
-      
-      <OrderContent>
-        <div>
-          <OrderItems>
-            <SectionTitle>
-              <FiPackage size={20} />
-              Articles commandés
-            </SectionTitle>
+        <OrderContent>
+          <div>
+            <OrderItems>
+              <SectionTitle>
+                <FiPackage size={20} />
+                Articles commandés
+              </SectionTitle>
+              
+              {order.items.map((item, index) => (
+                <OrderItem key={index}>
+                  <ItemImage 
+                    src={item.image || '/placeholder-wood.jpg'} 
+                    alt={item.name}
+                    onError={(e) => {
+                      e.target.src = '/placeholder-wood.jpg';
+                    }}
+                  />
+                  <ItemInfo>
+                    <h4>{item.name}</h4>
+                    <div className="item-description">{item.description}</div>
+                    <div className="item-quantity">Quantité: {item.quantity}</div>
+                  </ItemInfo>
+                  <ItemPrice>
+                    <div className="unit-price">{item.price}€ / unité</div>
+                    <div className="total-price">{(item.price * item.quantity).toFixed(2)}€</div>
+                  </ItemPrice>
+                </OrderItem>
+              ))}
+            </OrderItems>
             
-            {order.items.map((item, index) => (
-              <OrderItem key={index}>
-                <ItemImage 
-                  src={item.image || '/placeholder-wood.jpg'} 
-                  alt={item.name}
-                  onError={(e) => {
-                    e.target.src = '/placeholder-wood.jpg';
-                  }}
-                />
-                <ItemInfo>
-                  <h4>{item.name}</h4>
-                  <div className="item-description">{item.description}</div>
-                  <div className="item-quantity">Quantité: {item.quantity}</div>
-                </ItemInfo>
-                <ItemPrice>
-                  <div className="unit-price">{item.price}€ / unité</div>
-                  <div className="total-price">{(item.price * item.quantity).toFixed(2)}€</div>
-                </ItemPrice>
-              </OrderItem>
-            ))}
-          </OrderItems>
+            <DeliveryInfo>
+              <SectionTitle>
+                <FiMapPin size={20} />
+                Informations de livraison
+              </SectionTitle>
+              
+              <DeliveryAddress>
+                <FiMapPin size={20} />
+                <div>
+                  <h4>Adresse de livraison</h4>
+                  <p>
+                    {order.customerInfo?.firstName} {order.customerInfo?.lastName}<br />
+                    {order.customerInfo?.address}<br />
+                    {order.customerInfo?.postalCode} {order.customerInfo?.city}<br />
+                    {order.customerInfo?.country}
+                  </p>
+                </div>
+              </DeliveryAddress>
+              
+              <PaymentInfo>
+                <FiCreditCard size={20} />
+                <div>
+                  <h4>Mode de paiement</h4>
+                  <p>
+                    {order.payment?.method === 'card' ? 'Carte bancaire' : 'PayPal'}
+                  </p>
+                </div>
+              </PaymentInfo>
+            </DeliveryInfo>
+          </div>
           
-          <DeliveryInfo>
-            <SectionTitle>
-              <FiMapPin size={20} />
-              Informations de livraison
-            </SectionTitle>
+          <OrderSummary>
+            <SectionTitle>Résumé</SectionTitle>
             
-            <DeliveryAddress>
-              <FiMapPin size={20} />
-              <div>
-                <h4>Adresse de livraison</h4>
-                <p>
-                  {order.customerInfo?.firstName} {order.customerInfo?.lastName}<br />
-                  {order.customerInfo?.address}<br />
-                  {order.customerInfo?.postalCode} {order.customerInfo?.city}<br />
-                  {order.customerInfo?.country}
-                </p>
+            <SummaryRow>
+              <span>Sous-total</span>
+              <span>{(order.total - (order.delivery?.cost || 0)).toFixed(2)}€</span>
+            </SummaryRow>
+            
+            <SummaryRow>
+              <span>Livraison</span>
+              <span>{(order.delivery?.cost || 0).toFixed(2)}€</span>
+            </SummaryRow>
+            
+            <SummaryRow className="total">
+              <span>Total</span>
+              <span>{order.total.toFixed(2)}€</span>
+            </SummaryRow>
+            
+            {order.notes && (
+              <div style={{ marginTop: '20px', padding: '15px', background: '#f8f9fa', borderRadius: '8px' }}>
+                <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#2c5530', marginBottom: '5px' }}>
+                  Notes
+                </h4>
+                <p style={{ color: '#666', fontSize: '14px' }}>{order.notes}</p>
               </div>
-            </DeliveryAddress>
-            
-            <PaymentInfo>
-              <FiCreditCard size={20} />
-              <div>
-                <h4>Mode de paiement</h4>
-                <p>
-                  {order.payment?.method === 'card' ? 'Carte bancaire' : 'PayPal'}
-                </p>
-              </div>
-            </PaymentInfo>
-          </DeliveryInfo>
-        </div>
-        
-        <OrderSummary>
-          <SectionTitle>Résumé</SectionTitle>
-          
-          <SummaryRow>
-            <span>Sous-total</span>
-            <span>{(order.total - (order.delivery?.cost || 0)).toFixed(2)}€</span>
-          </SummaryRow>
-          
-          <SummaryRow>
-            <span>Livraison</span>
-            <span>{(order.delivery?.cost || 0).toFixed(2)}€</span>
-          </SummaryRow>
-          
-          <SummaryRow className="total">
-            <span>Total</span>
-            <span>{order.total.toFixed(2)}€</span>
-          </SummaryRow>
-          
-          {order.notes && (
-            <div style={{ marginTop: '20px', padding: '15px', background: '#f8f9fa', borderRadius: '8px' }}>
-              <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#2c5530', marginBottom: '5px' }}>
-                Notes
-              </h4>
-              <p style={{ color: '#666', fontSize: '14px' }}>{order.notes}</p>
-            </div>
-          )}
-        </OrderSummary>
-      </OrderContent>
-    </OrderDetailContainer>
+            )}
+          </OrderSummary>
+        </OrderContent>
+      </OrderDetailContainer>
+    </DashboardLayout>
   );
 };
 

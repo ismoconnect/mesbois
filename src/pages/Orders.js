@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import { FiPackage, FiTruck, FiCheckCircle, FiClock, FiXCircle } from 'react-icons/fi';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserOrders } from '../firebase/orders';
+import DashboardLayout from '../components/Layout/DashboardLayout';
 
 const OrdersContainer = styled.div`
   max-width: 1200px;
@@ -293,41 +294,57 @@ const Orders = () => {
     fetchOrders();
   }, [user]);
 
-  if (!user) {
-    return (
-      <OrdersContainer>
-        <EmptyOrders>
-          <FiPackage size={64} />
-          <h3>Connexion requise</h3>
-          <p>Vous devez être connecté pour voir vos commandes</p>
-          <ShopButton to="/login">Se connecter</ShopButton>
-        </EmptyOrders>
-      </OrdersContainer>
-    );
-  }
+  if (!user) return null;
 
   if (loading) {
     return (
-      <OrdersContainer>
-        <LoadingSpinner>Chargement de vos commandes...</LoadingSpinner>
-      </OrdersContainer>
+      <DashboardLayout>
+        <OrdersContainer>
+          <LoadingSpinner>Chargement de vos commandes...</LoadingSpinner>
+        </OrdersContainer>
+      </DashboardLayout>
     );
   }
 
   if (error) {
     return (
-      <OrdersContainer>
-        <EmptyOrders>
-          <FiXCircle size={64} />
-          <h3>Erreur</h3>
-          <p>{error}</p>
-        </EmptyOrders>
-      </OrdersContainer>
+      <DashboardLayout>
+        <OrdersContainer>
+          <EmptyOrders>
+            <FiXCircle size={64} />
+            <h3>Erreur</h3>
+            <p>{error}</p>
+          </EmptyOrders>
+        </OrdersContainer>
+      </DashboardLayout>
     );
   }
 
   if (orders.length === 0) {
     return (
+      <DashboardLayout>
+        <OrdersContainer>
+          <OrdersHeader>
+            <OrdersTitle>
+              <FiPackage size={32} />
+              Mes Commandes
+            </OrdersTitle>
+            <OrdersSubtitle>Historique de vos commandes</OrdersSubtitle>
+          </OrdersHeader>
+          
+          <EmptyOrders>
+            <FiPackage size={64} />
+            <h3>Aucune commande</h3>
+            <p>Vous n'avez pas encore passé de commande</p>
+            <ShopButton to="/products">Commencer mes achats</ShopButton>
+          </EmptyOrders>
+        </OrdersContainer>
+      </DashboardLayout>
+    );
+  }
+
+  return (
+    <DashboardLayout>
       <OrdersContainer>
         <OrdersHeader>
           <OrdersTitle>
@@ -337,87 +354,68 @@ const Orders = () => {
           <OrdersSubtitle>Historique de vos commandes</OrdersSubtitle>
         </OrdersHeader>
         
-        <EmptyOrders>
-          <FiPackage size={64} />
-          <h3>Aucune commande</h3>
-          <p>Vous n'avez pas encore passé de commande</p>
-          <ShopButton to="/products">Commencer mes achats</ShopButton>
-        </EmptyOrders>
-      </OrdersContainer>
-    );
-  }
-
-  return (
-    <OrdersContainer>
-      <OrdersHeader>
-        <OrdersTitle>
-          <FiPackage size={32} />
-          Mes Commandes
-        </OrdersTitle>
-        <OrdersSubtitle>Historique de vos commandes</OrdersSubtitle>
-      </OrdersHeader>
-      
-      <OrdersList>
-        {orders.map(order => (
-          <OrderCard key={order.id}>
-            <OrderHeader>
-              <OrderInfo>
-                <h3>Commande #{order.id.slice(-8)}</h3>
-                <div className="order-date">
-                  {new Date(order.createdAt.seconds * 1000).toLocaleDateString('fr-FR', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })}
-                </div>
-              </OrderInfo>
+        <OrdersList>
+          {orders.map(order => (
+            <OrderCard key={order.id}>
+              <OrderHeader>
+                <OrderInfo>
+                  <h3>Commande #{order.id.slice(-8)}</h3>
+                  <div className="order-date">
+                    {new Date(order.createdAt.seconds * 1000).toLocaleDateString('fr-FR', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </div>
+                </OrderInfo>
+                
+                <OrderStatus status={order.status}>
+                  {getStatusIcon(order.status)}
+                  {getStatusText(order.status)}
+                </OrderStatus>
+              </OrderHeader>
               
-              <OrderStatus status={order.status}>
-                {getStatusIcon(order.status)}
-                {getStatusText(order.status)}
-              </OrderStatus>
-            </OrderHeader>
-            
-            <OrderItems>
-              {order.items.map((item, index) => (
-                <OrderItem key={index}>
-                  <ItemImage 
-                    src={item.image || '/placeholder-wood.jpg'} 
-                    alt={item.name}
-                    onError={(e) => {
-                      e.target.src = '/placeholder-wood.jpg';
-                    }}
-                  />
-                  <ItemInfo>
-                    <h4>{item.name}</h4>
-                    <div className="item-quantity">Quantité: {item.quantity}</div>
-                  </ItemInfo>
-                  <ItemPrice>{(item.price * item.quantity).toFixed(2)}€</ItemPrice>
-                </OrderItem>
-              ))}
-            </OrderItems>
-            
-            <OrderTotal>
-              <span>Total</span>
-              <span>{order.total.toFixed(2)}€</span>
-            </OrderTotal>
-            
-            <OrderActions>
-              <ActionButton to={`/orders/${order.id}`} className="primary">
-                Voir les détails
-              </ActionButton>
-              {order.status === 'delivered' && (
-                <ActionButton to={`/orders/${order.id}/review`} className="secondary">
-                  Laisser un avis
+              <OrderItems>
+                {order.items.map((item, index) => (
+                  <OrderItem key={index}>
+                    <ItemImage 
+                      src={item.image || '/placeholder-wood.jpg'} 
+                      alt={item.name}
+                      onError={(e) => {
+                        e.target.src = '/placeholder-wood.jpg';
+                      }}
+                    />
+                    <ItemInfo>
+                      <h4>{item.name}</h4>
+                      <div className="item-quantity">Quantité: {item.quantity}</div>
+                    </ItemInfo>
+                    <ItemPrice>{(item.price * item.quantity).toFixed(2)}€</ItemPrice>
+                  </OrderItem>
+                ))}
+              </OrderItems>
+              
+              <OrderTotal>
+                <span>Total</span>
+                <span>{order.total.toFixed(2)}€</span>
+              </OrderTotal>
+              
+              <OrderActions>
+                <ActionButton to={`/orders/${order.id}`} className="primary">
+                  Voir les détails
                 </ActionButton>
-              )}
-            </OrderActions>
-          </OrderCard>
-        ))}
-      </OrdersList>
-    </OrdersContainer>
+                {order.status === 'delivered' && (
+                  <ActionButton to={`/orders/${order.id}/review`} className="secondary">
+                    Laisser un avis
+                  </ActionButton>
+                )}
+              </OrderActions>
+            </OrderCard>
+          ))}
+        </OrdersList>
+      </OrdersContainer>
+    </DashboardLayout>
   );
 };
 

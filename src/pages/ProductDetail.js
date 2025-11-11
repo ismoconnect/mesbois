@@ -6,6 +6,14 @@ import { useCart } from '../contexts/CartContext';
 import { getProductById } from '../firebase/products';
 import toast from 'react-hot-toast';
 
+const FullScreenWrapper = styled.div`
+  position: fixed;
+  inset: 0;
+  background: #ffffff;
+  z-index: 9999;
+  overflow: auto;
+`;
+
 const ProductDetailContainer = styled.div`
   max-width: 1200px;
   margin: 0 auto;
@@ -46,8 +54,17 @@ const ProductContainer = styled.div`
 const ProductImage = styled.img`
   width: 100%;
   height: 400px;
-  object-fit: cover;
+  object-fit: contain; /* show the entire product without cropping */
   border-radius: 12px;
+  background: #ffffff; /* neutral backdrop around contained image */
+  
+  @media (max-width: 768px) {
+    height: 320px;
+  }
+  
+  @media (max-width: 480px) {
+    height: 260px;
+  }
 `;
 
 const ProductInfo = styled.div`
@@ -308,107 +325,109 @@ const ProductDetail = () => {
   const cartItem = getCartItem(product.id);
 
   return (
-    <ProductDetailContainer>
-      <BackButton onClick={() => navigate(-1)}>
-        <FiArrowLeft size={20} />
-        Retour
-      </BackButton>
-      
-      <ProductContainer>
-        <div>
-          <ProductImage 
-            src={product.image || '/placeholder-wood.jpg'} 
-            alt={product.name}
-            onError={(e) => {
-              e.target.src = '/placeholder-wood.jpg';
-            }}
-          />
-        </div>
+    <FullScreenWrapper>
+      <ProductDetailContainer>
+        <BackButton onClick={() => navigate(-1)}>
+          <FiArrowLeft size={20} />
+          Retour
+        </BackButton>
         
-        <ProductInfo>
-          <h1>{product.name}</h1>
-          <div className="price">{product.price}€</div>
+        <ProductContainer>
+          <div>
+            <ProductImage 
+              src={product.image || '/placeholder-wood.jpg'} 
+              alt={product.name}
+              onError={(e) => {
+                e.target.src = '/placeholder-wood.jpg';
+              }}
+            />
+          </div>
           
-          <Rating>
-            <div className="stars">
-              {[...Array(5)].map((_, i) => (
-                <FiStar 
-                  key={i} 
-                  size={16} 
-                  fill={i < Math.floor(product.rating || 4.5) ? '#f39c12' : 'none'} 
-                />
-              ))}
-            </div>
-            <span className="rating-text">
-              {product.rating || 4.5} ({product.reviewCount || 0} avis)
-            </span>
-          </Rating>
-          
-          <StockInfo inStock={product.stock > 0}>
-            {product.stock > 0 
-              ? `En stock (${product.stock} disponibles)` 
-              : 'Rupture de stock'
-            }
-          </StockInfo>
-          
-          <p className="description">{product.description}</p>
-          
-          <QuantitySelector>
-            <label>Quantité :</label>
-            <QuantityControls>
-              <QuantityButton
-                onClick={() => handleQuantityChange(quantity - 1)}
-                disabled={quantity <= 1}
-              >
-                <FiMinus size={16} />
-              </QuantityButton>
-              <QuantityInput
-                type="number"
-                value={quantity}
-                onChange={(e) => handleQuantityChange(parseInt(e.target.value) || 1)}
-                min="1"
-                max={product.stock}
-              />
-              <QuantityButton
-                onClick={() => handleQuantityChange(quantity + 1)}
-                disabled={quantity >= product.stock}
-              >
-                <FiPlus size={16} />
-              </QuantityButton>
-            </QuantityControls>
-          </QuantitySelector>
-          
-          <AddToCartButton 
-            onClick={handleAddToCart}
-            disabled={product.stock === 0}
-          >
-            <FiShoppingCart size={20} />
-            {isInCartItem 
-              ? `Ajouté au panier (${cartItem.quantity})` 
-              : 'Ajouter au panier'
-            }
-          </AddToCartButton>
-          
-          <Features>
-            <Feature>
-              <FiTruck size={24} />
-              <div>
-                <h4>Livraison rapide</h4>
-                <p>Livraison en 24-48h</p>
-              </div>
-            </Feature>
+          <ProductInfo>
+            <h1>{product.name}</h1>
+            <div className="price">{product.price}€</div>
             
-            <Feature>
-              <FiShield size={24} />
-              <div>
-                <h4>Qualité garantie</h4>
-                <p>Produit certifié</p>
+            <Rating>
+              <div className="stars">
+                {[...Array(5)].map((_, i) => (
+                  <FiStar 
+                    key={i} 
+                    size={16} 
+                    fill={i < Math.floor(product.rating || 4.5) ? '#f39c12' : 'none'} 
+                  />
+                ))}
               </div>
-            </Feature>
-          </Features>
-        </ProductInfo>
-      </ProductContainer>
-    </ProductDetailContainer>
+              <span className="rating-text">
+                {product.rating || 4.5} ({product.reviewCount || 0} avis)
+              </span>
+            </Rating>
+            
+            <StockInfo inStock={product.stock > 0}>
+              {product.stock > 0 
+                ? `En stock (${product.stock} disponibles)` 
+                : 'Rupture de stock'
+              }
+            </StockInfo>
+            
+            <p className="description">{product.description}</p>
+            
+            <QuantitySelector>
+              <label>Quantité :</label>
+              <QuantityControls>
+                <QuantityButton
+                  onClick={() => handleQuantityChange(quantity - 1)}
+                  disabled={quantity <= 1}
+                >
+                  <FiMinus size={16} />
+                </QuantityButton>
+                <QuantityInput
+                  type="number"
+                  value={quantity}
+                  onChange={(e) => handleQuantityChange(parseInt(e.target.value) || 1)}
+                  min="1"
+                  max={product.stock}
+                />
+                <QuantityButton
+                  onClick={() => handleQuantityChange(quantity + 1)}
+                  disabled={quantity >= product.stock}
+                >
+                  <FiPlus size={16} />
+                </QuantityButton>
+              </QuantityControls>
+            </QuantitySelector>
+            
+            <AddToCartButton 
+              onClick={handleAddToCart}
+              disabled={product.stock === 0}
+            >
+              <FiShoppingCart size={20} />
+              {isInCartItem 
+                ? `Ajouté au panier (${cartItem.quantity})` 
+                : 'Ajouter au panier'
+              }
+            </AddToCartButton>
+            
+            <Features>
+              <Feature>
+                <FiTruck size={24} />
+                <div>
+                  <h4>Livraison rapide</h4>
+                  <p>Livraison en 24-48h</p>
+                </div>
+              </Feature>
+              
+              <Feature>
+                <FiShield size={24} />
+                <div>
+                  <h4>Qualité garantie</h4>
+                  <p>Produit certifié</p>
+                </div>
+              </Feature>
+            </Features>
+          </ProductInfo>
+        </ProductContainer>
+      </ProductDetailContainer>
+    </FullScreenWrapper>
   );
 };
 

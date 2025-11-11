@@ -1,8 +1,9 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { FiShoppingCart, FiStar } from 'react-icons/fi';
 import { useCart } from '../../contexts/CartContext';
+import toast from 'react-hot-toast';
 
 const CardContainer = styled.div`
   background: white;
@@ -125,9 +126,11 @@ const AddToCartButton = styled.button`
 const ProductCard = ({ product }) => {
   const { addToCart, isInCart } = useCart();
   const isInCartItem = isInCart(product.id);
+  const navigate = useNavigate();
 
   const handleAddToCart = () => {
     addToCart(product, 1);
+    toast.success('Produit ajouté au panier');
   };
 
   return (

@@ -7,6 +7,10 @@ const ContactContainer = styled.div`
   max-width: 1200px;
   margin: 0 auto;
   padding: 40px 20px;
+  
+  @media (max-width: 768px) {
+    padding: 0 16px 20px; /* remove top padding on mobile */
+  }
 `;
 
 const ContactHeader = styled.div`

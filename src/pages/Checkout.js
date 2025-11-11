@@ -5,12 +5,17 @@ import { FiCreditCard, FiTruck, FiUser, FiMapPin, FiLock } from 'react-icons/fi'
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import { createOrder } from '../firebase/orders';
+import { createUser, signInUser } from '../firebase/auth';
 import toast from 'react-hot-toast';
 
 const CheckoutContainer = styled.div`
   max-width: 1000px;
   margin: 0 auto;
   padding: 40px 20px;
+
+  @media (max-width: 768px) {
+    padding: 24px 16px 96px;
+  }
 `;
 
 const CheckoutHeader = styled.div`
@@ -34,9 +39,10 @@ const CheckoutContent = styled.div`
   display: grid;
   grid-template-columns: 1fr 400px;
   gap: 40px;
-  
+
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
+    gap: 20px;
   }
 `;
 
@@ -45,6 +51,10 @@ const CheckoutForm = styled.form`
   border-radius: 12px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   padding: 30px;
+
+  @media (max-width: 600px) {
+    padding: 20px;
+  }
 `;
 
 const SectionTitle = styled.h3`
@@ -62,7 +72,7 @@ const FormGrid = styled.div`
   grid-template-columns: 1fr 1fr;
   gap: 20px;
   margin-bottom: 30px;
-  
+
   @media (max-width: 600px) {
     grid-template-columns: 1fr;
   }
@@ -75,13 +85,13 @@ const InputGroup = styled.div`
 
 const Input = styled.input`
   width: 100%;
-  padding: 12px 40px 12px 16px;
+  padding: 12px 40px 12px ${props => (props.$withLeftIcon ? '44px' : '16px')};
   border: 2px solid #e0e0e0;
   border-radius: 8px;
   font-size: 16px;
   outline: none;
   transition: border-color 0.3s ease;
-  
+
   &:focus {
     border-color: #2c5530;
   }
@@ -93,6 +103,7 @@ const InputIcon = styled.div`
   top: 50%;
   transform: translateY(-50%);
   color: #666;
+  pointer-events: none;
 `;
 
 const Select = styled.select`
@@ -104,7 +115,7 @@ const Select = styled.select`
   outline: none;
   transition: border-color 0.3s ease;
   background: white;
-  
+
   &:focus {
     border-color: #2c5530;
   }
@@ -120,7 +131,7 @@ const TextArea = styled.textarea`
   transition: border-color 0.3s ease;
   resize: vertical;
   min-height: 100px;
-  
+
   &:focus {
     border-color: #2c5530;
   }
@@ -142,15 +153,15 @@ const PaymentMethod = styled.label`
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
-  
+
   &:hover {
     border-color: #2c5530;
   }
-  
+
   input[type="radio"] {
     margin: 0;
   }
-  
+
   input[type="radio"]:checked + & {
     border-color: #2c5530;
     background: #f8f9fa;
@@ -165,6 +176,12 @@ const OrderSummary = styled.div`
   height: fit-content;
   position: sticky;
   top: 20px;
+
+  @media (max-width: 768px) {
+    position: static;
+    top: auto;
+    padding: 20px;
+  }
 `;
 
 const OrderItem = styled.div`
@@ -173,7 +190,7 @@ const OrderItem = styled.div`
   gap: 15px;
   padding: 15px 0;
   border-bottom: 1px solid #f0f0f0;
-  
+
   &:last-child {
     border-bottom: none;
   }
@@ -212,7 +229,7 @@ const SummaryRow = styled.div`
   justify-content: space-between;
   margin-bottom: 15px;
   color: #666;
-  
+
   &.total {
     font-size: 18px;
     font-weight: 700;
@@ -239,22 +256,64 @@ const PlaceOrderButton = styled.button`
   align-items: center;
   justify-content: center;
   gap: 10px;
-  
+
   &:hover {
     background: #219a52;
   }
-  
+
   &:disabled {
     background: #ccc;
     cursor: not-allowed;
   }
 `;
 
+const MobileCheckoutBar = styled.div`
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #fff;
+  box-shadow: 0 -6px 20px rgba(0,0,0,0.08);
+  padding: 12px 16px;
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+
+  @media (max-width: 768px) {
+    display: flex;
+  }
+`;
+
+const MobileTotal = styled.div`
+  font-size: 16px;
+  font-weight: 700;
+  color: #2c5530;
+`;
+
+const MobilePlaceOrderButton = styled.button`
+  flex: 1;
+  background: #27ae60;
+  color: white;
+  border: none;
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+
+  &:hover { background: #219a52; }
+  &:disabled { background: #ccc; cursor: not-allowed; }
+`;
+
 const Checkout = () => {
   const { cartItems, getCartTotal, clearCart } = useCart();
   const { user, userData } = useAuth();
   const navigate = useNavigate();
-  
+
   const [formData, setFormData] = useState({
     firstName: userData?.displayName?.split(' ')[0] || '',
     lastName: userData?.displayName?.split(' ').slice(1).join(' ') || '',
@@ -268,8 +327,11 @@ const Checkout = () => {
     paymentMethod: 'card',
     notes: ''
   });
-  
+
   const [loading, setLoading] = useState(false);
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authMode, setAuthMode] = useState('register'); // 'register' | 'login'
+  const [authFields, setAuthFields] = useState({ email: '', password: '', confirm: '' });
 
   const handleChange = (e) => {
     setFormData({
@@ -283,6 +345,10 @@ const Checkout = () => {
     setLoading(true);
 
     try {
+      if (!user) {
+        setLoading(false);
+        return toast.error('Veuillez créer un compte ou vous connecter pour finaliser.');
+      }
       const orderData = {
         userId: user.uid,
         items: cartItems,
@@ -308,7 +374,7 @@ const Checkout = () => {
       };
 
       const result = await createOrder(orderData);
-      
+
       if (result.success) {
         toast.success('Commande passée avec succès !');
         clearCart();
@@ -338,14 +404,108 @@ const Checkout = () => {
         <CheckoutTitle>Finaliser la commande</CheckoutTitle>
         <CheckoutSubtitle>Remplissez vos informations pour passer votre commande</CheckoutSubtitle>
       </CheckoutHeader>
-      
+
       <CheckoutContent>
         <CheckoutForm onSubmit={handleSubmit}>
+          {!user && (
+            <div style={{ marginBottom: 24 }}>
+              <SectionTitle>
+                <FiLock size={20} />
+                Créez votre compte ou connectez-vous
+              </SectionTitle>
+              <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+                <button type="button" onClick={() => setAuthMode('register')} style={{ padding: '8px 12px', borderRadius: 8, border: '2px solid #e0e0e0', background: authMode==='register' ? '#f8f9fa' : '#fff', fontWeight: 700 }}>Créer un compte</button>
+                <button type="button" onClick={() => setAuthMode('login')} style={{ padding: '8px 12px', borderRadius: 8, border: '2px solid #e0e0e0', background: authMode==='login' ? '#f8f9fa' : '#fff', fontWeight: 700 }}>Se connecter</button>
+              </div>
+              <FormGrid>
+                <InputGroup>
+                  <InputIcon>
+                    <FiCreditCard size={20} />
+                  </InputIcon>
+                  <Input
+                    type="email"
+                    name="authEmail"
+                    placeholder="Email"
+                    value={authFields.email}
+                    onChange={(e) => setAuthFields({ ...authFields, email: e.target.value })}
+                    required
+                    $withLeftIcon
+                  />
+                </InputGroup>
+                <InputGroup>
+                  <InputIcon>
+                    <FiLock size={20} />
+                  </InputIcon>
+                  <Input
+                    type="password"
+                    name="authPassword"
+                    placeholder="Mot de passe"
+                    value={authFields.password}
+                    onChange={(e) => setAuthFields({ ...authFields, password: e.target.value })}
+                    required
+                    $withLeftIcon
+                  />
+                </InputGroup>
+              </FormGrid>
+              {authMode === 'register' && (
+                <InputGroup>
+                  <InputIcon>
+                    <FiLock size={20} />
+                  </InputIcon>
+                  <Input
+                    type="password"
+                    name="authConfirm"
+                    placeholder="Confirmer le mot de passe"
+                    value={authFields.confirm}
+                    onChange={(e) => setAuthFields({ ...authFields, confirm: e.target.value })}
+                    required
+                    $withLeftIcon
+                  />
+                </InputGroup>
+              )}
+              <div style={{ display: 'flex', gap: 10 }}>
+                {authMode === 'register' ? (
+                  <PlaceOrderButton type="button" onClick={async () => {
+                    if (!authFields.email || !authFields.password || authFields.password !== authFields.confirm) {
+                      return toast.error('Veuillez saisir un email et des mots de passe identiques.');
+                    }
+                    setAuthLoading(true);
+                    const displayName = `${formData.firstName} ${formData.lastName}`.trim() || 'Client';
+                    const result = await createUser(authFields.email, authFields.password, {
+                      displayName,
+                      phone: formData.phone,
+                      address: formData.address,
+                      city: formData.city,
+                      postalCode: formData.postalCode,
+                      country: formData.country
+                    });
+                    setAuthLoading(false);
+                    if (result.success) toast.success('Compte créé. Vous êtes connecté.');
+                    else toast.error(result.error || 'Création du compte impossible');
+                  }} disabled={authLoading}>
+                    {authLoading ? 'Traitement...' : "Créer mon compte"}
+                  </PlaceOrderButton>
+                ) : (
+                  <PlaceOrderButton type="button" onClick={async () => {
+                    if (!authFields.email || !authFields.password) return toast.error('Email et mot de passe requis');
+                    setAuthLoading(true);
+                    const result = await signInUser(authFields.email, authFields.password);
+                    setAuthLoading(false);
+                    if (result.success) toast.success('Connexion réussie');
+                    else toast.error(result.error || 'Connexion impossible');
+                  }} disabled={authLoading}>
+                    {authLoading ? 'Traitement...' : 'Se connecter'}
+                  </PlaceOrderButton>
+                )}
+              </div>
+              <hr style={{ margin: '20px 0', borderTop: '1px solid #eee' }} />
+            </div>
+          )}
           <SectionTitle>
             <FiUser size={20} />
             Informations de livraison
           </SectionTitle>
-          
+
           <FormGrid>
             <InputGroup>
               <InputIcon>
@@ -358,9 +518,10 @@ const Checkout = () => {
                 value={formData.firstName}
                 onChange={handleChange}
                 required
+                $withLeftIcon
               />
             </InputGroup>
-            
+
             <InputGroup>
               <Input
                 type="text"
@@ -372,7 +533,7 @@ const Checkout = () => {
               />
             </InputGroup>
           </FormGrid>
-          
+
           <InputGroup>
             <InputIcon>
               <FiCreditCard size={20} />
@@ -384,9 +545,10 @@ const Checkout = () => {
               value={formData.email}
               onChange={handleChange}
               required
+              $withLeftIcon
             />
           </InputGroup>
-          
+
           <InputGroup>
             <InputIcon>
               <FiCreditCard size={20} />
@@ -397,9 +559,10 @@ const Checkout = () => {
               placeholder="Téléphone"
               value={formData.phone}
               onChange={handleChange}
+              $withLeftIcon
             />
           </InputGroup>
-          
+
           <InputGroup>
             <InputIcon>
               <FiMapPin size={20} />
@@ -411,9 +574,10 @@ const Checkout = () => {
               value={formData.address}
               onChange={handleChange}
               required
+              $withLeftIcon
             />
           </InputGroup>
-          
+
           <FormGrid>
             <InputGroup>
               <Input
@@ -425,7 +589,7 @@ const Checkout = () => {
                 required
               />
             </InputGroup>
-            
+
             <InputGroup>
               <Input
                 type="text"
@@ -437,7 +601,7 @@ const Checkout = () => {
               />
             </InputGroup>
           </FormGrid>
-          
+
           <InputGroup>
             <Select
               name="country"
@@ -450,12 +614,12 @@ const Checkout = () => {
               <option value="Luxembourg">Luxembourg</option>
             </Select>
           </InputGroup>
-          
+
           <SectionTitle>
             <FiTruck size={20} />
             Mode de livraison
           </SectionTitle>
-          
+
           <PaymentMethods>
             <PaymentMethod>
               <input
@@ -471,7 +635,7 @@ const Checkout = () => {
                 <div style={{ fontSize: '14px', fontWeight: '600', color: '#2c5530' }}>9,99€</div>
               </div>
             </PaymentMethod>
-            
+
             <PaymentMethod>
               <input
                 type="radio"
@@ -487,12 +651,12 @@ const Checkout = () => {
               </div>
             </PaymentMethod>
           </PaymentMethods>
-          
+
           <SectionTitle>
             <FiLock size={20} />
             Mode de paiement
           </SectionTitle>
-          
+
           <PaymentMethods>
             <PaymentMethod>
               <input
@@ -507,7 +671,7 @@ const Checkout = () => {
                 <div style={{ fontSize: '12px', color: '#666' }}>Visa, Mastercard</div>
               </div>
             </PaymentMethod>
-            
+
             <PaymentMethod>
               <input
                 type="radio"
@@ -521,8 +685,22 @@ const Checkout = () => {
                 <div style={{ fontSize: '12px', color: '#666' }}>Paiement sécurisé</div>
               </div>
             </PaymentMethod>
+
+            <PaymentMethod>
+              <input
+                type="radio"
+                name="paymentMethod"
+                value="bank"
+                checked={formData.paymentMethod === 'bank'}
+                onChange={handleChange}
+              />
+              <div>
+                <div style={{ fontWeight: '600' }}>Virement bancaire</div>
+                <div style={{ fontSize: '12px', color: '#666' }}>RIB communiqué après validation</div>
+              </div>
+            </PaymentMethod>
           </PaymentMethods>
-          
+
           <InputGroup>
             <TextArea
               name="notes"
@@ -532,10 +710,10 @@ const Checkout = () => {
             />
           </InputGroup>
         </CheckoutForm>
-        
+
         <OrderSummary>
           <SectionTitle>Résumé de la commande</SectionTitle>
-          
+
           {cartItems.map(item => (
             <OrderItem key={item.id}>
               <ItemImage 
@@ -549,34 +727,39 @@ const Checkout = () => {
                 <ItemName>{item.name}</ItemName>
                 <ItemQuantity>Quantité: {item.quantity}</ItemQuantity>
               </ItemInfo>
-              <ItemPrice>{(item.price * item.quantity).toFixed(2)}€</ItemPrice>
+              <ItemPrice>{(((Number(item.price) || 0) * (Number(item.quantity) || 0))).toFixed(2)}€</ItemPrice>
             </OrderItem>
           ))}
-          
+
           <SummaryRow>
             <span>Sous-total</span>
             <span>{subtotal.toFixed(2)}€</span>
           </SummaryRow>
-          
+
           <SummaryRow>
             <span>Livraison</span>
             <span>{shipping.toFixed(2)}€</span>
           </SummaryRow>
-          
+
           <SummaryRow className="total">
             <span>Total</span>
             <span>{total.toFixed(2)}€</span>
           </SummaryRow>
-          
-          <PlaceOrderButton type="submit" disabled={loading}>
+
+          <PlaceOrderButton type="button" onClick={handleSubmit} disabled={loading}>
             <FiLock size={20} />
             {loading ? 'Traitement...' : 'Confirmer la commande'}
           </PlaceOrderButton>
         </OrderSummary>
       </CheckoutContent>
+      <MobileCheckoutBar>
+        <MobileTotal>Total {total.toFixed(2)}€</MobileTotal>
+        <MobilePlaceOrderButton onClick={handleSubmit} disabled={loading}>
+          {loading ? 'Traitement...' : 'Confirmer'}
+        </MobilePlaceOrderButton>
+      </MobileCheckoutBar>
     </CheckoutContainer>
   );
 };
 
 export default Checkout;
-

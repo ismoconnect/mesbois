@@ -21,6 +21,11 @@ const RegisterCard = styled.div`
   padding: 40px;
   width: 100%;
   max-width: 500px;
+  
+  @media (max-width: 480px) {
+    padding: 24px;
+    border-radius: 10px;
+  }
 `;
 
 const RegisterTitle = styled.h1`
@@ -29,6 +34,11 @@ const RegisterTitle = styled.h1`
   color: #2c5530;
   text-align: center;
   margin-bottom: 30px;
+  
+  @media (max-width: 480px) {
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
 `;
 
 const Form = styled.form`
@@ -53,7 +63,7 @@ const InputGroup = styled.div`
 
 const Input = styled.input`
   width: 100%;
-  padding: 12px 40px 12px 16px;
+  padding: 12px 56px 12px 72px;
   border: 2px solid #e0e0e0;
   border-radius: 8px;
   font-size: 16px;
@@ -63,6 +73,11 @@ const Input = styled.input`
   &:focus {
     border-color: #2c5530;
   }
+  
+  @media (max-width: 480px) {
+    font-size: 15px;
+    padding: 12px 52px 12px 64px;
+  }
 `;
 
 const InputIcon = styled.div`
@@ -71,6 +86,7 @@ const InputIcon = styled.div`
   top: 50%;
   transform: translateY(-50%);
   color: #666;
+  pointer-events: none;
 `;
 
 const PasswordToggle = styled.button`
@@ -165,7 +181,7 @@ const Register = () => {
   // Rediriger si déjà connecté
   React.useEffect(() => {
     if (user) {
-      navigate('/', { replace: true });
+      navigate('/dashboard', { replace: true });
     }
   }, [user, navigate]);
 
@@ -213,7 +229,7 @@ const Register = () => {
       
       if (result.success) {
         toast.success('Compte créé avec succès !');
-        navigate('/');
+        navigate('/dashboard', { replace: true });
       } else {
         setError(result.error);
       }

@@ -5,6 +5,7 @@ import { FiUser, FiMail, FiPhone, FiMapPin, FiEdit3, FiSave, FiX } from 'react-i
 import { useAuth } from '../contexts/AuthContext';
 import { signOutUser } from '../firebase/auth';
 import toast from 'react-hot-toast';
+import DashboardLayout from '../components/Layout/DashboardLayout';
 
 const ProfileContainer = styled.div`
   max-width: 800px;
@@ -260,7 +261,8 @@ const Profile = () => {
   }
 
   return (
-    <ProfileContainer>
+    <DashboardLayout>
+      <ProfileContainer>
       <ProfileHeader>
         <ProfileTitle>
           <FiUser size={28} />
@@ -397,7 +399,8 @@ const Profile = () => {
       <LogoutButton onClick={handleLogout}>
         Se déconnecter
       </LogoutButton>
-    </ProfileContainer>
+      </ProfileContainer>
+    </DashboardLayout>
   );
 };
 

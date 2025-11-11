@@ -1,28 +1,61 @@
 import React, { useState } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { FiFilter, FiGrid, FiList, FiStar, FiShoppingCart, FiTag, FiTruck, FiShield } from 'react-icons/fi';
+import ProductQuickView from '../components/ProductQuickView';
+import { useCart } from '../contexts/CartContext';
+import toast from 'react-hot-toast';
 
 const ProductsContainer = styled.div`
   max-width: 1200px;
   margin: 0 auto;
   padding: 40px 20px;
+  
+  @media (max-width: 768px) {
+    padding: 0 16px 20px; /* keep top flush under header */
+    margin-top: 0;
+  }
+  
+  @media (max-width: 480px) {
+    margin-top: 0;
+  }
+  
+  @media (max-width: 375px) {
+    margin-top: 0;
+  }
 `;
 
 const PageHeader = styled.div`
   margin-bottom: 40px;
+  
+  @media (max-width: 768px) {
+    margin-top: 0;
+    padding-top: 0;
+    margin-bottom: 4px;
+  }
 `;
 
 const PageTitle = styled.h1`
   font-size: 36px;
   font-weight: 700;
   color: #2c5530;
-  margin-bottom: 10px;
+  margin: 0 0 10px; /* remove default top margin */
+  
+  @media (max-width: 768px) {
+    font-size: 21px;
+    margin: 0 0 3px;
+  }
 `;
 
 const PageSubtitle = styled.p`
   color: #666;
   font-size: 16px;
+  
+  @media (max-width: 768px) {
+    font-size: 13.5px;
+    margin-top: 0;
+    margin-bottom: 6px;
+  }
 `;
 
 const FiltersSection = styled.div`
@@ -31,6 +64,11 @@ const FiltersSection = styled.div`
   border-radius: 12px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   margin-bottom: 40px;
+  
+  @media (max-width: 768px) {
+    padding: 16px;
+    margin-bottom: 20px;
+  }
 `;
 
 const FiltersHeader = styled.div`
@@ -38,6 +76,12 @@ const FiltersHeader = styled.div`
   align-items: center;
   justify-content: space-between;
   margin-bottom: 20px;
+  
+  @media (max-width: 480px) {
+    flex-direction: column;
+    gap: 10px;
+    align-items: stretch;
+  }
 `;
 
 const FiltersTitle = styled.h3`
@@ -47,11 +91,19 @@ const FiltersTitle = styled.h3`
   display: flex;
   align-items: center;
   gap: 10px;
+  
+  @media (max-width: 768px) {
+    font-size: 16px;
+  }
 `;
 
 const ViewToggle = styled.div`
   display: flex;
   gap: 10px;
+  
+  @media (max-width: 768px) {
+    justify-content: flex-end;
+  }
 `;
 
 const ViewToggleButton = styled.button`
@@ -66,12 +118,26 @@ const ViewToggleButton = styled.button`
   &:hover {
     border-color: #2c5530;
   }
+  
+  @media (max-width: 480px) {
+    padding: 6px;
+  }
 `;
 
 const FiltersGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 20px;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
 `;
 
 const FilterGroup = styled.div`
@@ -110,6 +176,11 @@ const SearchInput = styled.input`
   &:focus {
     border-color: #2c5530;
   }
+  
+  @media (max-width: 768px) {
+    padding: 10px 16px;
+    border-radius: 10px;
+  }
 `;
 
 const ProductsGrid = styled.div`
@@ -117,6 +188,16 @@ const ProductsGrid = styled.div`
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 30px;
   margin-bottom: 40px;
+  
+  @media (max-width: 992px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+  
+  @media (max-width: 400px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
 `;
 
 const ProductsList = styled.div`
@@ -144,6 +225,10 @@ const ProductImageContainer = styled.div`
   position: relative;
   height: 200px;
   overflow: hidden;
+  
+  @media (max-width: 768px) {
+    height: 130px;
+  }
 `;
 
 const ProductImage = styled.img`
@@ -174,10 +259,19 @@ const Badge = styled.div`
   font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
+  
+  @media (max-width: 768px) {
+    padding: 4px 8px;
+    font-size: 10px;
+  }
 `;
 
 const ProductContent = styled.div`
   padding: 25px;
+  
+  @media (max-width: 768px) {
+    padding: 10px;
+  }
 `;
 
 const ProductHeader = styled.div`
@@ -185,6 +279,10 @@ const ProductHeader = styled.div`
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 15px;
+  
+  @media (max-width: 768px) {
+    margin-bottom: 10px;
+  }
 `;
 
 const ProductName = styled.h3`
@@ -194,6 +292,10 @@ const ProductName = styled.h3`
   margin: 0;
   line-height: 1.3;
   flex: 1;
+  
+  @media (max-width: 768px) {
+    font-size: 14px;
+  }
 `;
 
 const ProductPrice = styled.div`
@@ -201,6 +303,11 @@ const ProductPrice = styled.div`
   font-weight: 700;
   color: #27ae60;
   margin-left: 15px;
+  
+  @media (max-width: 768px) {
+    font-size: 16px;
+    margin-left: 8px;
+  }
 `;
 
 const ProductDescription = styled.p`
@@ -212,6 +319,11 @@ const ProductDescription = styled.p`
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  
+  @media (max-width: 768px) {
+    font-size: 12px;
+    margin-bottom: 8px;
+  }
 `;
 
 const ProductInfo = styled.div`
@@ -219,6 +331,10 @@ const ProductInfo = styled.div`
   justify-content: space-between;
   align-items: center;
   margin-bottom: 15px;
+  
+  @media (max-width: 768px) {
+    margin-bottom: 8px;
+  }
 `;
 
 const ProductRating = styled.div`
@@ -269,6 +385,10 @@ const ProductSpecs = styled.div`
 const ProductActions = styled.div`
   display: flex;
   gap: 10px;
+  
+  @media (max-width: 768px) {
+    gap: 6px;
+  }
 `;
 
 const AddToCartButton = styled.button`
@@ -296,15 +416,21 @@ const AddToCartButton = styled.button`
     background: #ccc;
     cursor: not-allowed;
   }
+  
+  @media (max-width: 768px) {
+    padding: 10px;
+    font-size: 13px;
+    border-radius: 6px;
+    gap: 6px;
+  }
 `;
 
-const ViewButton = styled(Link)`
+const QuickViewButton = styled.button`
   background: transparent;
   color: #2c5530;
   border: 2px solid #2c5530;
   padding: 12px 20px;
   border-radius: 8px;
-  text-decoration: none;
   font-weight: 600;
   display: flex;
   align-items: center;
@@ -312,10 +438,18 @@ const ViewButton = styled(Link)`
   gap: 8px;
   transition: all 0.3s ease;
   font-size: 14px;
+  cursor: pointer;
   
   &:hover {
     background: #2c5530;
     color: white;
+  }
+  
+  @media (max-width: 768px) {
+    padding: 10px 14px;
+    font-size: 13px;
+    border-radius: 6px;
+    gap: 6px;
   }
 `;
 
@@ -353,6 +487,9 @@ const Products = () => {
   });
   const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '');
   const [viewMode, setViewMode] = useState('grid');
+  const [quickViewOpen, setQuickViewOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const { addToCart } = useCart();
 
   // Données complètes de produits
   const allProducts = [
@@ -609,9 +746,22 @@ const Products = () => {
     setSearchParams({});
   };
 
-  const handleAddToCart = (productId, productName) => {
-    console.log(`Ajout au panier: ${productName} (ID: ${productId})`);
-    alert(`${productName} a été ajouté au panier !`);
+  const handleAddToCart = (product) => {
+    addToCart(product, 1);
+    toast.success('Produit ajouté au panier');
+  };
+
+  const openQuickView = (product) => {
+    setSelectedProduct(product);
+    setQuickViewOpen(true);
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'auto' });
+    }
+  };
+
+  const handleQuickViewAddToCart = (product) => {
+    if (!product) return;
+    handleAddToCart(product);
   };
 
   // Logique de filtrage des produits
@@ -912,9 +1062,9 @@ const Products = () => {
                         <FiShoppingCart size={16} />
                         Ajouter
                       </AddToCartButton>
-                      <ViewButton to={`/product/${product.id}`}>
+                      <QuickViewButton onClick={() => openQuickView(product)}>
                         Voir
-                      </ViewButton>
+                      </QuickViewButton>
                     </ProductActions>
                   </ProductContent>
                 </ProductCardEnhanced>
@@ -972,15 +1122,21 @@ const Products = () => {
                         <FiShoppingCart size={16} />
                         Ajouter
                       </AddToCartButton>
-                      <ViewButton to={`/product/${product.id}`}>
+                      <QuickViewButton onClick={() => openQuickView(product)}>
                         Voir
-                      </ViewButton>
+                      </QuickViewButton>
                     </ProductActions>
                   </ProductContent>
                 </ProductCardEnhanced>
               ))}
             </ProductsList>
           )}
+          <ProductQuickView 
+            open={quickViewOpen}
+            product={selectedProduct}
+            onClose={() => setQuickViewOpen(false)}
+            onAddToCart={handleQuickViewAddToCart}
+          />
         </>
       )}
     </ProductsContainer>

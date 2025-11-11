@@ -1,22 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCart } from '../../contexts/CartContext';
 import styled from 'styled-components';
-import { FiShoppingCart, FiUser, FiMenu, FiX, FiSearch } from 'react-icons/fi';
+import { FiShoppingCart, FiUser, FiMenu, FiX, FiSearch, FiPhone, FiClock } from 'react-icons/fi';
 
 const HeaderContainer = styled.header`
   background: #fff;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  position: sticky;
-  top: 0;
+  position: fixed;
+  top: 52px; /* increased offset below the fixed TopBar on desktop */
+  left: 0;
+  right: 0;
+  width: 100vw;
   z-index: 1000;
   
   @media (max-width: 768px) {
-    position: fixed !important;
     top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
     width: 100vw !important;
     height: 60px !important;
     z-index: 9999 !important;
@@ -25,7 +25,7 @@ const HeaderContainer = styled.header`
     will-change: transform !important;
     backface-visibility: hidden !important;
     -webkit-backface-visibility: hidden !important;
-    overflow: hidden !important;
+    overflow: visible !important;
   }
   
   @media (max-width: 480px) {
@@ -34,6 +34,58 @@ const HeaderContainer = styled.header`
   
   @media (max-width: 375px) {
     height: 50px !important;
+  }
+`;
+
+const TopBar = styled.div`
+  display: none;
+  background: #f3f6f4;
+  color: #2c5530;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100vw;
+  z-index: 1001;
+  border-bottom: 1px solid #e8eee9;
+  
+  @media (min-width: 769px) {
+    display: block;
+  }
+`;
+
+const TopBarContent = styled.div`
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 6px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+`;
+
+const InfoGroup = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 18px;
+`;
+
+const InfoItem = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #2c5530;
+`;
+
+const DesktopOnly = styled.div`
+  @media (max-width: 768px) {
+    display: none !important;
+  }
+`;
+
+const MobileOnly = styled.div`
+  @media (min-width: 769px) {
+    display: none !important;
   }
 `;
 
@@ -76,6 +128,10 @@ const Logo = styled(Link)`
   flex-shrink: 1;
   min-width: 0;
   overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+  &:focus { outline: none; box-shadow: none; }
+  &:active { outline: none; box-shadow: none; }
   
   @media (max-width: 768px) {
     font-size: 16px;
@@ -95,7 +151,7 @@ const Logo = styled(Link)`
 
 const SearchBar = styled.div`
   flex: 1;
-  max-width: 500px;
+  max-width: 380px;
   margin: 0 20px;
   position: relative;
   
@@ -141,6 +197,10 @@ const NavLink = styled(Link)`
   text-decoration: none;
   font-weight: 500;
   transition: color 0.3s ease;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+  &:focus { outline: none; box-shadow: none; }
+  &:active { outline: none; box-shadow: none; }
   
   &:hover {
     color: #2c5530;
@@ -161,15 +221,15 @@ const UserActions = styled.div`
   min-width: 0;
   
   @media (max-width: 768px) {
-    gap: -5px; /* Negative gap to overlap and bring cart closer to hamburger */
+    gap: 8px;
   }
   
   @media (max-width: 480px) {
-    gap: -8px;
+    gap: 6px;
   }
   
   @media (max-width: 375px) {
-    gap: -10px;
+    gap: 4px;
   }
 `;
 
@@ -187,27 +247,33 @@ const CartButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+  &:focus { outline: none; box-shadow: none; }
+  &:focus-visible { outline: none; box-shadow: none; }
+  &::-moz-focus-inner { border: 0; }
+  &:active { outline: none; box-shadow: none; }
   
   @media (max-width: 768px) {
-    padding: 2px;
+    padding: 6px;
     min-width: 28px;
     min-height: 28px;
   }
   
   @media (max-width: 480px) {
-    padding: 1px;
+    padding: 6px;
     min-width: 24px;
     min-height: 24px;
   }
   
   @media (max-width: 375px) {
-    padding: 1px;
+    padding: 6px;
     min-width: 20px;
     min-height: 20px;
   }
   
   &:hover {
-    background-color: #f5f5f5;
+    background-color: #eef4ef;
   }
 `;
 
@@ -256,27 +322,33 @@ const UserButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+  &:focus { outline: none; box-shadow: none; }
+  &:focus-visible { outline: none; box-shadow: none; }
+  &::-moz-focus-inner { border: 0; }
+  &:active { outline: none; box-shadow: none; }
   
   @media (max-width: 768px) {
-    padding: 2px;
+    padding: 6px;
     min-width: 28px;
     min-height: 28px;
   }
   
   @media (max-width: 480px) {
-    padding: 1px;
+    padding: 6px;
     min-width: 24px;
     min-height: 24px;
   }
   
   @media (max-width: 375px) {
-    padding: 1px;
+    padding: 6px;
     min-width: 20px;
     min-height: 20px;
   }
   
   &:hover {
-    background-color: #f5f5f5;
+    background-color: #eef4ef;
   }
 `;
 
@@ -291,24 +363,76 @@ const MobileMenuButton = styled.button`
   min-height: 32px;
   align-items: center;
   justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.3s ease;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+  &:focus { outline: none; box-shadow: none; }
+  &:active { outline: none; box-shadow: none; }
   
   @media (max-width: 768px) {
     display: flex; /* Show on mobile */
-    padding: 2px;
+    padding: 6px;
     min-width: 28px;
     min-height: 28px;
   }
   
   @media (max-width: 480px) {
-    padding: 1px;
+    padding: 6px;
     min-width: 24px;
     min-height: 24px;
   }
   
   @media (max-width: 375px) {
-    padding: 1px;
+    padding: 6px;
     min-width: 20px;
     min-height: 20px;
+  }
+
+  &:hover {
+    background-color: #eef4ef;
+  }
+`;
+
+const MobileSearchButton = styled.button`
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  flex-shrink: 0;
+  min-width: 32px;
+  min-height: 32px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.3s ease;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+  &:focus { outline: none; box-shadow: none; }
+  &:active { outline: none; box-shadow: none; }
+
+  @media (max-width: 768px) {
+    display: flex;
+    padding: 6px;
+    min-width: 28px;
+    min-height: 28px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 6px;
+    min-width: 24px;
+    min-height: 24px;
+  }
+
+  @media (max-width: 375px) {
+    padding: 6px;
+    min-width: 20px;
+    min-height: 20px;
+  }
+
+  &:hover {
+    background-color: #eef4ef;
   }
 `;
 
@@ -318,15 +442,17 @@ const MobileMenu = styled.div`
   top: 100%;
   left: 0;
   right: 0;
-  background: white;
-  background-color: white !important;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  background: #ffffff;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
   padding: 20px;
   z-index: 9999;
-  opacity: 1;
+  border-top: 1px solid #f0f0f0;
+  transform: ${props => props.isOpen ? 'translateY(0)' : 'translateY(-8px)'};
+  opacity: ${props => props.isOpen ? 1 : 0};
+  transition: transform 0.25s ease, opacity 0.25s ease;
   
   @media (max-width: 768px) {
-    padding: 15px;
+    padding: 16px;
   }
   
   @media (max-width: 480px) {
@@ -338,6 +464,40 @@ const MobileMenu = styled.div`
   }
 `;
 
+const MobileSearchPanel = styled.div`
+  display: ${props => props.isOpen ? 'block' : 'none'};
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  padding: 12px 16px;
+  z-index: 10000;
+  border-top: 1px solid #f0f0f0;
+  transform: ${props => props.isOpen ? 'translateY(0)' : 'translateY(-8px)'};
+  opacity: ${props => props.isOpen ? 1 : 0};
+  transition: transform 0.25s ease, opacity 0.25s ease;
+
+  @media (min-width: 769px) {
+    display: none;
+  }
+`;
+
+const MobileSearchInput = styled.input`
+  width: 100%;
+  padding: 12px 14px;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.3s ease;
+
+  &:focus {
+    border-color: #2c5530;
+  }
+`;
+
 const MobileNavLink = styled(Link)`
   display: block;
   padding: 12px 0;
@@ -346,15 +506,19 @@ const MobileNavLink = styled(Link)`
   font-weight: 500;
   border-bottom: 1px solid #f0f0f0;
   opacity: 1;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+  &:focus { outline: none; box-shadow: none; }
+  &:active { outline: none; box-shadow: none; }
   
   @media (max-width: 768px) {
-    padding: 10px 0;
-    font-size: 15px;
+    padding: 12px 0;
+    font-size: 16px;
   }
   
   @media (max-width: 480px) {
-    padding: 8px 0;
-    font-size: 14px;
+    padding: 10px 0;
+    font-size: 15px;
   }
   
   &:hover {
@@ -393,27 +557,37 @@ const DropdownItem = styled(Link)`
 
 const ResponsiveIcon = styled.div`
   font-size: 24px;
+  color: #2c5530;
   
   @media (max-width: 768px) {
-    font-size: 20px;
+    font-size: 22px;
   }
   
   @media (max-width: 480px) {
-    font-size: 18px;
+    font-size: 20px;
   }
   
   @media (max-width: 375px) {
-    font-size: 16px;
+    font-size: 18px;
   }
 `;
 
+const RightActions = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`;
+
 const Header = () => {
+  const headerRef = useRef(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const { user, logout } = useAuth();
   const { cartItems } = useCart();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const cartItemsCount = cartItems.reduce((total, item) => total + item.quantity, 0);
 
@@ -424,16 +598,123 @@ const Header = () => {
     }
   };
 
+  const closeAllOverlays = () => {
+    setIsMobileMenuOpen(false);
+    setIsMobileSearchOpen(false);
+    setIsUserDropdownOpen(false);
+  };
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen((v) => {
+      const next = !v;
+      if (next) {
+        setIsMobileSearchOpen(false);
+        setIsUserDropdownOpen(false);
+      }
+      return next;
+    });
+  };
+
+  const toggleMobileSearch = () => {
+    setIsMobileSearchOpen((v) => {
+      const next = !v;
+      if (next) {
+        setIsMobileMenuOpen(false);
+        setIsUserDropdownOpen(false);
+      }
+      return next;
+    });
+  };
+
+  const handleUserToggle = () => {
+    setIsUserDropdownOpen((v) => {
+      const next = !v;
+      if (next) {
+        setIsMobileMenuOpen(false);
+        setIsMobileSearchOpen(false);
+      }
+      return next;
+    });
+  };
+
+  const handleGoToCart = () => {
+    closeAllOverlays();
+    const path = location.pathname || '';
+    const inDashboardArea = path === '/dashboard' || path.startsWith('/dashboard/') || path === '/profile' || path === '/orders' || path.startsWith('/orders/');
+    navigate(inDashboardArea ? '/orders' : '/cart');
+  };
+
+  const handleLinkClick = (e, to) => {
+    e.preventDefault();
+    closeAllOverlays();
+    if (location.pathname === to) {
+      if (typeof window !== 'undefined') {
+        window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+      }
+    }
+    navigate(to);
+  };
+
   const handleLogout = async () => {
     await logout();
     setIsUserDropdownOpen(false);
     navigate('/');
   };
 
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (!(isMobileMenuOpen || isUserDropdownOpen || isMobileSearchOpen)) return;
+      if (headerRef.current && !headerRef.current.contains(e.target)) {
+        closeAllOverlays();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside, true);
+    document.addEventListener('touchstart', handleClickOutside, true);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside, true);
+      document.removeEventListener('touchstart', handleClickOutside, true);
+    };
+  }, [isMobileMenuOpen, isUserDropdownOpen, isMobileSearchOpen]);
+
   return (
-    <HeaderContainer>
+    <>
+      {/* Desktop Top Bar */}
+      <TopBar>
+        <TopBarContent>
+          <InfoGroup>
+            <InfoItem>
+              <FiPhone /> <span>01 23 45 67 89</span>
+            </InfoItem>
+            <InfoItem>
+              <FiClock /> <span>Lun–Sam 9h–18h</span>
+            </InfoItem>
+          </InfoGroup>
+
+          <DesktopOnly>
+            <UserActions>
+              {!user && (
+                <>
+                  <NavLink to="/login">Connexion</NavLink>
+                  <NavLink to="/register">Inscription</NavLink>
+                </>
+              )}
+              <CartButton onClick={handleGoToCart}>
+                <ResponsiveIcon>
+                  <FiShoppingCart />
+                </ResponsiveIcon>
+                {cartItemsCount > 0 && (
+                  <CartBadge>{cartItemsCount}</CartBadge>
+                )}
+              </CartButton>
+            </UserActions>
+          </DesktopOnly>
+        </TopBarContent>
+      </TopBar>
+
+      <HeaderContainer ref={headerRef}>
       <HeaderContent>
-        <Logo to="/">
+        <Logo to="/" onClick={(e) => handleLinkClick(e, '/') }>
           🌲 Bois de Chauffage
         </Logo>
         
@@ -450,70 +731,105 @@ const Header = () => {
         </SearchBar>
         
         <Nav>
-          <NavLink to="/">Accueil</NavLink>
-          <NavLink to="/products">Produits</NavLink>
-          <NavLink to="/about">À propos</NavLink>
-          <NavLink to="/contact">Contact</NavLink>
+          <NavLink to="/" onClick={(e) => handleLinkClick(e, '/')}>Accueil</NavLink>
+          <NavLink to="/products" onClick={(e) => handleLinkClick(e, '/products')}>Produits</NavLink>
+          <NavLink to="/about" onClick={(e) => handleLinkClick(e, '/about')}>À propos</NavLink>
+          <NavLink to="/contact" onClick={(e) => handleLinkClick(e, '/contact')}>Contact</NavLink>
         </Nav>
-        
-        <UserActions>
-          <CartButton onClick={() => navigate('/cart')}>
+
+        <RightActions>
+          {/* Mobile search toggle */}
+          <MobileSearchButton onClick={toggleMobileSearch} aria-label="Recherche">
             <ResponsiveIcon>
-              <FiShoppingCart />
+              <FiSearch />
             </ResponsiveIcon>
-            {cartItemsCount > 0 && (
-              <CartBadge>{cartItemsCount}</CartBadge>
+          </MobileSearchButton>
+
+          <UserActions>
+            {user ? (
+              <Dropdown>
+                <UserButton onClick={handleUserToggle}>
+                  <ResponsiveIcon>
+                    <FiUser />
+                  </ResponsiveIcon>
+                </UserButton>
+                <DropdownContent isOpen={isUserDropdownOpen}>
+                  <DropdownItem to="/profile" onClick={() => setIsUserDropdownOpen(false)}>Mon Profil</DropdownItem>
+                  <DropdownItem to="/orders" onClick={() => setIsUserDropdownOpen(false)}>Mes Commandes</DropdownItem>
+                  <DropdownItem to="/orders" onClick={() => setIsUserDropdownOpen(false)}>Mes Avis</DropdownItem>
+                  <DropdownItem as="button" onClick={handleLogout}>
+                    Déconnexion
+                  </DropdownItem>
+                </DropdownContent>
+              </Dropdown>
+            ) : (
+              <Dropdown>
+                <UserButton onClick={handleUserToggle}>
+                  <ResponsiveIcon>
+                    <FiUser />
+                  </ResponsiveIcon>
+                </UserButton>
+                <DropdownContent isOpen={isUserDropdownOpen}>
+                  <DropdownItem to="/login" onClick={() => setIsUserDropdownOpen(false)}>Connexion</DropdownItem>
+                  <DropdownItem to="/register" onClick={() => setIsUserDropdownOpen(false)}>Inscription</DropdownItem>
+                </DropdownContent>
+              </Dropdown>
             )}
-          </CartButton>
-          
-          {user ? (
-            <Dropdown>
-              <UserButton onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}>
+
+            {/* Cart visible here only on mobile; on desktop it's in TopBar */}
+            <MobileOnly>
+              <CartButton onClick={handleGoToCart}>
                 <ResponsiveIcon>
-                  <FiUser />
+                  <FiShoppingCart />
                 </ResponsiveIcon>
-              </UserButton>
-              <DropdownContent isOpen={isUserDropdownOpen}>
-                <DropdownItem to="/profile">Mon Profil</DropdownItem>
-                <DropdownItem to="/orders">Mes Commandes</DropdownItem>
-                <DropdownItem to="/reviews">Mes Avis</DropdownItem>
-                <DropdownItem as="button" onClick={handleLogout}>
-                  Déconnexion
-                </DropdownItem>
-              </DropdownContent>
-            </Dropdown>
-          ) : (
-            <NavLink to="/login" className="desktop-only">Connexion</NavLink>
-          )}
-        </UserActions>
-        
-        <MobileMenuButton onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
-          <ResponsiveIcon>
-            {isMobileMenuOpen ? <FiX /> : <FiMenu />}
-          </ResponsiveIcon>
-        </MobileMenuButton>
+                {cartItemsCount > 0 && (
+                  <CartBadge>{cartItemsCount}</CartBadge>
+                )}
+              </CartButton>
+            </MobileOnly>
+          </UserActions>
+
+          <MobileMenuButton onClick={toggleMobileMenu} aria-label="Menu">
+            <ResponsiveIcon>
+              {isMobileMenuOpen ? <FiX /> : <FiMenu />}
+            </ResponsiveIcon>
+          </MobileMenuButton>
+        </RightActions>
       </HeaderContent>
-      
+
+      {/* Mobile Search Panel */}
+      <MobileSearchPanel isOpen={isMobileSearchOpen}>
+        <form onSubmit={(e) => { handleSearch(e); setIsMobileSearchOpen(false); }}>
+          <MobileSearchInput
+            type="text"
+            placeholder="Rechercher des produits..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </form>
+      </MobileSearchPanel>
+
       <MobileMenu isOpen={isMobileMenuOpen}>
-        <MobileNavLink to="/" onClick={() => setIsMobileMenuOpen(false)}>
+        <MobileNavLink to="/" onClick={(e) => handleLinkClick(e, '/') }>
           Accueil
         </MobileNavLink>
-        <MobileNavLink to="/products" onClick={() => setIsMobileMenuOpen(false)}>
+        <MobileNavLink to="/products" onClick={(e) => handleLinkClick(e, '/products') }>
           Produits
         </MobileNavLink>
-        <MobileNavLink to="/about" onClick={() => setIsMobileMenuOpen(false)}>
+        <MobileNavLink to="/about" onClick={(e) => handleLinkClick(e, '/about') }>
           À propos
         </MobileNavLink>
-        <MobileNavLink to="/contact" onClick={() => setIsMobileMenuOpen(false)}>
+        <MobileNavLink to="/contact" onClick={(e) => handleLinkClick(e, '/contact') }>
           Contact
         </MobileNavLink>
         {!user && (
-          <MobileNavLink to="/login" onClick={() => setIsMobileMenuOpen(false)}>
+          <MobileNavLink to="/login" onClick={(e) => handleLinkClick(e, '/login') }>
             Connexion
           </MobileNavLink>
         )}
       </MobileMenu>
-    </HeaderContainer>
+      </HeaderContainer>
+    </>
   );
 };
 
