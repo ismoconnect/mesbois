@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams, Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { FiFilter, FiGrid, FiList, FiStar, FiShoppingCart, FiTag, FiTruck, FiShield } from 'react-icons/fi';
+import { products as catalogue } from '../data/catalogue';
 import ProductQuickView from '../components/ProductQuickView';
 import { useCart } from '../contexts/CartContext';
 import toast from 'react-hot-toast';
@@ -23,6 +24,78 @@ const ProductsContainer = styled.div`
   @media (max-width: 375px) {
     margin-top: 0;
   }
+`;
+
+const CategoryCards = styled.div`
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  margin: 16px 0 24px;
+
+  @media (max-width: 900px) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  @media (max-width: 600px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+`;
+
+const CategoryCard = styled(Link)`
+  position: relative;
+  display: block;
+  height: 140px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #eef3ee;
+  text-decoration: none;
+  border: 2px solid #e0e0e0;
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+
+  &:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,.08); border-color: #2c5530; }
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: linear-gradient(to bottom, rgba(0,0,0,0) 40%, rgba(0,0,0,.45)), var(--bg-img);
+    background-size: cover;
+    background-position: center;
+  }
+
+  span {
+    position: absolute;
+    left: 12px;
+    bottom: 12px;
+    color: #fff;
+    font-weight: 800;
+    letter-spacing: .2px;
+    text-shadow: 0 2px 6px rgba(0,0,0,.4);
+  }
+`;
+
+const CategoriesNav = styled.div`
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  margin: 16px 0 24px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+`;
+
+const CategoryButton = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 2px solid ${p => p.$active ? '#2c5530' : '#e0e0e0'};
+  background: ${p => p.$active ? '#2c5530' : '#fff'};
+  color: ${p => p.$active ? '#fff' : '#2c5530'};
+  font-weight: 700;
+  cursor: pointer;
 `;
 
 const PageHeader = styled.div`
@@ -480,231 +553,58 @@ const Products = () => {
     maxPrice: searchParams.get('maxPrice') || '',
     available: searchParams.get('available') === 'true'
   });
+
+  const [mainCategory, setMainCategory] = useState(searchParams.get('main') || '');
   const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '');
   const [viewMode, setViewMode] = useState('grid');
   const [quickViewOpen, setQuickViewOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const { addToCart } = useCart();
 
-  // Données complètes de produits
-  const allProducts = [
-    {
-      id: '1',
-      name: 'Bûches de Chêne Premium',
-      description: 'Bûches de chêne séchées 2 ans, idéales pour un feu de longue durée avec une excellente valeur calorifique. Parfait pour les cheminées et poêles.',
-      price: 45.99,
-      category: 'bûches',
-      type: 'chêne',
-      stock: 150,
-      image: 'https://images.unsplash.com/photo-1544966503-7cc4acb4c1a9?w=400',
-      rating: 4.8,
-      reviewCount: 127,
-      sale: false,
+  // Synchronise la catégorie principale avec l'URL
+  useEffect(() => {
+    const urlMain = searchParams.get('main') || '';
+    setMainCategory(urlMain);
+  }, [searchParams]);
+
+  // Catalogue importé
+  const allProducts = catalogue.map((p, i) => {
+    const mapMainToCategory = (main) => {
+      switch (main) {
+        case 'bois':
+          return 'bûches';
+        case 'accessoires':
+          return 'accessoires';
+        case 'buches-densifiees':
+          return 'bûches densifiées';
+        case 'pellets':
+          return 'pellets';
+        case 'poeles':
+          return 'poêles';
+        default:
+          return '';
+      }
+    };
+    return {
+      id: p.id || `p-${i}`,
+      name: p.name,
+      description: [p.vendor, p.regularPrice ? `(Prix régulier ${p.regularPrice}€)` : null].filter(Boolean).join(' · '),
+      price: p.price,
+      regularPrice: p.regularPrice,
+      category: mapMainToCategory(p.main),
+      type: '',
+      stock: 1,
+      image: '/placeholder-wood.jpg',
+      rating: 0,
+      reviewCount: 0,
+      sale: p.regularPrice ? p.price < p.regularPrice : false,
       new: false,
-      weight: '25kg',
-      dimensions: '33cm',
-      humidity: '< 20%',
-      calorificValue: '4.2 kWh/kg'
-    },
-    {
-      id: '2',
-      name: 'Granulés de Bois Certifiés',
-      description: 'Granulés de bois certifiés DIN Plus, parfaits pour poêles et chaudières à granulés. Faible taux de cendre et haute performance.',
-      price: 6.99,
-      category: 'granulés',
-      type: 'mélange',
-      stock: 200,
-      image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400',
-      rating: 4.9,
-      reviewCount: 89,
-      sale: true,
-      new: false,
-      weight: '15kg',
-      dimensions: '6mm',
-      humidity: '< 10%',
-      calorificValue: '4.8 kWh/kg'
-    },
-    {
-      id: '3',
-      name: 'Bûches de Hêtre Séchées',
-      description: 'Bûches de hêtre séchées naturellement, excellent pouvoir calorifique et flamme vive. Idéal pour un chauffage efficace.',
-      price: 42.50,
-      category: 'bûches',
-      type: 'hêtre',
-      stock: 120,
-      image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400',
-      rating: 4.7,
-      reviewCount: 95,
-      sale: false,
-      new: true,
-      weight: '25kg',
-      dimensions: '33cm',
-      humidity: '< 20%',
-      calorificValue: '4.1 kWh/kg'
-    },
-    {
-      id: '4',
-      name: 'Pellets Premium',
-      description: 'Pellets de qualité premium, faible taux de cendre et haute performance énergétique. Certifiés ENplus A1.',
-      price: 8.50,
-      category: 'pellets',
-      type: 'premium',
-      stock: 180,
-      image: 'https://images.unsplash.com/photo-1584464491033-06628f3a6b7b?w=400',
-      rating: 4.6,
-      reviewCount: 76,
-      sale: false,
-      new: false,
-      weight: '15kg',
-      dimensions: '6mm',
-      humidity: '< 8%',
-      calorificValue: '5.0 kWh/kg'
-    },
-    {
-      id: '5',
-      name: 'Kit Allumage Naturel',
-      description: 'Kit complet pour allumer votre feu facilement avec des produits naturels et écologiques. Contient allume-feu et petit bois.',
-      price: 12.99,
-      category: 'allumage',
-      type: 'naturel',
-      stock: 85,
-      image: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400',
-      rating: 4.5,
-      reviewCount: 43,
-      sale: true,
-      new: false,
-      weight: '2kg',
-      dimensions: '15cm',
-      humidity: '< 15%',
-      calorificValue: '3.5 kWh/kg'
-    },
-    {
-      id: '6',
-      name: 'Bûches de Charme',
-      description: 'Bûches de charme séchées, combustion lente et régulière, parfait pour la nuit. Excellent pouvoir calorifique.',
-      price: 48.99,
-      category: 'bûches',
-      type: 'charme',
-      stock: 95,
-      image: 'https://images.unsplash.com/photo-1580674684081-7617fbf3d745?w=400',
-      rating: 4.8,
-      reviewCount: 112,
-      sale: false,
-      new: false,
-      weight: '25kg',
-      dimensions: '33cm',
-      humidity: '< 20%',
-      calorificValue: '4.3 kWh/kg'
-    },
-    {
-      id: '7',
-      name: 'Bûches de Frêne',
-      description: 'Bûches de frêne séchées, combustion rapide et intense. Parfait pour démarrer un feu ou pour un chauffage rapide.',
-      price: 44.50,
-      category: 'bûches',
-      type: 'frêne',
-      stock: 110,
-      image: 'https://images.unsplash.com/photo-1584464491033-06628f3a6b7b?w=400',
-      rating: 4.6,
-      reviewCount: 78,
-      sale: false,
-      new: false,
-      weight: '25kg',
-      dimensions: '33cm',
-      humidity: '< 20%',
-      calorificValue: '4.0 kWh/kg'
-    },
-    {
-      id: '8',
-      name: 'Bûches Mélangées',
-      description: 'Mélange de différentes essences de bois, offrant un équilibre parfait entre pouvoir calorifique et durée de combustion.',
-      price: 39.99,
-      category: 'bûches',
-      type: 'mélange',
-      stock: 160,
-      image: 'https://images.unsplash.com/photo-1544966503-7cc4acb4c1a9?w=400',
-      rating: 4.4,
-      reviewCount: 134,
-      sale: false,
-      new: false,
-      weight: '25kg',
-      dimensions: '33cm',
-      humidity: '< 20%',
-      calorificValue: '3.9 kWh/kg'
-    },
-    {
-      id: '9',
-      name: 'Granulés de Pin',
-      description: 'Granulés de pin 100% naturels, haute densité énergétique et combustion propre. Certifiés DIN Plus.',
-      price: 7.50,
-      category: 'granulés',
-      type: 'pin',
-      stock: 140,
-      image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400',
-      rating: 4.7,
-      reviewCount: 67,
-      sale: false,
-      new: false,
-      weight: '15kg',
-      dimensions: '6mm',
-      humidity: '< 10%',
-      calorificValue: '4.9 kWh/kg'
-    },
-    {
-      id: '10',
-      name: 'Charbon de Bois Premium',
-      description: 'Charbon de bois de qualité supérieure, longue durée de combustion et chaleur intense. Idéal pour barbecues et chauffage.',
-      price: 15.99,
-      category: 'charbon',
-      type: 'bois',
-      stock: 75,
-      image: 'https://images.unsplash.com/photo-1584464491033-06628f3a6b7b?w=400',
-      rating: 4.5,
-      reviewCount: 52,
-      sale: false,
-      new: false,
-      weight: '10kg',
-      dimensions: 'Variable',
-      humidity: '< 5%',
-      calorificValue: '7.5 kWh/kg'
-    },
-    {
-      id: '11',
-      name: 'Allume-Feu Naturel',
-      description: 'Allume-feu 100% naturel à base de cire d\'abeille et de sciure de bois. Sans produits chimiques, parfait pour l\'allumage.',
-      price: 8.99,
-      category: 'allumage',
-      type: 'cire',
-      stock: 90,
-      image: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400',
-      rating: 4.6,
-      reviewCount: 41,
-      sale: true,
-      new: false,
-      weight: '1kg',
-      dimensions: '8cm',
-      humidity: '< 5%',
-      calorificValue: '6.0 kWh/kg'
-    },
-    {
-      id: '12',
-      name: 'Pellets de Hêtre',
-      description: 'Pellets de hêtre de haute qualité, excellent pouvoir calorifique et faible taux de cendre. Certifiés ENplus A1.',
-      price: 9.25,
-      category: 'pellets',
-      type: 'hêtre',
-      stock: 125,
-      image: 'https://images.unsplash.com/photo-1584464491033-06628f3a6b7b?w=400',
-      rating: 4.8,
-      reviewCount: 89,
-      sale: false,
-      new: false,
-      weight: '15kg',
-      dimensions: '6mm',
-      humidity: '< 8%',
-      calorificValue: '5.1 kWh/kg'
-    }
-  ];
+      weight: '',
+      dimensions: '',
+      humidity: '',
+      calorificValue: ''
+    };
+  });
 
   const handleFilterChange = (key, value) => {
     const newFilters = { ...filters, [key]: value };
@@ -716,6 +616,18 @@ const Products = () => {
       if (v) params.set(k, v);
     });
     if (searchTerm) params.set('q', searchTerm);
+    if (mainCategory) params.set('main', mainCategory);
+    setSearchParams(params);
+  };
+
+  const setActiveMainCategory = (slug) => {
+    setMainCategory(slug);
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([k, v]) => {
+      if (v) params.set(k, v);
+    });
+    if (searchTerm) params.set('q', searchTerm);
+    if (slug) params.set('main', slug);
     setSearchParams(params);
   };
 
@@ -760,6 +672,27 @@ const Products = () => {
   };
 
   // Logique de filtrage des produits
+  const mapToMainCategory = (p) => {
+    const cat = (p.category || '').toLowerCase();
+    if (['bûches', 'buches', 'charbon'].includes(cat)) return 'bois';
+    if (['pellets', 'granulés', 'granules'].includes(cat)) return 'pellets';
+    if (['allumage', 'accessoires'].includes(cat)) return 'accessoires';
+    if (['poêles', 'poeles'].includes(cat)) return 'poeles';
+    if (['bûches densifiées', 'buches densifiees', 'densifiees'].includes(cat)) return 'buches-densifiees';
+    return '';
+  };
+
+  // Options dynamiques pour filtres
+  const uniqueCategories = Array.from(new Set(allProducts.map(p => (p.category || '').trim()).filter(Boolean)));
+  const typesSource = allProducts.filter(p => {
+    // restreindre par catégorie si sélectionnée
+    if (filters.category) return p.category === filters.category;
+    // restreindre par catégorie principale si définie
+    if (mainCategory) return mapToMainCategory(p) === mainCategory;
+    return true;
+  });
+  const uniqueTypes = Array.from(new Set(typesSource.map(p => (p.type || '').trim()).filter(Boolean)));
+
   const filteredProducts = allProducts.filter(product => {
     // Filtre par terme de recherche
     if (searchTerm) {
@@ -769,6 +702,11 @@ const Products = () => {
           !product.category.toLowerCase().includes(searchLower)) {
         return false;
       }
+    }
+
+    // Filtre par catégorie principale (5 groupes)
+    if (mainCategory) {
+      if (mapToMainCategory(product) !== mainCategory) return false;
     }
 
     // Filtre par catégorie
@@ -799,6 +737,47 @@ const Products = () => {
     return true;
   });
 
+  // Statistiques dynamiques (après définition de filteredProducts)
+  const totalProducts = allProducts.length;
+  const visibleCount = filteredProducts.length;
+  const ratings = allProducts
+    .map(p => (typeof p.rating === 'number' ? p.rating : 0))
+    .filter(n => n > 0);
+  const averageRating = ratings.length ? (ratings.reduce((a, b) => a + b, 0) / ratings.length) : 4.7;
+  const averageRatingFormatted = averageRating.toFixed(1);
+
+  // Vue initiale: seulement les cartes de catégories avec images
+  if (!mainCategory) {
+    return (
+      <ProductsContainer>
+        <PageHeader>
+          <PageTitle>Nos Produits</PageTitle>
+          <PageSubtitle>
+            Choisissez une catégorie pour afficher les produits
+          </PageSubtitle>
+          <CategoryCards>
+            <CategoryCard to={"/products?main=bois"} style={{ '--bg-img': "url('https://images.unsplash.com/photo-1482192505345-5655af888cc4?q=80&w=1600&auto=format&fit=crop')" }}>
+              <span>Bois de chauffage</span>
+            </CategoryCard>
+            <CategoryCard to={"/products?main=accessoires"} style={{ '--bg-img': "url('https://images.unsplash.com/photo-1516035069371-29a1b244cc32?q=80&w=1600&auto=format&fit=crop')" }}>
+              <span>Accessoires</span>
+            </CategoryCard>
+            <CategoryCard to={"/products?main=buches-densifiees"} style={{ '--bg-img': "url('https://images.unsplash.com/photo-1527061011665-3652c757a4d7?q=80&w=1600&auto=format&fit=crop')" }}>
+              <span>Bûches densifiées</span>
+            </CategoryCard>
+            <CategoryCard to={"/products?main=pellets"} style={{ '--bg-img': "url('https://images.unsplash.com/photo-1615485737594-3b42cfaa6a8a?q=80&w=1600&auto=format&fit=crop')" }}>
+              <span>Pellets de bois</span>
+            </CategoryCard>
+            <CategoryCard to={"/products?main=poeles"} style={{ '--bg-img': "url('https://images.unsplash.com/photo-1556911261-6bd341186b66?q=80&w=1600&auto=format&fit=crop')" }}>
+              <span>Poêles</span>
+            </CategoryCard>
+          </CategoryCards>
+        </PageHeader>
+      </ProductsContainer>
+    );
+  }
+
+  // Vue lorsqu'une catégorie est sélectionnée: filtres + produits
   return (
     <ProductsContainer>
       <PageHeader>
@@ -806,6 +785,23 @@ const Products = () => {
         <PageSubtitle>
           Découvrez notre large gamme de bois de chauffage de qualité
         </PageSubtitle>
+        <CategoriesNav>
+          <CategoryButton $active={mainCategory==='bois'} onClick={() => setActiveMainCategory('bois')}>
+            Bois de chauffage
+          </CategoryButton>
+          <CategoryButton $active={mainCategory==='accessoires'} onClick={() => setActiveMainCategory('accessoires')}>
+            Accessoires
+          </CategoryButton>
+          <CategoryButton $active={mainCategory==='buches-densifiees'} onClick={() => setActiveMainCategory('buches-densifiees')}>
+            Bûches densifiées
+          </CategoryButton>
+          <CategoryButton $active={mainCategory==='pellets'} onClick={() => setActiveMainCategory('pellets')}>
+            Pellets de bois
+          </CategoryButton>
+          <CategoryButton $active={mainCategory==='poeles'} onClick={() => setActiveMainCategory('poeles')}>
+            Poêles
+          </CategoryButton>
+        </CategoriesNav>
         
         {/* Statistiques rapides */}
         <div style={{ 
@@ -822,7 +818,7 @@ const Products = () => {
             textAlign: 'center' 
           }}>
             <FiTag size={32} style={{ marginBottom: '10px' }} />
-            <h4 style={{ margin: '0 0 5px 0', fontSize: '18px' }}>12 Produits</h4>
+            <h4 style={{ margin: '0 0 5px 0', fontSize: '18px' }}>{totalProducts} Produits</h4>
             <p style={{ margin: 0, opacity: 0.9, fontSize: '14px' }}>Dans notre catalogue</p>
           </div>
           
@@ -846,7 +842,7 @@ const Products = () => {
             textAlign: 'center' 
           }}>
             <FiStar size={32} style={{ marginBottom: '10px' }} />
-            <h4 style={{ margin: '0 0 5px 0', fontSize: '18px' }}>4.7/5</h4>
+            <h4 style={{ margin: '0 0 5px 0', fontSize: '18px' }}>{averageRatingFormatted}/5</h4>
             <p style={{ margin: 0, opacity: 0.9, fontSize: '14px' }}>Note moyenne clients</p>
           </div>
           
@@ -903,11 +899,9 @@ const Products = () => {
               onChange={(e) => handleFilterChange('category', e.target.value)}
             >
               <option value="">Toutes les catégories</option>
-              <option value="bûches">Bûches</option>
-              <option value="granulés">Granulés</option>
-              <option value="pellets">Pellets</option>
-              <option value="charbon">Charbon</option>
-              <option value="allumage">Allumage</option>
+              {uniqueCategories.map(cat => (
+                <option key={cat} value={cat}>{cat.charAt(0).toUpperCase() + cat.slice(1)}</option>
+              ))}
             </select>
           </FilterGroup>
 
@@ -918,11 +912,9 @@ const Products = () => {
               onChange={(e) => handleFilterChange('type', e.target.value)}
             >
               <option value="">Tous les types</option>
-              <option value="chêne">Chêne</option>
-              <option value="hêtre">Hêtre</option>
-              <option value="charme">Charme</option>
-              <option value="frêne">Frêne</option>
-              <option value="mélange">Mélange</option>
+              {uniqueTypes.length === 0 ? null : uniqueTypes.map(t => (
+                <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>
+              ))}
             </select>
           </FilterGroup>
 
@@ -1139,4 +1131,3 @@ const Products = () => {
 };
 
 export default Products;
-
