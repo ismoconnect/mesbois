@@ -298,8 +298,8 @@ const ProductsGrid = styled.div`
   }
 
   @media (max-width: 420px) {
-    grid-template-columns: 1fr;
-    gap: 10px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
   }
 `;
 
