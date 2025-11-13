@@ -429,7 +429,7 @@ const Orders = () => {
             <FiPackage size={64} />
             <h3>Aucune commande</h3>
             <p>Vous n'avez pas encore passé de commande</p>
-            <ShopButton to="/products">Commencer mes achats</ShopButton>
+            <ShopButton to="/dashboard/products">Commencer mes achats</ShopButton>
           </EmptyOrders>
         </OrdersContainer>
       </DashboardLayout>

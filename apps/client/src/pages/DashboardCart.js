@@ -5,6 +5,8 @@ import { FiPlus, FiMinus, FiTrash2, FiShoppingBag, FiArrowLeft } from 'react-ico
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import DashboardLayout from '../components/Layout/DashboardLayout';
+import { createOrder } from '../firebase/orders';
+import toast from 'react-hot-toast';
 
 const CartContainer = styled.div`
   max-width: 1200px;
@@ -178,12 +180,33 @@ const DashboardCart = () => {
     }
   };
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (!user) {
       navigate('/login', { state: { from: { pathname: '/dashboard/cart' } } });
       return;
     }
-    navigate('/dashboard/checkout');
+
+    try {
+      const subtotal = getCartTotal();
+      const shipping = subtotal > 50 ? 0 : 9.99;
+      const orderData = {
+        userId: user.uid,
+        items: cartItems,
+        delivery: { method: 'standard', cost: shipping },
+        payment: { method: 'bank' },
+        total: subtotal + shipping,
+      };
+
+      const res = await createOrder(orderData);
+      if (res.success) {
+        clearCart();
+        navigate(`/dashboard/payment/bank?orderId=${res.id}`);
+      } else {
+        toast.error(res.error || 'Impossible de créer la commande');
+      }
+    } catch (e) {
+      toast.error('Erreur lors de la création de la commande');
+    }
   };
 
   const subtotal = getCartTotal();

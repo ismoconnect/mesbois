@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCart } from '../../contexts/CartContext';
 import { FiHome, FiShoppingBag, FiShoppingCart, FiUser, FiSettings, FiLogOut, FiMenu, FiActivity } from 'react-icons/fi';
@@ -207,6 +207,7 @@ const DashboardLayout = ({ children }) => {
   const { user, userData, logout } = useAuth();
   const { getCartItemsCount } = useCart();
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
   const name = userData?.displayName || user?.email || '';
   const initial = name?.charAt(0)?.toUpperCase() || 'U';
   const cartCount = typeof getCartItemsCount === 'function' ? getCartItemsCount() : 0;
@@ -253,7 +254,14 @@ const DashboardLayout = ({ children }) => {
           </NavItem>
         </Nav>
 
-        <LogoutButton onClick={logout}>
+        <LogoutButton onClick={async () => { 
+          try { 
+            await logout(); 
+          } finally { 
+            try { navigate('/', { replace: true }); } catch {}
+            try { window.location.replace('/'); } catch {}
+          } 
+        }}>
           <FiLogOut /> Se déconnecter
         </LogoutButton>
       </Sidebar>
