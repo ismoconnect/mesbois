@@ -2,7 +2,7 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
-import AdminImages from './pages/AdminImages';
+import ImageManager from './pages/ImageManager';
 import Users from './pages/Users';
 import UserDetail from './pages/UserDetail';
 import Orders from './pages/Orders';
@@ -92,7 +92,7 @@ const App = () => {
         element={
           <AdminRoute>
             <AdminLayout>
-              <AdminImages />
+              <ImageManager />
             </AdminLayout>
           </AdminRoute>
         }

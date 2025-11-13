@@ -23,9 +23,7 @@ export const CartProvider = ({ children }) => {
     if (savedCart) {
       try {
         setCartItems(JSON.parse(savedCart));
-      } catch (error) {
-        console.error('Erreur lors du chargement du panier:', error);
-      }
+      } catch (error) {}
     }
   }, []);
 
@@ -61,17 +59,13 @@ export const CartProvider = ({ children }) => {
           setCartItems(merged);
           try {
             await setDoc(cartRef, { items: merged, updatedAt: serverTimestamp() }, { merge: true });
-          } catch (e) {
-            console.warn('Cart Firestore write skipped (permissions):', e?.code || e);
-          }
+          } catch (e) {}
         } else {
           const localStr = localStorage.getItem('bois-de-chauffage-cart');
           const localItems = (() => { try { return JSON.parse(localStr || '[]'); } catch { return []; } })();
           try {
             await setDoc(cartRef, { items: localItems, updatedAt: serverTimestamp() }, { merge: true });
-          } catch (e) {
-            console.warn('Cart Firestore init skipped (permissions):', e?.code || e);
-          }
+          } catch (e) {}
         }
 
         unsubFn = onSnapshot(cartRef, (docSnap) => {
@@ -80,11 +74,9 @@ export const CartProvider = ({ children }) => {
             const items = Array.isArray(data.items) ? data.items : [];
             setCartItems(items);
           }
-        }, (e) => {
-          console.warn('Cart Firestore listener error (permissions):', e?.code || e);
-        });
+        }, (e) => {});
       } catch (e) {
-        console.warn('Cart Firestore read skipped (permissions):', e?.code || e);
+        
         return; // rester en local
       }
     };

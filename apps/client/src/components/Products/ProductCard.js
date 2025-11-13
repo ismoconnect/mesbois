@@ -1,8 +1,10 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+// react-router imports removed (not used here)
 import styled from 'styled-components';
 import { FiShoppingCart, FiStar } from 'react-icons/fi';
 import { useCart } from '../../contexts/CartContext';
+import { getCategoryImage } from '../../utils/categoryImages';
+import { useProductImages } from '../../hooks/useProductImages';
 import toast from 'react-hot-toast';
 
 const CardContainer = styled.div`
@@ -11,7 +13,7 @@ const CardContainer = styled.div`
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   overflow: hidden;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
-  
+
   &:hover {
     transform: translateY(-5px);
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
@@ -29,7 +31,7 @@ const ProductImage = styled.img`
   height: 100%;
   object-fit: cover;
   transition: transform 0.3s ease;
-  
+
   ${CardContainer}:hover & {
     transform: scale(1.05);
   }
@@ -112,11 +114,11 @@ const AddToCartButton = styled.button`
   justify-content: center;
   gap: 8px;
   transition: background-color 0.3s ease;
-  
+
   &:hover {
     background: #1e3a22;
   }
-  
+
   &:disabled {
     background: #ccc;
     cursor: not-allowed;
@@ -126,7 +128,11 @@ const AddToCartButton = styled.button`
 const ProductCard = ({ product }) => {
   const { addToCart, isInCart } = useCart();
   const isInCartItem = isInCart(product.id);
-  const navigate = useNavigate();
+
+  const { productImages, loading } = useProductImages();
+
+  // Choix de l'image (priorité): image centralisée produit > image produit > image catégorie > placeholder picsum
+  const imageUrl = productImages[product.id] || product.image || getCategoryImage(product.category) || `https://picsum.photos/seed/${product.id}/600/400`;
 
   const handleAddToCart = () => {
     addToCart(product, 1);
@@ -136,13 +142,14 @@ const ProductCard = ({ product }) => {
   return (
     <CardContainer>
       <ImageContainer>
-        <ProductImage 
-          src={product.image || '/placeholder-wood.jpg'} 
+        <ProductImage
+          src={imageUrl}
           alt={product.name}
           onError={(e) => {
-            e.target.src = '/placeholder-wood.jpg';
+            e.target.src = 'https://picsum.photos/seed/fallback/600/400';
           }}
         />
+        
         {product.sale && (
           <Badge type="sale">Promo</Badge>
         )}
@@ -150,11 +157,11 @@ const ProductCard = ({ product }) => {
           <Badge type="new">Nouveau</Badge>
         )}
       </ImageContainer>
-      
+
       <CardContent>
         <ProductName>{product.name}</ProductName>
         <ProductDescription>{product.description}</ProductDescription>
-        
+
         <ProductInfo>
           <Price>{product.price}€</Price>
           <Rating>
@@ -162,12 +169,12 @@ const ProductCard = ({ product }) => {
             <span>{product.rating || 4.5}</span>
           </Rating>
         </ProductInfo>
-        
+
         <StockInfo inStock={product.stock > 0}>
           {product.stock > 0 ? `En stock (${product.stock})` : 'Rupture de stock'}
         </StockInfo>
-        
-        <AddToCartButton 
+
+        <AddToCartButton
           onClick={handleAddToCart}
           disabled={product.stock === 0 || isInCartItem}
         >
@@ -180,4 +187,3 @@ const ProductCard = ({ product }) => {
 };
 
 export default ProductCard;
-

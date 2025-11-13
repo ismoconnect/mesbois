@@ -1,264 +1,439 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { useAuth } from '../contexts/AuthContext';
+import { useCart } from '../contexts/CartContext';
 import { Link } from 'react-router-dom';
-import { FiHome, FiShoppingBag, FiUser, FiSettings, FiLogOut } from 'react-icons/fi';
+import { FiShoppingBag, FiPackage, FiTruck, FiUser, FiCreditCard, FiShoppingCart } from 'react-icons/fi';
+import DashboardLayout from '../components/Layout/DashboardLayout';
+import { getUserOrders } from '../firebase/orders';
 
 const Shell = styled.div`
   max-width: 1200px;
   margin: 0 auto;
-  padding: 24px 16px;
-  display: grid;
-  grid-template-columns: 260px 1fr;
-  gap: 20px;
-
-  @media (max-width: 900px) {
-    grid-template-columns: 1fr;
+  padding: 0 20px 24px 20px;
+  @media (max-width: 600px) { 
+    padding: 0 16px 16px 16px; 
   }
 `;
 
 const Title = styled.h1`
-  font-size: 28px;
-  margin-bottom: 16px;
-`;
-
-const Sidebar = styled.aside`
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-  padding: 18px;
-  height: fit-content;
-`;
-
-const UserCard = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px;
-  background: #f6f8f7;
-  border-radius: 10px;
-  margin-bottom: 16px;
-`;
-
-const Avatar = styled.div`
-  width: 42px;
-  height: 42px;
-  border-radius: 999px;
-  background: #2c5530;
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 800;
-`;
-
-const UserInfo = styled.div`
-  display: flex;
-  flex-direction: column;
-  line-height: 1.2;
-  small { color: #667; }
-`;
-
-const Nav = styled.nav`
-  display: grid;
-  gap: 6px;
-`;
-
-const NavItem = styled(Link)`
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  text-decoration: none;
+  font-size: 32px;
+  margin-bottom: 8px;
   color: #1f2d1f;
-  transition: background .15s ease, transform .15s ease;
-
-  &:hover { background: #f3f5f4; transform: translateX(1px); }
+  @media (max-width: 768px) { font-size: 26px; }
+  @media (max-width: 600px) { font-size: 22px; }
 `;
 
-const LogoutButton = styled.button`
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  background: #fff5f5;
-  color: #a23a3a;
-  border: 1px solid #ffe3e3;
-  cursor: pointer;
-  margin-top: 6px;
-
-  &:hover { background: #ffecec; }
+const Subtitle = styled.p`
+  color: #666;
+  font-size: 16px;
+  margin-bottom: 32px;
+  @media (max-width: 600px) { 
+    font-size: 14px;
+    margin-bottom: 24px;
+  }
 `;
 
-const Main = styled.main``;
+// Sidebar/headers fournis par DashboardLayout
 
-const HeaderBar = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-  padding: 14px 16px;
-  margin-bottom: 16px;
-`;
-
-const HeaderTitle = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-weight: 700;
-`;
-
-const HeaderActions = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-`;
-
-const HeaderButton = styled.button`
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  border-radius: 10px;
-  border: 1px solid #e6e6e6;
-  background: #f9fafb;
-  color: #1f2d1f;
-  cursor: pointer;
-  transition: background .15s ease;
-  &:hover { background: #f1f3f5; }
-`;
-
-const CardGrid = styled.div`
+const StatsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 16px;
+  margin-bottom: 40px;
 
   @media (max-width: 900px) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(2, 1fr);
   }
 
   @media (max-width: 600px) {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 24px;
   }
 `;
 
-const Card = styled(Link)`
-  display: block;
-  background: #fff;
+const StatCard = styled.div`
+  background: ${props => props.bg || '#f8faf9'};
+  border: 2px solid ${props => props.border || '#e6ebe8'};
   border-radius: 12px;
   padding: 20px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-  color: inherit;
-  text-decoration: none;
-  transition: transform .15s ease, box-shadow .15s ease;
+  color: ${props => props.color || '#1f2d1f'};
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  transition: all 0.2s ease;
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 12px 28px rgba(0,0,0,0.12);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+
+  @media (max-width: 600px) {
+    padding: 16px 12px;
   }
 `;
 
-const CardTitle = styled.div`
-  font-weight: 700;
-  margin-bottom: 8px;
+const StatValue = styled.div`
+  font-size: 32px;
+  font-weight: 800;
+  margin-bottom: 4px;
+  color: ${props => props.color || 'inherit'};
+  @media (max-width: 768px) { font-size: 28px; }
+  @media (max-width: 600px) { font-size: 24px; }
 `;
 
-const CardDesc = styled.div`
+const StatLabel = styled.div`
+  font-size: 13px;
+  opacity: 0.7;
+  font-weight: 500;
+  @media (max-width: 600px) { 
+    font-size: 11px;
+  }
+`;
+
+const QuickActions = styled.div`
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  margin-bottom: 40px;
+  @media (max-width: 600px) {
+    padding: 20px 16px;
+    margin-bottom: 24px;
+  }
+`;
+
+const QuickActionsTitle = styled.h2`
+  font-size: 20px;
+  margin-bottom: 16px;
+  color: #1f2d1f;
+  @media (max-width: 600px) {
+    font-size: 18px;
+    margin-bottom: 12px;
+  }
+`;
+
+const ActionGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  @media (max-width: 600px) {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  @media (max-width: 400px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+`;
+
+const ActionButton = styled(Link)`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+  border-radius: 12px;
+  background: #f8faf9;
+  border: 2px solid #e6ebe8;
+  text-decoration: none;
+  color: #1f2d1f;
+  transition: all .2s ease;
+  text-align: center;
+
+  &:hover {
+    background: #eaf4ee;
+    border-color: #2c5530;
+    transform: translateY(-2px);
+  }
+
+  svg {
+    font-size: 24px;
+    color: #2c5530;
+  }
+
+  span {
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  @media (max-width: 600px) {
+    padding: 12px 8px;
+    gap: 6px;
+
+    svg {
+      font-size: 20px;
+    }
+
+    span {
+      font-size: 11px;
+    }
+  }
+`;
+
+const RecentOrders = styled.div`
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  @media (max-width: 600px) {
+    padding: 20px 16px;
+  }
+`;
+
+const RecentOrdersTitle = styled.h2`
+  font-size: 20px;
+  margin-bottom: 16px;
+  color: #1f2d1f;
+  @media (max-width: 600px) {
+    font-size: 18px;
+    margin-bottom: 12px;
+  }
+`;
+
+const OrderItem = styled(Link)`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-radius: 12px;
+  background: #f8faf9;
+  margin-bottom: 12px;
+  text-decoration: none;
+  color: inherit;
+  transition: all .2s ease;
+
+  &:hover {
+    background: #eaf4ee;
+    transform: translateX(4px);
+  }
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  @media (max-width: 600px) {
+    padding: 12px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+`;
+
+const OrderInfo = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+`;
+
+const OrderNumber = styled.div`
+  font-weight: 700;
+  font-size: 14px;
+  @media (max-width: 600px) {
+    font-size: 13px;
+  }
+`;
+
+const OrderDate = styled.div`
+  font-size: 12px;
+  color: #666;
+  @media (max-width: 600px) {
+    font-size: 11px;
+  }
+`;
+
+const OrderStatus = styled.span`
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  background: ${props => {
+    switch (props.status) {
+      case 'pending': return '#fff3cd';
+      case 'processing': return '#d1ecf1';
+      case 'shipped': return '#d4edda';
+      case 'delivered': return '#d4edda';
+      case 'cancelled': return '#f8d7da';
+      default: return '#e2e3e5';
+    }
+  }};
+  color: ${props => {
+    switch (props.status) {
+      case 'pending': return '#856404';
+      case 'processing': return '#0c5460';
+      case 'shipped': return '#155724';
+      case 'delivered': return '#155724';
+      case 'cancelled': return '#721c24';
+      default: return '#6c757d';
+    }
+  }};
+`;
+
+const EmptyState = styled.div`
+  text-align: center;
+  padding: 40px 20px;
   color: #666;
   font-size: 14px;
 `;
 
+function getStatusText(status) {
+  switch (status) {
+    case 'pending': return 'En attente';
+    case 'processing': return 'En cours';
+    case 'shipped': return 'Expédié';
+    case 'delivered': return 'Livré';
+    case 'cancelled': return 'Annulé';
+    default: return 'Inconnu';
+  }
+}
+
 const Section = styled.div`
-  margin-bottom: 24px;
+  margin-bottom: 32px;
 `;
 
 const Dashboard = () => {
-  const { user, userData, logout } = useAuth();
+  const { user, userData } = useAuth();
+  const { getCartItemsCount } = useCart();
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    totalOrders: 0,
+    pendingOrders: 0,
+    deliveredOrders: 0,
+    totalSpent: 0
+  });
 
   const name = userData?.displayName || user?.email || '';
-  const initial = name?.charAt(0)?.toUpperCase() || 'U';
+  const cartCount = typeof getCartItemsCount === 'function' ? getCartItemsCount() : 0;
+
+  useEffect(() => {
+    if (!user) return;
+    const loadOrders = async () => {
+      setLoading(true);
+      const res = await getUserOrders(user.uid);
+      if (res.success) {
+        const ordersData = res.data || [];
+        setOrders(ordersData.slice(0, 3)); // Les 3 dernières commandes
+        
+        // Calculer les statistiques
+        const totalOrders = ordersData.length;
+        const pendingOrders = ordersData.filter(o => o.status === 'pending' || o.status === 'processing').length;
+        const deliveredOrders = ordersData.filter(o => o.status === 'delivered').length;
+        const totalSpent = ordersData.reduce((sum, o) => sum + (o.total || 0), 0);
+        
+        setStats({ totalOrders, pendingOrders, deliveredOrders, totalSpent });
+      }
+      setLoading(false);
+    };
+    loadOrders();
+  }, [user]);
 
   return (
-    <Shell>
-      <Sidebar>
-        <UserCard>
-          <Avatar>{initial}</Avatar>
-          <UserInfo>
-            <strong>{name}</strong>
-            <small>Client</small>
-          </UserInfo>
-        </UserCard>
-
-        <Nav>
-          <NavItem to="/dashboard">
-            <FiHome />
-            Tableau de bord
-          </NavItem>
-          <NavItem to="/orders">
-            <FiShoppingBag />
-            Mes commandes
-          </NavItem>
-          <NavItem to="/profile">
-            <FiUser />
-            Profil
-          </NavItem>
-          <NavItem to="/orders">
-            <FiShoppingBag />
-            Mes commandes
-          </NavItem>
-          <NavItem to="/settings">
-            <FiSettings />
-            Réglages
-          </NavItem>
-        </Nav>
-
-        <LogoutButton onClick={logout}>
-          <FiLogOut /> Se déconnecter
-        </LogoutButton>
-      </Sidebar>
-
-      <Main>
-        <HeaderBar>
-          <HeaderTitle>
-            <Avatar style={{ width: 32, height: 32 }}>{initial}</Avatar>
-            <span>Bienvenue, {name}</span>
-          </HeaderTitle>
-          <HeaderActions>
-            <Link to="/profile" style={{ textDecoration: 'none' }}>
-              <HeaderButton>
-                <FiUser /> Profil
-              </HeaderButton>
-            </Link>
-            <HeaderButton onClick={logout}>
-              <FiLogOut /> Déconnexion
-            </HeaderButton>
-          </HeaderActions>
-        </HeaderBar>
+    <DashboardLayout>
+      <Shell>
         <Section>
-          <Title>Bonjour {name}</Title>
+          <Title>Mon Espace Client</Title>
+          <Subtitle>Bienvenue {name} ! Gérez vos commandes, votre profil et plus encore.</Subtitle>
         </Section>
 
-        <CardGrid>
-          <Card to="/orders">
-            <CardTitle>Mes commandes</CardTitle>
-            <CardDesc>Consulter l'historique et le statut</CardDesc>
-          </Card>
-          <Card to="/profile">
-            <CardTitle>Profil</CardTitle>
-            <CardDesc>Coordonnées et informations</CardDesc>
-          </Card>
-          <Card to="/orders">
-            <CardTitle>Mes commandes</CardTitle>
-            <CardDesc>Consulter l'historique et le statut</CardDesc>
-          </Card>
-        </CardGrid>
-      </Main>
-    </Shell>
+        {/* Statistiques */}
+        <StatsGrid>
+          <StatCard bg="#f8faf9" border="#2c5530" color="#1f2d1f">
+            <StatValue color="#2c5530">{stats.totalOrders}</StatValue>
+            <StatLabel>Commandes totales</StatLabel>
+          </StatCard>
+          <StatCard bg="#ffffff" border="#e6ebe8" color="#1f2d1f">
+            <StatValue color="#1f2d1f">{stats.pendingOrders}</StatValue>
+            <StatLabel>En cours</StatLabel>
+          </StatCard>
+          <StatCard bg="#ffffff" border="#e6ebe8" color="#1f2d1f">
+            <StatValue color="#1f2d1f">{stats.deliveredOrders}</StatValue>
+            <StatLabel>Livrées</StatLabel>
+          </StatCard>
+          <StatCard bg="#2c5530" border="#2c5530" color="#ffffff">
+            <StatValue color="#ffffff">{stats.totalSpent.toFixed(0)} €</StatValue>
+            <StatLabel style={{ color: '#ffffff', opacity: 0.9 }}>Total dépensé</StatLabel>
+          </StatCard>
+        </StatsGrid>
+
+        {/* Actions rapides */}
+        <QuickActions>
+          <QuickActionsTitle>Actions rapides</QuickActionsTitle>
+          <ActionGrid>
+            <ActionButton to="/dashboard/products">
+              <FiShoppingCart />
+              <span>Commander</span>
+            </ActionButton>
+            <ActionButton to="/dashboard/cart">
+              <FiShoppingBag />
+              <span>Panier {cartCount > 0 && `(${cartCount})`}</span>
+            </ActionButton>
+            <ActionButton to="/orders">
+              <FiPackage />
+              <span>Mes commandes</span>
+            </ActionButton>
+            <ActionButton to="/suivi">
+              <FiTruck />
+              <span>Suivi livraison</span>
+            </ActionButton>
+            <ActionButton to="/profile">
+              <FiUser />
+              <span>Mon profil</span>
+            </ActionButton>
+            <ActionButton to="/billing">
+              <FiCreditCard />
+              <span>Facturation</span>
+            </ActionButton>
+          </ActionGrid>
+        </QuickActions>
+
+        {/* Commandes récentes */}
+        <RecentOrders>
+          <RecentOrdersTitle>Commandes récentes</RecentOrdersTitle>
+          {loading && <EmptyState>Chargement...</EmptyState>}
+          {!loading && orders.length === 0 && (
+            <EmptyState>Aucune commande pour le moment. Commencez vos achats !</EmptyState>
+          )}
+          {!loading && orders.length > 0 && (
+            <div>
+              {orders.map((order) => (
+                <OrderItem key={order.id} to={`/orders/${order.id}`}>
+                  <OrderInfo>
+                    <OrderNumber>Commande #{order.id.slice(-8)}</OrderNumber>
+                    <OrderDate>
+                      {order.createdAt 
+                        ? new Date(order.createdAt.seconds * 1000).toLocaleDateString('fr-FR')
+                        : 'N/A'}
+                    </OrderDate>
+                  </OrderInfo>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                    <div style={{ fontWeight: '700', fontSize: '16px' }}>
+                      {order.total?.toFixed(2) || '0.00'} €
+                    </div>
+                    <OrderStatus status={order.status}>
+                      {getStatusText(order.status)}
+                    </OrderStatus>
+                  </div>
+                </OrderItem>
+              ))}
+              {orders.length >= 3 && (
+                <Link 
+                  to="/orders" 
+                  style={{ 
+                    display: 'block', 
+                    textAlign: 'center', 
+                    marginTop: '16px', 
+                    color: '#2c5530',
+                    fontWeight: '600',
+                    textDecoration: 'none'
+                  }}
+                >
+                  Voir toutes les commandes →
+                </Link>
+              )}
+            </div>
+          )}
+        </RecentOrders>
+      </Shell>
+    </DashboardLayout>
   );
 };
 

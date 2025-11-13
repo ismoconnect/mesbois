@@ -8,26 +8,37 @@ import { useAuth } from '../contexts/AuthContext';
 const CartContainer = styled.div`
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 20px 96px;
+  padding: 32px 20px 96px; /* retrait vers le bas: on décale le contenu depuis le haut */
   
   @media (max-width: 600px) {
-    padding: 0 16px 32px;
+    padding: 24px 16px 32px;
   }
+`;
+
+const ClearCartButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  background: #e74c3c;
+  color: #fff;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.05s ease;
+  box-shadow: 0 2px 8px rgba(231, 76, 60, 0.25);
+  &:hover { background: #c0392b; }
+  &:active { transform: translateY(1px); }
 `;
 
 const CartHeader = styled.div`
   display: flex;
-  align-items: center;
-  gap: 15px;
+  flex-direction: column; /* Titre sous le lien retour */
+  align-items: flex-start;
+  gap: 10px;
   margin-top: 0;
-  margin-bottom: 30px;
-  
-  @media (max-width: 600px) {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-    margin-bottom: 20px;
-  }
+  margin-bottom: 24px;
 `;
 
 const BackButton = styled(Link)`
@@ -282,7 +293,7 @@ const CartSummary = styled.div`
   height: fit-content;
   position: sticky;
   top: 20px;
-  
+
   @media (max-width: 768px) {
     position: static;
     top: auto;
@@ -344,47 +355,7 @@ const CheckoutButton = styled.button`
   }
 `;
 
-const MobileCheckoutBar = styled.div`
-  position: sticky;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: #fff;
-  box-shadow: 0 -6px 20px rgba(0,0,0,0.08);
-  padding: 12px 16px;
-  display: none;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
-  
-  @media (max-width: 768px) {
-    display: flex;
-  }
-`;
-
-const MobileTotal = styled.div`
-  font-size: 16px;
-  font-weight: 700;
-  color: #2c5530;
-`;
-
-const MobileCheckoutButton = styled.button`
-  flex: 1;
-  background: #27ae60;
-  color: white;
-  border: none;
-  padding: 12px 14px;
-  border-radius: 8px;
-  font-size: 15px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  
-  &:hover { background: #219a52; }
-  &:disabled { background: #ccc; cursor: not-allowed; }
-`;
+ 
 
 const LoginPrompt = styled.div`
   background: #fff3cd;
@@ -411,7 +382,7 @@ const LoginPrompt = styled.div`
 `;
 
 const Cart = () => {
-  const { cartItems, updateQuantity, removeFromCart, getCartTotal } = useCart();
+  const { cartItems, updateQuantity, removeFromCart, getCartTotal, clearCart } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -474,16 +445,21 @@ const Cart = () => {
       
       <CartContent>
         <CartItems>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+            <ClearCartButton onClick={clearCart}>
+              <FiTrash2 size={16} /> Vider le panier
+            </ClearCartButton>
+          </div>
           {cartItems.map((item, idx) => (
             <CartItem key={item.id || item.productId || `${item.name || 'item'}-${idx}`}>
               <RemoveIconButton onClick={() => removeFromCart(item.id)} aria-label="Supprimer l'article">
                 <FiTrash2 size={16} />
               </RemoveIconButton>
               <ItemImage 
-                src={item.image || '/placeholder-wood.jpg'} 
+                src={item.image || 'https://picsum.photos/seed/fallback/96/96'} 
                 alt={item.name}
                 onError={(e) => {
-                  e.target.src = '/placeholder-wood.jpg';
+                  e.target.src = 'https://picsum.photos/seed/fallback/96/96';
                 }}
               />
               <ItemInfo>
@@ -523,25 +499,7 @@ const Cart = () => {
         
         <CartSummary>
           <SummaryTitle>Résumé de la commande</SummaryTitle>
-          {cartItems.length > 0 && (
-            <SummaryItems>
-              {cartItems.map((it, idx) => {
-                const price = Number(it.price) || 0;
-                const qty = Number(it.quantity) || 0;
-                const line = (price * qty).toFixed(2);
-                const rowKey = it.id || it.productId || `${it.name || 'item'}-${idx}`;
-                return (
-                  <SummaryItemRow key={rowKey}>
-                    <div>
-                      <div style={{ fontWeight: 600 }}>{it.name || 'Produit'}</div>
-                      <small>Qté: {qty}</small>
-                    </div>
-                    <strong>{line}€</strong>
-                  </SummaryItemRow>
-                );
-              })}
-            </SummaryItems>
-          )}
+          {/* Résumé simplifié: uniquement les totaux, sans liste des articles */}
           
           {!user && (
             <LoginPrompt>
@@ -577,12 +535,7 @@ const Cart = () => {
         </CartSummary>
       </CartContent>
 
-      <MobileCheckoutBar>
-        <MobileTotal>Total {total.toFixed(2)}€</MobileTotal>
-        <MobileCheckoutButton onClick={handleCheckout} disabled={cartItems.length === 0}>
-          {user ? 'Payer' : 'Poursuivre'}
-        </MobileCheckoutButton>
-      </MobileCheckoutBar>
+      
     </CartContainer>
   );
 };

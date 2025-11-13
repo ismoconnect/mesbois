@@ -3,8 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { FiArrowLeft, FiPackage, FiTruck, FiCheckCircle, FiClock, FiXCircle, FiMapPin, FiCreditCard } from 'react-icons/fi';
 import { useAuth } from '../contexts/AuthContext';
-import { getOrderById } from '../firebase/orders';
+import { getOrderById, cancelOrder } from '../firebase/orders';
 import DashboardLayout from '../components/Layout/DashboardLayout';
+import toast from 'react-hot-toast';
 
 const OrderDetailContainer = styled.div`
   max-width: 1000px;
@@ -280,6 +281,30 @@ const ErrorMessage = styled.div`
   }
 `;
 
+const CancelButton = styled.button`
+  width: 100%;
+  padding: 15px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  background: #fff;
+  color: #dc3545;
+  border: 2px solid #dc3545;
+  cursor: pointer;
+  margin-top: 20px;
+  
+  &:hover {
+    background: #dc3545;
+    color: #fff;
+  }
+  
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+`;
+
 const getStatusIcon = (status) => {
   switch (status) {
     case 'pending': return <FiClock size={20} />;
@@ -309,32 +334,51 @@ const OrderDetail = () => {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [cancelling, setCancelling] = useState(false);
+
+  const fetchOrder = async () => {
+    try {
+      setLoading(true);
+      const result = await getOrderById(id);
+      
+      if (result.success) {
+        setOrder(result.data);
+      } else {
+        setError(result.error);
+      }
+    } catch (err) {
+      setError('Erreur lors du chargement de la commande');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!user) {
       navigate('/login');
       return;
     }
-
-    const fetchOrder = async () => {
-      try {
-        setLoading(true);
-        const result = await getOrderById(id);
-        
-        if (result.success) {
-          setOrder(result.data);
-        } else {
-          setError(result.error);
-        }
-      } catch (err) {
-        setError('Erreur lors du chargement de la commande');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchOrder();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, user, navigate]);
+
+  const handleCancelOrder = async () => {
+    if (!window.confirm('Êtes-vous sûr de vouloir annuler cette commande ?')) {
+      return;
+    }
+
+    setCancelling(true);
+    const result = await cancelOrder(id, 'Annulation client');
+    
+    if (result.success) {
+      toast.success('Commande annulée avec succès');
+      // Recharger la commande
+      fetchOrder();
+    } else {
+      toast.error('Erreur lors de l\'annulation de la commande');
+    }
+    setCancelling(false);
+  };
 
   if (loading) {
     return (
@@ -505,6 +549,15 @@ const OrderDetail = () => {
                 </h4>
                 <p style={{ color: '#666', fontSize: '14px' }}>{order.notes}</p>
               </div>
+            )}
+            
+            {(order.status === 'pending' || order.status === 'processing') && (
+              <CancelButton 
+                onClick={handleCancelOrder}
+                disabled={cancelling}
+              >
+                {cancelling ? 'Annulation...' : 'Annuler la commande'}
+              </CancelButton>
             )}
           </OrderSummary>
         </OrderContent>

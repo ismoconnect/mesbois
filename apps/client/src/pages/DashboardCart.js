@@ -26,7 +26,9 @@ const BackButton = styled(Link)`
   color: #2c5530;
   text-decoration: none;
   font-weight: 500;
+  margin-bottom: 8px;
   &:hover { color: #1e3a22; }
+  @media (max-width: 600px) { gap: 6px; }
 `;
 
 const CartTitle = styled.h1`
@@ -37,6 +39,7 @@ const CartTitle = styled.h1`
   align-items: center;
   gap: 10px;
   margin: 0;
+  @media (max-width: 600px) { font-size: 22px; gap: 8px; }
 `;
 
 const CartContent = styled.div`
@@ -44,6 +47,7 @@ const CartContent = styled.div`
   grid-template-columns: 1fr 380px;
   gap: 28px;
   @media (max-width: 768px) { grid-template-columns: 1fr; }
+  @media (max-width: 600px) { gap: 16px; }
 `;
 
 const CartItems = styled.div`
@@ -51,6 +55,21 @@ const CartItems = styled.div`
   border-radius: 12px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   padding: 20px;
+`;
+
+const ClearCartButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: none;
+  background: #e74c3c;
+  color: #fff;
+  cursor: pointer;
+  font-weight: 700;
+  &:hover { background: #c0392b; }
+  &:active { transform: scale(0.98); }
 `;
 
 const CartItem = styled.div`
@@ -65,6 +84,7 @@ const CartItem = styled.div`
 
 const ItemImage = styled.img`
   width: 96px; height: 96px; object-fit: cover; border-radius: 8px; border: 1px solid #eee;
+  @media (max-width: 600px) { width: 80px; height: 80px; }
 `;
 
 const ItemInfo = styled.div`
@@ -85,6 +105,7 @@ const ItemPrice = styled.div`
 
 const QuantityControls = styled.div`
   display: flex; align-items: center; gap: 10px; margin: 10px 0;
+  @media (max-width: 600px) { flex-wrap: wrap; }
 `;
 
 const QuantityButton = styled.button`
@@ -97,6 +118,7 @@ const QuantityButton = styled.button`
 const QuantityInput = styled.input`
   width: 64px; text-align: center; border: 2px solid #e0e0e0; border-radius: 6px; padding: 8px; font-weight: 600;
   &:focus { outline: none; border-color: #2c5530; }
+  @media (max-width: 600px) { width: 56px; }
 `;
 
 const RemoveButton = styled.button`
@@ -122,11 +144,13 @@ const CartSummary = styled.div`
 
 const SummaryTitle = styled.h3`
   font-size: 18px; font-weight: 700; color: #2c5530; margin-bottom: 16px;
+  @media (max-width: 600px) { font-size: 16px; }
 `;
 
 const SummaryRow = styled.div`
   display: flex; justify-content: space-between; margin-bottom: 12px; color: #666;
   &.total { font-size: 18px; font-weight: 700; color: #2c5530; border-top: 2px solid #f0f0f0; padding-top: 12px; margin-top: 12px; }
+  @media (max-width: 600px) { font-size: 14px; }
 `;
 
 const CheckoutButton = styled.button`
@@ -142,7 +166,7 @@ const LoginPrompt = styled.div`
 `;
 
 const DashboardCart = () => {
-  const { cartItems, updateQuantity, removeFromCart, getCartTotal } = useCart();
+  const { cartItems, updateQuantity, removeFromCart, getCartTotal, clearCart } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -159,7 +183,7 @@ const DashboardCart = () => {
       navigate('/login', { state: { from: { pathname: '/dashboard/cart' } } });
       return;
     }
-    navigate('/checkout');
+    navigate('/dashboard/checkout');
   };
 
   const subtotal = getCartTotal();
@@ -169,11 +193,11 @@ const DashboardCart = () => {
   return (
     <DashboardLayout>
       <CartContainer>
+        <BackButton to="/dashboard/products">
+          <FiArrowLeft size={20} />
+          Retour aux produits
+        </BackButton>
         <CartHeader>
-          <BackButton to="/products">
-            <FiArrowLeft size={20} />
-            Retour aux produits
-          </BackButton>
           <CartTitle>
             <FiShoppingBag size={28} />
             Mon Panier ({cartItems.length} article{cartItems.length > 1 ? 's' : ''})
@@ -184,11 +208,16 @@ const DashboardCart = () => {
           <EmptyCart>
             <FiShoppingBag size={64} />
             <h3>Votre panier est vide</h3>
-            <ShopButton to="/products">Commencer mes achats</ShopButton>
+            <ShopButton to="/dashboard/products">Commencer mes achats</ShopButton>
           </EmptyCart>
         ) : (
           <CartContent>
             <CartItems>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+                <ClearCartButton onClick={clearCart}>
+                  <FiTrash2 size={16} /> Vider le panier
+                </ClearCartButton>
+              </div>
               {cartItems.map(item => (
                 <CartItem key={item.id}>
                   <ItemImage src={item.image || '/placeholder-wood.jpg'} alt={item.name} onError={(e) => { e.target.src = '/placeholder-wood.jpg'; }} />

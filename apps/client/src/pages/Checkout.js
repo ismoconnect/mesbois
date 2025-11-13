@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { FiCreditCard, FiTruck, FiUser, FiMapPin, FiLock } from 'react-icons/fi';
+import { FiCreditCard, FiTruck, FiUser, FiMapPin, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import { createOrder } from '../firebase/orders';
 import { createUser, signInUser } from '../firebase/auth';
+import { sendEmailVerification } from 'firebase/auth';
 import toast from 'react-hot-toast';
 
 const CheckoutContainer = styled.div`
@@ -85,7 +86,7 @@ const InputGroup = styled.div`
 
 const Input = styled.input`
   width: 100%;
-  padding: 12px 40px 12px ${props => (props.$withLeftIcon ? '44px' : '16px')};
+  padding: 12px ${props => (props.$withRightIcon ? '44px' : '16px')} 12px ${props => (props.$withLeftIcon ? '44px' : '16px')};
   border: 2px solid #e0e0e0;
   border-radius: 8px;
   font-size: 16px;
@@ -104,6 +105,23 @@ const InputIcon = styled.div`
   transform: translateY(-50%);
   color: #666;
   pointer-events: none;
+`;
+
+const InputRight = styled.button`
+  position: absolute;
+  right: 8px;
+  top: 0;
+  bottom: 0;
+  margin: auto 0;
+  height: 100%;
+  width: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: #666;
+  cursor: pointer;
 `;
 
 const Select = styled.select`
@@ -329,7 +347,10 @@ const Checkout = () => {
   });
 
   const [loading, setLoading] = useState(false);
+  const [acceptCreate, setAcceptCreate] = useState(false);
   const [authLoading, setAuthLoading] = useState(false);
+  const [accountPassword, setAccountPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [authMode, setAuthMode] = useState('register'); // 'register' | 'login'
   const [authFields, setAuthFields] = useState({ email: '', password: '', confirm: '' });
 
@@ -345,12 +366,37 @@ const Checkout = () => {
     setLoading(true);
 
     try {
-      if (!user) {
-        setLoading(false);
-        return toast.error('Veuillez créer un compte ou vous connecter pour finaliser.');
+      let currentUser = user;
+
+      // Si non connecté, créer automatiquement un compte et envoyer un mail de vérification
+      if (!currentUser) {
+        if (!acceptCreate) {
+          setLoading(false);
+          return toast.error('Veuillez cocher "Créer un compte ?" pour continuer');
+        }
+        if (!accountPassword || accountPassword.length < 6) {
+          setLoading(false);
+          return toast.error('Veuillez renseigner un mot de passe (6 caractères minimum)');
+        }
+        const displayName = `${formData.firstName} ${formData.lastName}`.trim() || 'Client';
+        const regRes = await createUser(formData.email, accountPassword, {
+          displayName,
+          phone: formData.phone,
+          address: formData.address,
+          city: formData.city,
+          postalCode: formData.postalCode,
+          country: formData.country
+        });
+        if (!regRes.success) {
+          setLoading(false);
+          return toast.error(regRes.error || 'Impossible de créer le compte');
+        }
+        currentUser = regRes.user;
+        try { await sendEmailVerification(currentUser); } catch {}
       }
+
       const orderData = {
-        userId: user.uid,
+        userId: currentUser.uid,
         items: cartItems,
         customerInfo: {
           firstName: formData.firstName,
@@ -363,22 +409,22 @@ const Checkout = () => {
           country: formData.country
         },
         delivery: {
-          method: formData.deliveryMethod,
-          cost: formData.deliveryMethod === 'express' ? 15.99 : 9.99
+          method: 'standard',
+          cost: subtotal > 50 ? 0 : 9.99
         },
         payment: {
-          method: formData.paymentMethod
+          method: 'bank'
         },
         notes: formData.notes,
-        total: getCartTotal() + (formData.deliveryMethod === 'express' ? 15.99 : 9.99)
+        total: subtotal + (subtotal > 50 ? 0 : 9.99)
       };
 
       const result = await createOrder(orderData);
 
       if (result.success) {
-        toast.success('Commande passée avec succès !');
+        toast.success('Commande créée. Vérifiez votre email pour confirmer votre compte.');
         clearCart();
-        navigate(`/orders/${result.id}`);
+        navigate(`/payment/bank?orderId=${result.id}`);
       } else {
         toast.error(result.error);
       }
@@ -390,11 +436,12 @@ const Checkout = () => {
   };
 
   const subtotal = getCartTotal();
-  const shipping = formData.deliveryMethod === 'express' ? 15.99 : 9.99;
+  const shipping = subtotal > 50 ? 0 : 9.99;
   const total = subtotal + shipping;
 
+  // Si le panier est vide (ex: après clearCart), ne pas rediriger automatiquement
+  // pour éviter d'annuler une navigation programmée (ex: vers /payment/bank)
   if (cartItems.length === 0) {
-    navigate('/cart');
     return null;
   }
 
@@ -403,107 +450,29 @@ const Checkout = () => {
       <CheckoutHeader>
         <CheckoutTitle>Finaliser la commande</CheckoutTitle>
         <CheckoutSubtitle>Remplissez vos informations pour passer votre commande</CheckoutSubtitle>
+        {!user && (
+          <div style={{
+            marginTop: 12,
+            padding: '10px 12px',
+            border: '2px solid #e0e0e0',
+            borderRadius: 8,
+            background: '#f8f9fa',
+            fontWeight: 700,
+            color: '#2c5530'
+          }}>
+            Déjà client ?{' '}
+            <button type="button" onClick={() => setAuthMode('login')} style={{ color: '#2c5530', textDecoration: 'underline', background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: 800 }}>
+              Cliquez ici pour vous connecter
+            </button>
+          </div>
+        )}
       </CheckoutHeader>
 
       <CheckoutContent>
-        <CheckoutForm onSubmit={handleSubmit}>
-          {!user && (
-            <div style={{ marginBottom: 24 }}>
-              <SectionTitle>
-                <FiLock size={20} />
-                Créez votre compte ou connectez-vous
-              </SectionTitle>
-              <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-                <button type="button" onClick={() => setAuthMode('register')} style={{ padding: '8px 12px', borderRadius: 8, border: '2px solid #e0e0e0', background: authMode==='register' ? '#f8f9fa' : '#fff', fontWeight: 700 }}>Créer un compte</button>
-                <button type="button" onClick={() => setAuthMode('login')} style={{ padding: '8px 12px', borderRadius: 8, border: '2px solid #e0e0e0', background: authMode==='login' ? '#f8f9fa' : '#fff', fontWeight: 700 }}>Se connecter</button>
-              </div>
-              <FormGrid>
-                <InputGroup>
-                  <InputIcon>
-                    <FiCreditCard size={20} />
-                  </InputIcon>
-                  <Input
-                    type="email"
-                    name="authEmail"
-                    placeholder="Email"
-                    value={authFields.email}
-                    onChange={(e) => setAuthFields({ ...authFields, email: e.target.value })}
-                    required
-                    $withLeftIcon
-                  />
-                </InputGroup>
-                <InputGroup>
-                  <InputIcon>
-                    <FiLock size={20} />
-                  </InputIcon>
-                  <Input
-                    type="password"
-                    name="authPassword"
-                    placeholder="Mot de passe"
-                    value={authFields.password}
-                    onChange={(e) => setAuthFields({ ...authFields, password: e.target.value })}
-                    required
-                    $withLeftIcon
-                  />
-                </InputGroup>
-              </FormGrid>
-              {authMode === 'register' && (
-                <InputGroup>
-                  <InputIcon>
-                    <FiLock size={20} />
-                  </InputIcon>
-                  <Input
-                    type="password"
-                    name="authConfirm"
-                    placeholder="Confirmer le mot de passe"
-                    value={authFields.confirm}
-                    onChange={(e) => setAuthFields({ ...authFields, confirm: e.target.value })}
-                    required
-                    $withLeftIcon
-                  />
-                </InputGroup>
-              )}
-              <div style={{ display: 'flex', gap: 10 }}>
-                {authMode === 'register' ? (
-                  <PlaceOrderButton type="button" onClick={async () => {
-                    if (!authFields.email || !authFields.password || authFields.password !== authFields.confirm) {
-                      return toast.error('Veuillez saisir un email et des mots de passe identiques.');
-                    }
-                    setAuthLoading(true);
-                    const displayName = `${formData.firstName} ${formData.lastName}`.trim() || 'Client';
-                    const result = await createUser(authFields.email, authFields.password, {
-                      displayName,
-                      phone: formData.phone,
-                      address: formData.address,
-                      city: formData.city,
-                      postalCode: formData.postalCode,
-                      country: formData.country
-                    });
-                    setAuthLoading(false);
-                    if (result.success) toast.success('Compte créé. Vous êtes connecté.');
-                    else toast.error(result.error || 'Création du compte impossible');
-                  }} disabled={authLoading}>
-                    {authLoading ? 'Traitement...' : "Créer mon compte"}
-                  </PlaceOrderButton>
-                ) : (
-                  <PlaceOrderButton type="button" onClick={async () => {
-                    if (!authFields.email || !authFields.password) return toast.error('Email et mot de passe requis');
-                    setAuthLoading(true);
-                    const result = await signInUser(authFields.email, authFields.password);
-                    setAuthLoading(false);
-                    if (result.success) toast.success('Connexion réussie');
-                    else toast.error(result.error || 'Connexion impossible');
-                  }} disabled={authLoading}>
-                    {authLoading ? 'Traitement...' : 'Se connecter'}
-                  </PlaceOrderButton>
-                )}
-              </div>
-              <hr style={{ margin: '20px 0', borderTop: '1px solid #eee' }} />
-            </div>
-          )}
+        <CheckoutForm id="checkoutForm" onSubmit={handleSubmit}>
           <SectionTitle>
             <FiUser size={20} />
-            Informations de livraison
+            Facturation & Expédition
           </SectionTitle>
 
           <FormGrid>
@@ -514,7 +483,7 @@ const Checkout = () => {
               <Input
                 type="text"
                 name="firstName"
-                placeholder="Prénom"
+                placeholder="Prénom *"
                 value={formData.firstName}
                 onChange={handleChange}
                 required
@@ -526,13 +495,23 @@ const Checkout = () => {
               <Input
                 type="text"
                 name="lastName"
-                placeholder="Nom"
+                placeholder="Nom *"
                 value={formData.lastName}
                 onChange={handleChange}
                 required
               />
             </InputGroup>
           </FormGrid>
+
+          <InputGroup>
+            <Input
+              type="text"
+              name="company"
+              placeholder="Nom de l’entreprise (facultatif)"
+              value={formData.company || ''}
+              onChange={handleChange}
+            />
+          </InputGroup>
 
           <InputGroup>
             <InputIcon>
@@ -570,11 +549,21 @@ const Checkout = () => {
             <Input
               type="text"
               name="address"
-              placeholder="Adresse"
+              placeholder="Numéro et nom de rue *"
               value={formData.address}
               onChange={handleChange}
               required
               $withLeftIcon
+            />
+          </InputGroup>
+
+          <InputGroup>
+            <Input
+              type="text"
+              name="address2"
+              placeholder="Appartement, suite, unité, etc. (facultatif)"
+              value={formData.address2 || ''}
+              onChange={handleChange}
             />
           </InputGroup>
 
@@ -608,98 +597,23 @@ const Checkout = () => {
               value={formData.country}
               onChange={handleChange}
             >
-              <option value="France">France</option>
+              <option value="">Sélectionner un pays/région…</option>
+              <option value="Allemagne">Allemagne</option>
               <option value="Belgique">Belgique</option>
-              <option value="Suisse">Suisse</option>
+              <option value="France">France</option>
               <option value="Luxembourg">Luxembourg</option>
+              <option value="Suisse">Suisse</option>
             </Select>
           </InputGroup>
 
           <SectionTitle>
             <FiTruck size={20} />
-            Mode de livraison
+            Informations complémentaires
           </SectionTitle>
 
-          <PaymentMethods>
-            <PaymentMethod>
-              <input
-                type="radio"
-                name="deliveryMethod"
-                value="standard"
-                checked={formData.deliveryMethod === 'standard'}
-                onChange={handleChange}
-              />
-              <div>
-                <div style={{ fontWeight: '600' }}>Livraison standard</div>
-                <div style={{ fontSize: '12px', color: '#666' }}>3-5 jours ouvrés</div>
-                <div style={{ fontSize: '14px', fontWeight: '600', color: '#2c5530' }}>9,99€</div>
-              </div>
-            </PaymentMethod>
+          
 
-            <PaymentMethod>
-              <input
-                type="radio"
-                name="deliveryMethod"
-                value="express"
-                checked={formData.deliveryMethod === 'express'}
-                onChange={handleChange}
-              />
-              <div>
-                <div style={{ fontWeight: '600' }}>Livraison express</div>
-                <div style={{ fontSize: '12px', color: '#666' }}>1-2 jours ouvrés</div>
-                <div style={{ fontSize: '14px', fontWeight: '600', color: '#2c5530' }}>15,99€</div>
-              </div>
-            </PaymentMethod>
-          </PaymentMethods>
-
-          <SectionTitle>
-            <FiLock size={20} />
-            Mode de paiement
-          </SectionTitle>
-
-          <PaymentMethods>
-            <PaymentMethod>
-              <input
-                type="radio"
-                name="paymentMethod"
-                value="card"
-                checked={formData.paymentMethod === 'card'}
-                onChange={handleChange}
-              />
-              <div>
-                <div style={{ fontWeight: '600' }}>Carte bancaire</div>
-                <div style={{ fontSize: '12px', color: '#666' }}>Visa, Mastercard</div>
-              </div>
-            </PaymentMethod>
-
-            <PaymentMethod>
-              <input
-                type="radio"
-                name="paymentMethod"
-                value="paypal"
-                checked={formData.paymentMethod === 'paypal'}
-                onChange={handleChange}
-              />
-              <div>
-                <div style={{ fontWeight: '600' }}>PayPal</div>
-                <div style={{ fontSize: '12px', color: '#666' }}>Paiement sécurisé</div>
-              </div>
-            </PaymentMethod>
-
-            <PaymentMethod>
-              <input
-                type="radio"
-                name="paymentMethod"
-                value="bank"
-                checked={formData.paymentMethod === 'bank'}
-                onChange={handleChange}
-              />
-              <div>
-                <div style={{ fontWeight: '600' }}>Virement bancaire</div>
-                <div style={{ fontSize: '12px', color: '#666' }}>RIB communiqué après validation</div>
-              </div>
-            </PaymentMethod>
-          </PaymentMethods>
+          {/* Section paiement retirée selon demande: pas d'options affichées ici */}
 
           <InputGroup>
             <TextArea
@@ -709,55 +623,56 @@ const Checkout = () => {
               onChange={handleChange}
             />
           </InputGroup>
+
+          {!user && (
+            <div style={{ marginTop: 12 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <input type="checkbox" name="createAccount" required checked={acceptCreate} onChange={(e)=> setAcceptCreate(e.target.checked)} />
+                Créer un compte ?
+              </label>
+              {acceptCreate && (
+                <div style={{ marginTop: 10 }}>
+                  <div style={{ position: 'relative' }}>
+                    <Input
+                      type={showPassword ? 'text' : 'password'}
+                      name="accountPassword"
+                      placeholder="Mot de passe *"
+                      value={accountPassword}
+                      onChange={(e)=> setAccountPassword(e.target.value)}
+                      required
+                      $withRightIcon
+                    />
+                    <InputRight type="button" onClick={() => setShowPassword(v => !v)} aria-label="Basculer la visibilité du mot de passe">
+                      {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+                    </InputRight>
+                  </div>
+                  <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>6 caractères minimum</div>
+                </div>
+              )}
+            </div>
+          )}
         </CheckoutForm>
 
         <OrderSummary>
           <SectionTitle>Résumé de la commande</SectionTitle>
-
-          {cartItems.map(item => (
-            <OrderItem key={item.id}>
-              <ItemImage 
-                src={item.image || '/placeholder-wood.jpg'} 
-                alt={item.name}
-                onError={(e) => {
-                  e.target.src = '/placeholder-wood.jpg';
-                }}
-              />
-              <ItemInfo>
-                <ItemName>{item.name}</ItemName>
-                <ItemQuantity>Quantité: {item.quantity}</ItemQuantity>
-              </ItemInfo>
-              <ItemPrice>{(((Number(item.price) || 0) * (Number(item.quantity) || 0))).toFixed(2)}€</ItemPrice>
-            </OrderItem>
-          ))}
-
           <SummaryRow>
             <span>Sous-total</span>
             <span>{subtotal.toFixed(2)}€</span>
           </SummaryRow>
-
           <SummaryRow>
             <span>Livraison</span>
             <span>{shipping.toFixed(2)}€</span>
           </SummaryRow>
-
           <SummaryRow className="total">
             <span>Total</span>
             <span>{total.toFixed(2)}€</span>
           </SummaryRow>
-
-          <PlaceOrderButton type="button" onClick={handleSubmit} disabled={loading}>
+          <PlaceOrderButton type="submit" form="checkoutForm" disabled={loading}>
             <FiLock size={20} />
             {loading ? 'Traitement...' : 'Confirmer la commande'}
           </PlaceOrderButton>
         </OrderSummary>
       </CheckoutContent>
-      <MobileCheckoutBar>
-        <MobileTotal>Total {total.toFixed(2)}€</MobileTotal>
-        <MobilePlaceOrderButton onClick={handleSubmit} disabled={loading}>
-          {loading ? 'Traitement...' : 'Confirmer'}
-        </MobilePlaceOrderButton>
-      </MobileCheckoutBar>
     </CheckoutContainer>
   );
 };

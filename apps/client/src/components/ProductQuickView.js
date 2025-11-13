@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import styled from 'styled-components';
 import { FiX, FiStar, FiShoppingCart } from 'react-icons/fi';
+import { useProductImages } from '../hooks/useProductImages';
 
 const Overlay = styled.div`
   position: fixed;
@@ -188,6 +189,8 @@ const AddToCartButton = styled.button`
 `;
 
 export default function ProductQuickView({ open, product, onClose, onAddToCart }) {
+  const { productImages } = useProductImages();
+  
   useEffect(() => {
     if (!open) return;
     const handleKey = e => { if (e.key === 'Escape') onClose?.(); };
@@ -202,6 +205,10 @@ export default function ProductQuickView({ open, product, onClose, onAddToCart }
 
   if (!open || !product) return null;
 
+  // Utiliser l'image centralisée si disponible, sinon l'image du produit
+  // Sinon utiliser une image temporaire basée sur l'ID via picsum
+  const imageUrl = productImages[product.id] || product.image || `https://picsum.photos/seed/${product.id}/900/700`;
+
   return (
     <Overlay open={open} onClick={onClose}>
       <Dialog onClick={e => e.stopPropagation()}>
@@ -210,10 +217,11 @@ export default function ProductQuickView({ open, product, onClose, onAddToCart }
         </CloseButton>
         <Left>
           <ProductImage
-            src={product.image || '/placeholder-wood.jpg'}
+            src={imageUrl}
             alt={product.name}
-            onError={e => { e.currentTarget.src = '/placeholder-wood.jpg'; }}
+            onError={e => { e.currentTarget.src = 'https://picsum.photos/seed/fallback/900/700'; }}
           />
+          
         </Left>
         <Right>
           <Title>{product.name}</Title>

@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
-import { FiPackage, FiTruck, FiCheckCircle, FiClock, FiXCircle } from 'react-icons/fi';
+import { FiPackage, FiTruck, FiCheckCircle, FiClock, FiXCircle, FiCreditCard } from 'react-icons/fi';
 import { useAuth } from '../contexts/AuthContext';
-import { getUserOrders } from '../firebase/orders';
+import { getUserOrders, cancelOrder } from '../firebase/orders';
 import DashboardLayout from '../components/Layout/DashboardLayout';
+import toast from 'react-hot-toast';
 
 const OrdersContainer = styled.div`
   max-width: 1200px;
   margin: 0 auto;
   padding: 40px 20px;
+  @media (max-width: 600px) { padding: 20px 12px; }
 `;
 
 const OrdersHeader = styled.div`
@@ -46,6 +48,10 @@ const OrderCard = styled.div`
   
   &:hover {
     transform: translateY(-2px);
+  }
+  
+  @media (max-width: 600px) {
+    padding: 18px;
   }
 `;
 
@@ -158,6 +164,12 @@ const OrderTotal = styled.div`
   font-size: 18px;
   font-weight: 700;
   color: #2c5530;
+  
+  @media (max-width: 600px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
 `;
 
 const OrderActions = styled.div`
@@ -170,6 +182,43 @@ const OrderActions = styled.div`
   }
 `;
 
+const PayNotice = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: #fff8e1;
+  border: 1px solid #ffe7a3;
+  color: #8a6d3b;
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin: 12px 0 16px 0;
+  font-size: 14px;
+  font-weight: 600;
+  
+  @media (max-width: 600px) {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+`;
+
+const PayNoticeButton = styled(Link)`
+  flex: 0 0 auto;
+  background: #2c5530;
+  color: #fff;
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-weight: 700;
+  &:hover { background: #1e3a22; }
+  
+  @media (max-width: 600px) {
+    width: 100%;
+    text-align: center;
+  }
+`;
+
 const ActionButton = styled(Link)`
   padding: 10px 20px;
   border-radius: 6px;
@@ -177,6 +226,10 @@ const ActionButton = styled(Link)`
   font-weight: 600;
   font-size: 14px;
   transition: all 0.3s ease;
+  display: inline-block;
+  text-align: center;
+  border: none;
+  cursor: pointer;
   
   &.primary {
     background: #2c5530;
@@ -195,6 +248,28 @@ const ActionButton = styled(Link)`
     &:hover {
       background: #e9ecef;
     }
+  }
+`;
+
+const CancelButton = styled.button`
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  background: #fff;
+  color: #dc3545;
+  border: 2px solid #dc3545;
+  cursor: pointer;
+  
+  &:hover {
+    background: #dc3545;
+    color: #fff;
+  }
+  
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 `;
 
@@ -270,29 +345,48 @@ const Orders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [cancellingId, setCancellingId] = useState(null);
+
+  const fetchOrders = async () => {
+    try {
+      setLoading(true);
+      const result = await getUserOrders(user.uid);
+      
+      if (result.success) {
+        setOrders(result.data);
+      } else {
+        setError(result.error);
+      }
+    } catch (err) {
+      setError('Erreur lors du chargement des commandes');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!user) return;
-
-    const fetchOrders = async () => {
-      try {
-        setLoading(true);
-        const result = await getUserOrders(user.uid);
-        
-        if (result.success) {
-          setOrders(result.data);
-        } else {
-          setError(result.error);
-        }
-      } catch (err) {
-        setError('Erreur lors du chargement des commandes');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchOrders();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
+
+  const handleCancelOrder = async (orderId) => {
+    if (!window.confirm('Êtes-vous sûr de vouloir annuler cette commande ?')) {
+      return;
+    }
+
+    setCancellingId(orderId);
+    const result = await cancelOrder(orderId, 'Annulation client');
+    
+    if (result.success) {
+      toast.success('Commande annulée avec succès');
+      // Recharger les commandes
+      fetchOrders();
+    } else {
+      toast.error('Erreur lors de l\'annulation de la commande');
+    }
+    setCancellingId(null);
+  };
 
   if (!user) return null;
 
@@ -376,15 +470,23 @@ const Orders = () => {
                   {getStatusText(order.status)}
                 </OrderStatus>
               </OrderHeader>
+              {(order?.payment?.method === 'bank') && (order.status !== 'paid' && order.status !== 'delivered') && (
+                <PayNotice>
+                  <span style={{ display:'inline-flex', alignItems:'center', gap:8 }}>
+                    <FiCreditCard /> Payez par virement: retrouvez le RIB dans Facturation pour valider votre commande.
+                  </span>
+                  <PayNoticeButton to="/billing">Aller au RIB</PayNoticeButton>
+                </PayNotice>
+              )}
               
               <OrderItems>
                 {order.items.map((item, index) => (
                   <OrderItem key={index}>
                     <ItemImage 
-                      src={item.image || '/placeholder-wood.jpg'} 
+                      src={item.image || 'https://picsum.photos/seed/fallback/60/60'} 
                       alt={item.name}
                       onError={(e) => {
-                        e.target.src = '/placeholder-wood.jpg';
+                        e.target.src = 'https://picsum.photos/seed/fallback/60/60';
                       }}
                     />
                     <ItemInfo>
@@ -409,6 +511,14 @@ const Orders = () => {
                   <ActionButton to={`/orders/${order.id}/review`} className="secondary">
                     Laisser un avis
                   </ActionButton>
+                )}
+                {(order.status === 'pending' || order.status === 'processing') && (
+                  <CancelButton 
+                    onClick={() => handleCancelOrder(order.id)}
+                    disabled={cancellingId === order.id}
+                  >
+                    {cancellingId === order.id ? 'Annulation...' : 'Annuler la commande'}
+                  </CancelButton>
                 )}
               </OrderActions>
             </OrderCard>

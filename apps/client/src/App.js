@@ -19,12 +19,19 @@ import Register from './pages/Register';
 import Profile from './pages/Profile';
 import Orders from './pages/Orders';
 import OrderDetail from './pages/OrderDetail';
+import BankTransfer from './pages/BankTransfer';
 import OrderReview from './pages/OrderReview';
 import About from './pages/About';
 import Contact from './pages/Contact';
 
 import Settings from './pages/Settings';
 import Dashboard from './pages/Dashboard';
+import Billing from './pages/Billing';
+import Suivi from './pages/Suivi';
+import SuiviItinerary from './pages/SuiviItinerary';
+import DashboardCart from './pages/DashboardCart';
+import DashboardProducts from './pages/DashboardProducts';
+import DashboardCheckout from './pages/DashboardCheckout';
 
 // Styles globaux
 import './App.css';
@@ -42,7 +49,19 @@ function RootLayout() {
   const location = useLocation();
   const path = location.pathname || '';
   const isDashboard = path === '/dashboard';
-  const isDashboardArea = isDashboard || path.startsWith('/dashboard/') || path === '/profile' || path === '/orders' || path.startsWith('/orders/') || path === '/settings' || path.startsWith('/settings/');
+  const isDashboardArea = (
+    isDashboard ||
+    path.startsWith('/dashboard/') ||
+    path === '/profile' ||
+    path === '/orders' ||
+    path.startsWith('/orders/') ||
+    path === '/settings' ||
+    path.startsWith('/settings/') ||
+    path === '/billing' ||
+    path.startsWith('/billing/') ||
+    path === '/suivi' ||
+    path.startsWith('/suivi/')
+  );
   const isMinimalArea = isDashboardArea;
   return (
     <AppContainer className="App">
@@ -94,11 +113,18 @@ const router = createBrowserRouter(
       <Route path="login" element={<Login />} />
       <Route path="register" element={<Register />} />
       <Route path="dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+      <Route path="dashboard/cart" element={<PrivateRoute><DashboardCart /></PrivateRoute>} />
+      <Route path="dashboard/products" element={<PrivateRoute><DashboardProducts /></PrivateRoute>} />
+      <Route path="dashboard/checkout" element={<PrivateRoute><DashboardCheckout /></PrivateRoute>} />
+      <Route path="billing" element={<PrivateRoute><Billing /></PrivateRoute>} />
       <Route path="profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
       <Route path="orders" element={<PrivateRoute><Orders /></PrivateRoute>} />
       <Route path="orders/:id" element={<PrivateRoute><OrderDetail /></PrivateRoute>} />
+      <Route path="payment/bank" element={<BankTransfer />} />
       <Route path="orders/:id/review" element={<PrivateRoute><OrderReview /></PrivateRoute>} />
       <Route path="settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
+      <Route path="suivi" element={<PrivateRoute><Suivi /></PrivateRoute>} />
+      <Route path="suivi/:id" element={<PrivateRoute><SuiviItinerary /></PrivateRoute>} />
       <Route path="about" element={<About />} />
       <Route path="contact" element={<Contact />} />
     </Route>

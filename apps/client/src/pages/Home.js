@@ -823,7 +823,6 @@ const Home = () => {
   const handleNewsletterSubmit = (e) => {
     e.preventDefault();
     if (email.trim()) {
-      console.log('Newsletter subscription:', email);
       alert('Merci pour votre inscription à notre newsletter !');
       setEmail('');
     }

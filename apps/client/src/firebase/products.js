@@ -16,33 +16,34 @@ import { db } from './config';
 // Obtenir tous les produits
 export const getProducts = async (filters = {}, pagination = {}) => {
   try {
-    let q = collection(db, 'products');
+    const constraints = [];
     
     // Appliquer les filtres
     if (filters.category) {
-      q = query(q, where('category', '==', filters.category));
+      constraints.push(where('category', '==', filters.category));
     }
     if (filters.type) {
-      q = query(q, where('type', '==', filters.type));
+      constraints.push(where('type', '==', filters.type));
     }
     if (filters.minPrice) {
-      q = query(q, where('price', '>=', filters.minPrice));
+      constraints.push(where('price', '>=', filters.minPrice));
     }
     if (filters.maxPrice) {
-      q = query(q, where('price', '<=', filters.maxPrice));
+      constraints.push(where('price', '<=', filters.maxPrice));
     }
     if (filters.available) {
-      q = query(q, where('stock', '>', 0));
+      constraints.push(where('stock', '>', 0));
     }
     
     // Tri
-    q = query(q, orderBy('createdAt', 'desc'));
+    constraints.push(orderBy('createdAt', 'desc'));
     
     // Pagination
     if (pagination.limit) {
-      q = query(q, limit(pagination.limit));
+      constraints.push(limit(pagination.limit));
     }
     
+    const q = query(collection(db, 'products'), ...constraints);
     const snapshot = await getDocs(q);
     const products = snapshot.docs.map(doc => ({
       id: doc.id,
@@ -75,22 +76,23 @@ export const getProductById = async (id) => {
 // Rechercher des produits
 export const searchProducts = async (searchTerm, filters = {}) => {
   try {
-    let q = collection(db, 'products');
+    const constraints = [];
     
     // Appliquer les filtres de recherche
     if (filters.category) {
-      q = query(q, where('category', '==', filters.category));
+      constraints.push(where('category', '==', filters.category));
     }
     if (filters.type) {
-      q = query(q, where('type', '==', filters.type));
+      constraints.push(where('type', '==', filters.type));
     }
     if (filters.minPrice) {
-      q = query(q, where('price', '>=', filters.minPrice));
+      constraints.push(where('price', '>=', filters.minPrice));
     }
     if (filters.maxPrice) {
-      q = query(q, where('price', '<=', filters.maxPrice));
+      constraints.push(where('price', '<=', filters.maxPrice));
     }
     
+    const q = query(collection(db, 'products'), ...constraints);
     const snapshot = await getDocs(q);
     let products = snapshot.docs.map(doc => ({
       id: doc.id,

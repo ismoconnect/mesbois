@@ -11,6 +11,7 @@ const ProfileContainer = styled.div`
   max-width: 800px;
   margin: 0 auto;
   padding: 40px 20px;
+  @media (max-width: 600px) { padding: 20px 12px; }
 `;
 
 const ProfileHeader = styled.div`
@@ -19,6 +20,7 @@ const ProfileHeader = styled.div`
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   padding: 30px;
   margin-bottom: 30px;
+  @media (max-width: 600px) { padding: 18px; }
 `;
 
 const ProfileTitle = styled.h1`
@@ -71,6 +73,7 @@ const EditForm = styled.form`
   border-radius: 12px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   padding: 30px;
+  @media (max-width: 600px) { padding: 18px; }
 `;
 
 const FormTitle = styled.h2`
@@ -88,6 +91,7 @@ const FormGrid = styled.div`
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 20px;
   margin-bottom: 20px;
+  @media (max-width: 600px) { grid-template-columns: 1fr; gap: 14px; }
 `;
 
 const InputGroup = styled.div`
@@ -135,6 +139,7 @@ const ButtonGroup = styled.div`
   display: flex;
   gap: 15px;
   justify-content: flex-end;
+  @media (max-width: 600px) { flex-direction: column; align-items: stretch; }
 `;
 
 const SaveButton = styled.button`

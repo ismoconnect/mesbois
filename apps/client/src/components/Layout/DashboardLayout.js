@@ -1,28 +1,50 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { FiHome, FiShoppingBag, FiUser, FiSettings, FiLogOut } from 'react-icons/fi';
+import { useCart } from '../../contexts/CartContext';
+import { FiHome, FiShoppingBag, FiShoppingCart, FiUser, FiSettings, FiLogOut, FiMenu, FiActivity } from 'react-icons/fi';
 
 const Shell = styled.div`
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 24px 16px;
-  display: grid;
-  grid-template-columns: 260px 1fr;
-  gap: 20px;
+  width: 100%;
+  margin: 0;
+  padding: 96px 20px 24px calc(260px + 24px);
+  box-sizing: border-box;
 
   @media (max-width: 900px) {
-    grid-template-columns: 1fr;
+    padding: 88px 12px 24px 12px;
+  }
+`;
+
+const Overlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.25);
+  z-index: 1002;
+  display: none;
+  @media (max-width: 900px) {
+    display: block;
   }
 `;
 
 const Sidebar = styled.aside`
-  background: #fff;
-  border-radius: 12px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 260px;
+  height: 100vh;
+  background: #eaf4ee;
   box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-  padding: 18px;
-  height: fit-content;
+  padding: 24px 16px;
+  border-radius: 0;
+  overflow-y: auto;
+  z-index: 1003;
+  border-right: 1px solid #d4e3db;
+
+  @media (max-width: 900px) {
+    transform: translateX(${props => (props.$open ? '0' : '-100%')});
+    transition: transform .2s ease;
+  }
 `;
 
 const UserCard = styled.div`
@@ -91,31 +113,86 @@ const LogoutButton = styled.button`
 const Main = styled.main``;
 
 const HeaderBar = styled.div`
+  position: fixed;
+  top: 0;
+  left: 260px;
+  right: 0;
+  height: 72px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   background: #ffffff;
-  border-radius: 12px;
   box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-  padding: 14px 16px;
-  margin-bottom: 16px;
+  padding: 10px 14px;
+  z-index: 1001;
+
+  @media (max-width: 900px) {
+    left: 0;
+    height: 64px;
+    padding: 8px 10px;
+  }
 `;
 
 const HeaderTitle = styled.div`
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   font-weight: 700;
+  
+  span.header-name {
+    @media (max-width: 900px) {
+      display: none;
+    }
+  }
 `;
 
 const HeaderActions = styled.div`
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 `;
 
 const HeaderButton = styled.button`
   display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid #e6e6e6;
+  background: #f9fafb;
+  color: #1f2d1f;
+  cursor: pointer;
+  transition: background .15s ease;
+  position: relative;
+  &:hover { background: #f1f3f5; }
+  
+  @media (max-width: 900px) {
+    padding: 8px;
+    .label { display: none; }
+  }
+`;
+
+const CountBubble = styled.span`
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #e74c3c;
+  color: #fff;
+  font-size: 11px;
+  line-height: 18px;
+  text-align: center;
+  font-weight: 800;
+`;
+
+const Burger = styled.button`
+  display: none;
+  @media (max-width: 900px) {
+    display: inline-flex;
+  }
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
@@ -124,18 +201,19 @@ const HeaderButton = styled.button`
   background: #f9fafb;
   color: #1f2d1f;
   cursor: pointer;
-  transition: background .15s ease;
-  &:hover { background: #f1f3f5; }
 `;
 
 const DashboardLayout = ({ children }) => {
   const { user, userData, logout } = useAuth();
+  const { getCartItemsCount } = useCart();
+  const [open, setOpen] = useState(false);
   const name = userData?.displayName || user?.email || '';
   const initial = name?.charAt(0)?.toUpperCase() || 'U';
+  const cartCount = typeof getCartItemsCount === 'function' ? getCartItemsCount() : 0;
 
   return (
-    <Shell>
-      <Sidebar>
+    <>
+      <Sidebar $open={open}>
         <UserCard>
           <Avatar>{initial}</Avatar>
           <UserInfo>
@@ -145,20 +223,31 @@ const DashboardLayout = ({ children }) => {
         </UserCard>
 
         <Nav>
-          <NavItem to="/dashboard">
+          <NavItem to="/dashboard" onClick={() => setOpen(false)}>
             <FiHome />
-            Tableau de bord
+            Mon Espace Client
           </NavItem>
-          <NavItem to="/orders">
+          <NavItem to="/dashboard/cart" onClick={() => setOpen(false)}>
+            <FiShoppingCart />
+            Panier
+          </NavItem>
+          <NavItem to="/orders" onClick={() => setOpen(false)}>
             <FiShoppingBag />
             Mes commandes
           </NavItem>
-          <NavItem to="/profile">
+          <NavItem to="/billing" onClick={() => setOpen(false)}>
+            <FiShoppingBag />
+            Facturation
+          </NavItem>
+          <NavItem to="/suivi" onClick={() => setOpen(false)}>
+            <FiActivity />
+            Suivi
+          </NavItem>
+          <NavItem to="/profile" onClick={() => setOpen(false)}>
             <FiUser />
             Profil
           </NavItem>
-          
-          <NavItem to="/settings">
+          <NavItem to="/settings" onClick={() => setOpen(false)}>
             <FiSettings />
             Réglages
           </NavItem>
@@ -169,26 +258,37 @@ const DashboardLayout = ({ children }) => {
         </LogoutButton>
       </Sidebar>
 
-      <Main>
-        <HeaderBar>
-          <HeaderTitle>
-            <Avatar style={{ width: 32, height: 32 }}>{initial}</Avatar>
-            <span>Bienvenue, {name}</span>
-          </HeaderTitle>
-          <HeaderActions>
-            <Link to="/profile" style={{ textDecoration: 'none' }}>
-              <HeaderButton>
-                <FiUser /> Profil
-              </HeaderButton>
-            </Link>
-            <HeaderButton onClick={logout}>
-              <FiLogOut /> Déconnexion
+      {open && <Overlay onClick={() => setOpen(false)} />}
+
+      <HeaderBar>
+        <HeaderTitle>
+          <Burger onClick={() => setOpen(v => !v)} aria-label="Ouvrir le menu">
+            <FiMenu /> Menu
+          </Burger>
+          <span className="header-name">Bienvenue, {name}</span>
+        </HeaderTitle>
+        <HeaderActions>
+          <Link to="/dashboard/cart" style={{ textDecoration: 'none' }}>
+            <HeaderButton>
+              <FiShoppingCart /> <span className="label">Panier</span>
+              {cartCount > 0 && <CountBubble>{cartCount > 99 ? '99+' : cartCount}</CountBubble>}
             </HeaderButton>
-          </HeaderActions>
-        </HeaderBar>
-        {children}
-      </Main>
-    </Shell>
+          </Link>
+          <Link to="/profile" style={{ textDecoration: 'none' }}>
+            <HeaderButton>
+              <FiUser /> <span className="label">Profil</span>
+            </HeaderButton>
+          </Link>
+          <Avatar style={{ width: 32, height: 32 }}>{initial}</Avatar>
+        </HeaderActions>
+      </HeaderBar>
+
+      <Shell>
+        <Main>
+          {children}
+        </Main>
+      </Shell>
+    </>
   );
 };
 

@@ -4,7 +4,10 @@ import styled from 'styled-components';
 import { FiFilter, FiGrid, FiList, FiStar, FiShoppingCart, FiTag, FiTruck, FiShield } from 'react-icons/fi';
 import { products as catalogue } from '../data/catalogue.js';
 import { useCart } from '../contexts/CartContext';
+import { useProductImages } from '../hooks/useProductImages';
 import toast from 'react-hot-toast';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../firebase/config';
 
 const ProductsContainer = styled.div`
   max-width: 1200px;
@@ -597,6 +600,7 @@ const NoProducts = styled.div`
 
 const Products = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { productImages } = useProductImages();
   const [filters, setFilters] = useState({
     category: searchParams.get('category') || '',
     type: searchParams.get('type') || '',
@@ -612,6 +616,8 @@ const Products = () => {
   const [viewMode, setViewMode] = useState('grid');
   const navigate = useNavigate();
   const { addToCart } = useCart();
+  const [fsProducts, setFsProducts] = useState([]);
+  const [fsLoading, setFsLoading] = useState(true);
 
   // Pagination (mobile uniquement)
   const [currentPage, setCurrentPage] = useState(1);
@@ -638,6 +644,22 @@ const Products = () => {
     };
   }, []);
 
+  // Charger les produits depuis Firestore (préféré) et rebasculer sur le catalogue local si vide
+  useEffect(() => {
+    (async () => {
+      try {
+        const snap = await getDocs(collection(db, 'products'));
+        const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        setFsProducts(list);
+      } catch (e) {
+        // silencieux: on bascule simplement sur le catalogue local
+        setFsProducts([]);
+      } finally {
+        setFsLoading(false);
+      }
+    })();
+  }, []);
+
   // Réinitialiser la page si les filtres changent
   const filtersKey = React.useMemo(() => JSON.stringify(filters), [filters]);
   useEffect(() => {
@@ -650,8 +672,47 @@ const Products = () => {
     setMainCategory(urlMain);
   }, [searchParams]);
 
-  // Catalogue importé
-  const allProducts = catalogue.map((p, i) => {
+  // Mapping d'affichage pour catégories issus des slugs Firestore ou du catalogue
+  const mapMainToCategory = (main) => {
+    switch (main) {
+      case 'bois':
+        return 'bûches';
+      case 'accessoires':
+        return 'accessoires';
+      case 'buches-densifiees':
+        return 'bûches densifiées';
+      case 'pellets':
+        return 'pellets';
+      case 'poeles':
+        return 'poêles';
+      default:
+        return '';
+    }
+  };
+
+  // Produits Firestore (si disponibles), sinon catalogue local
+  const fsMapped = fsProducts.map((p, i) => ({
+    id: p.id,
+    name: p.name,
+    description: [p.vendor, p.regularPrice ? `(Prix régulier ${p.regularPrice}€)` : null].filter(Boolean).join(' · '),
+    price: p.price,
+    regularPrice: p.regularPrice,
+    category: mapMainToCategory(p.category || p.main),
+    type: p.type || '',
+    stock: typeof p.stock === 'number' ? p.stock : 1,
+    image: p.image || `https://picsum.photos/seed/${p.id}/800/500`,
+    rating: typeof p.rating === 'number' ? p.rating : 0,
+    reviewCount: typeof p.reviewCount === 'number' ? p.reviewCount : 0,
+    sale: p.regularPrice ? (p.price || 0) < p.regularPrice : false,
+    new: !!p.new,
+    weight: p.weight || '',
+    dimensions: p.dimensions || '',
+    humidity: p.humidity || '',
+    calorificValue: p.calorificValue || ''
+  }));
+
+  // Catalogue importé (fallback)
+  const catMapped = catalogue.map((p, i) => {
     const mapMainToCategory = (main) => {
       switch (main) {
         case 'bois':
@@ -677,7 +738,7 @@ const Products = () => {
       category: mapMainToCategory(p.main),
       type: '',
       stock: 1,
-      image: '/placeholder-wood.jpg',
+      image: `https://picsum.photos/seed/${p.id || `p-${i}`}/800/500`,
       rating: 0,
       reviewCount: 0,
       sale: p.regularPrice ? p.price < p.regularPrice : false,
@@ -688,6 +749,9 @@ const Products = () => {
       calorificValue: ''
     };
   });
+
+  const usingFS = fsProducts.length > 0;
+  const allProducts = usingFS ? fsMapped : catMapped;
 
   const handleFilterChange = (key, value) => {
     const newFilters = { ...filters, [key]: value };
@@ -1038,12 +1102,13 @@ const Products = () => {
                 <ProductCardEnhanced key={product.id}>
                   <ProductImageContainer>
                     <ProductImage 
-                      src={product.image} 
+                      src={productImages[product.id] || product.image || `https://picsum.photos/seed/${product.id}/800/500`} 
                       alt={product.name}
                       onError={(e) => {
-                        e.target.src = '/placeholder-wood.jpg';
+                        e.target.src = 'https://picsum.photos/seed/fallback/800/500';
                       }}
                     />
+                    
                     <ProductBadges>
                       {product.sale && <Badge type="sale">Promo</Badge>}
                       {product.new && <Badge type="new">Nouveau</Badge>}
@@ -1117,12 +1182,15 @@ const Products = () => {
                 <ProductCardEnhanced key={product.id} style={{ display: 'flex', flexDirection: 'row' }}>
                   <ProductImageContainer style={{ width: '200px', height: '150px' }}>
                     <ProductImage 
-                      src={product.image} 
+                      src={productImages[product.id] || product.image || `https://picsum.photos/seed/${product.id}/800/500`} 
                       alt={product.name}
                       onError={(e) => {
                         e.target.src = '/placeholder-wood.jpg';
                       }}
                     />
+                    {typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('debugImages') === '1' && (
+                      <div style={{ padding: 8, fontSize: 12, color: '#666' }}>{productImages[product.id] || product.image || `https://picsum.photos/seed/${product.id}/800/500`}</div>
+                    )}
                     <ProductBadges>
                       {product.sale && <Badge type="sale">Promo</Badge>}
                       {product.new && <Badge type="new">Nouveau</Badge>}

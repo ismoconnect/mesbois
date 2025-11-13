@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { FiStar, FiShoppingCart, FiTruck, FiShield, FiArrowLeft, FiPlus, FiMinus } from 'react-icons/fi';
 import { useCart } from '../contexts/CartContext';
+import { useProductImages } from '../hooks/useProductImages';
 import { getProductById } from '../firebase/products';
 import { products as catalogue } from '../data/catalogue.js';
 import toast from 'react-hot-toast';
@@ -267,6 +268,7 @@ const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { addToCart, isInCart, getCartItem } = useCart();
+  const { productImages } = useProductImages();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -301,7 +303,7 @@ const ProductDetail = () => {
             category: mapMainToCategory(p.main),
             type: '',
             stock: 1,
-            image: '/placeholder-wood.jpg',
+            image: `https://picsum.photos/seed/${p.id || `p-${idx}`}/1000/700`,
             rating: 0,
             reviewCount: 0,
             sale: p.regularPrice ? p.price < p.regularPrice : false,
@@ -394,10 +396,10 @@ const ProductDetail = () => {
       <ProductContainer>
         <div>
           <ProductImage 
-            src={product.image || '/placeholder-wood.jpg'} 
+            src={productImages[product.id] || product.image || `https://picsum.photos/seed/${product.id}/1000/700`} 
             alt={product.name}
             onError={(e) => {
-              e.target.src = '/placeholder-wood.jpg';
+              e.target.src = 'https://picsum.photos/seed/fallback/1000/700';
             }}
           />
         </div>
