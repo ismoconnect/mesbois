@@ -17,6 +17,21 @@ export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([]);
   const { user } = useAuth();
 
+  // Normaliser les items pour Firestore (éviter toute valeur undefined)
+  const normalizeCartItems = (items = []) => {
+    try {
+      return items.map((it) => ({
+        id: it?.id || '',
+        name: typeof it?.name === 'string' ? it.name : '',
+        price: Number(it?.price ?? 0),
+        image: typeof it?.image === 'string' ? it.image : '',
+        quantity: Number(it?.quantity ?? 1),
+      }));
+    } catch {
+      return [];
+    }
+  };
+
   // Charger le panier depuis le localStorage au montage
   useEffect(() => {
     const savedCart = localStorage.getItem('bois-de-chauffage-cart');
@@ -58,13 +73,13 @@ export const CartProvider = ({ children }) => {
           const merged = Array.from(map.values());
           setCartItems(merged);
           try {
-            await setDoc(cartRef, { items: merged, updatedAt: serverTimestamp() }, { merge: true });
+            await setDoc(cartRef, { items: normalizeCartItems(merged), updatedAt: serverTimestamp() }, { merge: true });
           } catch (e) {}
         } else {
           const localStr = localStorage.getItem('bois-de-chauffage-cart');
           const localItems = (() => { try { return JSON.parse(localStr || '[]'); } catch { return []; } })();
           try {
-            await setDoc(cartRef, { items: localItems, updatedAt: serverTimestamp() }, { merge: true });
+            await setDoc(cartRef, { items: normalizeCartItems(localItems), updatedAt: serverTimestamp() }, { merge: true });
           } catch (e) {}
         }
 
@@ -103,14 +118,14 @@ export const CartProvider = ({ children }) => {
         // Persist Firestore si connecté
         if (user) {
           const cartRef = doc(db, 'carts', user.uid);
-          setDoc(cartRef, { items: newItems, updatedAt: serverTimestamp() }, { merge: true });
+          setDoc(cartRef, { items: normalizeCartItems(newItems), updatedAt: serverTimestamp() }, { merge: true });
         }
         return newItems;
       } else {
         const newItems = [...prevItems, { ...product, quantity }];
         if (user) {
           const cartRef = doc(db, 'carts', user.uid);
-          setDoc(cartRef, { items: newItems, updatedAt: serverTimestamp() }, { merge: true });
+          setDoc(cartRef, { items: normalizeCartItems(newItems), updatedAt: serverTimestamp() }, { merge: true });
         }
         return newItems;
       }
@@ -122,7 +137,7 @@ export const CartProvider = ({ children }) => {
       const newItems = prevItems.filter(item => item.id !== productId);
       if (user) {
         const cartRef = doc(db, 'carts', user.uid);
-        setDoc(cartRef, { items: newItems, updatedAt: serverTimestamp() }, { merge: true });
+        setDoc(cartRef, { items: normalizeCartItems(newItems), updatedAt: serverTimestamp() }, { merge: true });
       }
       return newItems;
     });
@@ -140,7 +155,7 @@ export const CartProvider = ({ children }) => {
       );
       if (user) {
         const cartRef = doc(db, 'carts', user.uid);
-        setDoc(cartRef, { items: newItems, updatedAt: serverTimestamp() }, { merge: true });
+        setDoc(cartRef, { items: normalizeCartItems(newItems), updatedAt: serverTimestamp() }, { merge: true });
       }
       return newItems;
     });
