@@ -296,6 +296,11 @@ const ProductsGrid = styled.div`
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
   }
+
+  @media (max-width: 420px) {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
 `;
 
 const ProductsList = styled.div`
@@ -451,6 +456,10 @@ const ProductDescription = styled.p`
     font-size: 12px;
     margin-bottom: 6px;
   }
+  
+  @media (max-width: 480px) {
+    display: none;
+  }
 `;
 
 const ProductInfo = styled.div`
@@ -479,6 +488,10 @@ const ProductRating = styled.div`
     color: #666;
     font-size: 14px;
   }
+
+  @media (max-width: 480px) {
+    display: none;
+  }
 `;
 
 const ProductStock = styled.div`
@@ -506,6 +519,10 @@ const ProductSpecs = styled.div`
       font-weight: 600;
       color: #2c5530;
     }
+  }
+
+  @media (max-width: 480px) {
+    display: none;
   }
 `;
 

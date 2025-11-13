@@ -18,12 +18,22 @@ const CardContainer = styled.div`
     transform: translateY(-5px);
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
   }
+  
+  @media (max-width: 480px) {
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    &:hover { transform: none; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
+  }
 `;
 
 const ImageContainer = styled.div`
   position: relative;
   height: 200px;
   overflow: hidden;
+  
+  @media (max-width: 480px) {
+    height: 150px;
+  }
 `;
 
 const ProductImage = styled.img`
@@ -51,6 +61,10 @@ const Badge = styled.div`
 
 const CardContent = styled.div`
   padding: 20px;
+  
+  @media (max-width: 480px) {
+    padding: 12px;
+  }
 `;
 
 const ProductName = styled.h3`
@@ -59,6 +73,15 @@ const ProductName = styled.h3`
   margin-bottom: 8px;
   color: #2c5530;
   line-height: 1.4;
+  
+  @media (max-width: 480px) {
+    font-size: 16px;
+    margin-bottom: 6px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
 `;
 
 const ProductDescription = styled.p`
@@ -70,6 +93,10 @@ const ProductDescription = styled.p`
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  
+  @media (max-width: 480px) {
+    display: none;
+  }
 `;
 
 const ProductInfo = styled.div`
@@ -77,12 +104,20 @@ const ProductInfo = styled.div`
   justify-content: space-between;
   align-items: center;
   margin-bottom: 15px;
+  
+  @media (max-width: 480px) {
+    margin-bottom: 10px;
+  }
 `;
 
 const Price = styled.div`
   font-size: 20px;
   font-weight: 700;
   color: #2c5530;
+  
+  @media (max-width: 480px) {
+    font-size: 18px;
+  }
 `;
 
 const Rating = styled.div`
@@ -91,6 +126,10 @@ const Rating = styled.div`
   gap: 4px;
   color: #f39c12;
   font-size: 14px;
+  
+  @media (max-width: 480px) {
+    display: none;
+  }
 `;
 
 const StockInfo = styled.div`
@@ -98,6 +137,10 @@ const StockInfo = styled.div`
   color: ${props => props.inStock ? '#27ae60' : '#e74c3c'};
   margin-bottom: 15px;
   font-weight: 500;
+  
+  @media (max-width: 480px) {
+    display: none;
+  }
 `;
 
 const AddToCartButton = styled.button`
@@ -122,6 +165,12 @@ const AddToCartButton = styled.button`
   &:disabled {
     background: #ccc;
     cursor: not-allowed;
+  }
+  
+  @media (max-width: 480px) {
+    padding: 10px;
+    border-radius: 10px;
+    font-weight: 700;
   }
 `;
 
