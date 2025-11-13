@@ -367,7 +367,6 @@ const Orders = () => {
   useEffect(() => {
     if (!user) return;
     fetchOrders();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const handleCancelOrder = async (orderId) => {

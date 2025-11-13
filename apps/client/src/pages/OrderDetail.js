@@ -359,7 +359,6 @@ const OrderDetail = () => {
       return;
     }
     fetchOrder();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, user, navigate]);
 
   const handleCancelOrder = async () => {
