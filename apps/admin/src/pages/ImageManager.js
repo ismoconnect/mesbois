@@ -776,6 +776,8 @@ const ImageManager = () => {
     { key: 'poeles', label: 'Poêles' }
   ];
 
+  const categories = Array.from(new Set(products.map(p => (p.category || 'Autres')))).sort();
+
   return (
     <Container>
       <Header>
@@ -870,51 +872,58 @@ const ImageManager = () => {
           <SectionTitle>
             <FiPackage /> Images des produits du catalogue
           </SectionTitle>
-          <Grid>
-            {products.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '40px', color: '#6b7c6d' }}>
-                Aucun produit trouvé
+          {products.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '40px', color: '#6b7c6d' }}>
+              Aucun produit trouvé
+            </div>
+          ) : (
+            categories.map(cat => (
+              <div key={cat} style={{ marginBottom: 24 }}>
+                <SectionTitle>
+                  <FiPackage /> {cat}
+                </SectionTitle>
+                <Grid>
+                  {products.filter(p => (p.category || 'Autres') === cat).map(product => (
+                    <Field key={product.id}>
+                      <Label>
+                        <FiImage size={16} />
+                        {product.name}
+                      </Label>
+                      <Input
+                        value={productImages[product.id] || ''}
+                        onChange={e => updateProductImage(product.id, e.target.value)}
+                        placeholder="Collez l'URL de l'image ici..."
+                      />
+                      <Preview>
+                        {productImages[product.id] ? (
+                          <Img 
+                            src={productImages[product.id]} 
+                            alt={product.name} 
+                            onError={(e) => { 
+                              e.currentTarget.src = '/placeholder-wood.jpg'; 
+                            }} 
+                          />
+                        ) : product.image ? (
+                          <Img 
+                            src={product.image} 
+                            alt={product.name} 
+                            onError={(e) => { 
+                              e.currentTarget.src = '/placeholder-wood.jpg'; 
+                            }} 
+                          />
+                        ) : (
+                          <EmptyPreview>
+                            <FiUpload />
+                            <span>Aucune image</span>
+                          </EmptyPreview>
+                        )}
+                      </Preview>
+                    </Field>
+                  ))}
+                </Grid>
               </div>
-            ) : (
-              products.map(product => (
-                <Field key={product.id}>
-                  <Label>
-                    <FiImage size={16} />
-                    {product.name}
-                  </Label>
-                  <Input
-                    value={productImages[product.id] || ''}
-                    onChange={e => updateProductImage(product.id, e.target.value)}
-                    placeholder="Collez l'URL de l'image ici..."
-                  />
-                  <Preview>
-                    {productImages[product.id] ? (
-                      <Img 
-                        src={productImages[product.id]} 
-                        alt={product.name} 
-                        onError={(e) => { 
-                          e.currentTarget.src = '/placeholder-wood.jpg'; 
-                        }} 
-                      />
-                    ) : product.image ? (
-                      <Img 
-                        src={product.image} 
-                        alt={product.name} 
-                        onError={(e) => { 
-                          e.currentTarget.src = '/placeholder-wood.jpg'; 
-                        }} 
-                      />
-                    ) : (
-                      <EmptyPreview>
-                        <FiUpload />
-                        <span>Aucune image</span>
-                      </EmptyPreview>
-                    )}
-                  </Preview>
-                </Field>
-              ))
-            )}
-          </Grid>
+            ))
+          )}
           <Actions>
             <Secondary type="button" onClick={() => window.history.back()}>
               <FiArrowLeft size={16} /> Annuler

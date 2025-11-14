@@ -343,7 +343,9 @@ const ProductDetail = () => {
   }, [id]);
 
   const handleQuantityChange = (newQuantity) => {
-    if (newQuantity >= 1 && newQuantity <= product.stock) {
+    if (!product) return;
+    const max = product?.stock ?? 0;
+    if (newQuantity >= 1 && newQuantity <= max) {
       setQuantity(newQuantity);
     }
   };
@@ -352,14 +354,6 @@ const ProductDetail = () => {
     addToCart(product, quantity);
     toast.success(`${quantity} ${product.name} ajouté(s) au panier`);
   };
-
-  if (loading) {
-    return (
-      <ProductDetailContainer>
-        <LoadingSpinner>Chargement du produit...</LoadingSpinner>
-      </ProductDetailContainer>
-    );
-  }
 
   if (error) {
     return (
@@ -372,19 +366,19 @@ const ProductDetail = () => {
     );
   }
 
-  if (!product) {
-    return (
-      <ProductDetailContainer>
-        <ErrorMessage>
-          <h3>Produit non trouvé</h3>
-          <p>Le produit que vous recherchez n'existe pas.</p>
-        </ErrorMessage>
-      </ProductDetailContainer>
-    );
-  }
+  const view = product || {
+    id,
+    name: 'Produit',
+    description: '',
+    price: '',
+    stock: 0,
+    image: `https://picsum.photos/seed/${id}/1000/700`,
+    rating: 4.5,
+    reviewCount: 0
+  };
 
-  const isInCartItem = isInCart(product.id);
-  const cartItem = getCartItem(product.id);
+  const isInCartItem = product ? isInCart(product.id) : false;
+  const cartItem = product ? getCartItem(product.id) : null;
 
   return (
     <ProductDetailContainer>
@@ -396,8 +390,8 @@ const ProductDetail = () => {
       <ProductContainer>
         <div>
           <ProductImage 
-            src={productImages[product.id] || product.image || `https://picsum.photos/seed/${product.id}/1000/700`} 
-            alt={product.name}
+            src={productImages[view.id] || view.image || `https://picsum.photos/seed/${view.id}/1000/700`} 
+            alt={view.name}
             onError={(e) => {
               e.target.src = 'https://picsum.photos/seed/fallback/1000/700';
             }}
@@ -405,8 +399,8 @@ const ProductDetail = () => {
         </div>
         
         <ProductInfo>
-          <h1>{product.name}</h1>
-          <div className="price">{product.price}€</div>
+          <h1>{view.name}</h1>
+          <div className="price">{view.price}{view.price !== '' ? '€' : ''}</div>
             
             <Rating>
               <div className="stars">
@@ -414,30 +408,30 @@ const ProductDetail = () => {
                   <FiStar 
                     key={i} 
                     size={16} 
-                    fill={i < Math.floor(product.rating || 4.5) ? '#f39c12' : 'none'} 
+                    fill={i < Math.floor(view.rating || 4.5) ? '#f39c12' : 'none'} 
                   />
                 ))}
               </div>
               <span className="rating-text">
-                {product.rating || 4.5} ({product.reviewCount || 0} avis)
+                {view.rating || 4.5} ({view.reviewCount || 0} avis)
               </span>
             </Rating>
             
-            <StockInfo inStock={product.stock > 0}>
-              {product.stock > 0 
-                ? `En stock (${product.stock} disponibles)` 
+            <StockInfo inStock={view.stock > 0}>
+              {view.stock > 0 
+                ? `En stock (${view.stock} disponibles)` 
                 : 'Rupture de stock'
               }
             </StockInfo>
             
-            <p className="description">{product.description}</p>
+            <p className="description">{view.description}</p>
             
             <QuantitySelector>
               <label>Quantité :</label>
               <QuantityControls>
                 <QuantityButton
                   onClick={() => handleQuantityChange(quantity - 1)}
-                  disabled={quantity <= 1}
+                  disabled={!product || quantity <= 1}
                 >
                   <FiMinus size={16} />
                 </QuantityButton>
@@ -446,11 +440,11 @@ const ProductDetail = () => {
                   value={quantity}
                   onChange={(e) => handleQuantityChange(parseInt(e.target.value) || 1)}
                   min="1"
-                  max={product.stock}
+                  max={view.stock}
                 />
                 <QuantityButton
                   onClick={() => handleQuantityChange(quantity + 1)}
-                  disabled={quantity >= product.stock}
+                  disabled={!product || quantity >= view.stock}
                 >
                   <FiPlus size={16} />
                 </QuantityButton>
@@ -459,7 +453,7 @@ const ProductDetail = () => {
             
             <AddToCartButton 
               onClick={handleAddToCart}
-              disabled={product.stock === 0}
+              disabled={!product || view.stock === 0}
             >
               <FiShoppingCart size={20} />
               {isInCartItem 

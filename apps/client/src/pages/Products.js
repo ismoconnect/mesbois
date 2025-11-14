@@ -346,9 +346,12 @@ const ProductCardEnhanced = styled.div`
   overflow: hidden;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   position: relative;
+  cursor: pointer;
+  transform: translate3d(calc(var(--tx, 0px)), calc(var(--ty, 0px)), 0);
   
   &:hover {
-    transform: translateY(-4px);
+    /* Combine base subtle proximity with a slight lift on hover */
+    transform: translate3d(calc(var(--tx, 0px)), calc(-4px + var(--ty, 0px)), 0);
     box-shadow: 0 10px 28px rgba(0, 0, 0, 0.12);
   }
 `;
@@ -488,9 +491,9 @@ const ProductRating = styled.div`
     color: #666;
     font-size: 14px;
   }
-
+  
   @media (max-width: 480px) {
-    display: none;
+    .rating-text { display: none; }
   }
 `;
 
@@ -1116,7 +1119,25 @@ const Products = () => {
           {viewMode === 'grid' ? (
             <ProductsGrid>
               {pagedProducts.map(product => (
-                <ProductCardEnhanced key={product.id}>
+                <ProductCardEnhanced
+                  key={product.id}
+                  onClick={() => navigate(`/product/${product.id}`)}
+                  onMouseMove={(e) => {
+                    const el = e.currentTarget;
+                    const rect = el.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const dx = (x - rect.width / 2) / rect.width; // -0.5 .. 0.5
+                    const dy = (y - rect.height / 2) / rect.height; // -0.5 .. 0.5
+                    el.style.setProperty('--tx', `${dx * 6}px`);
+                    el.style.setProperty('--ty', `${dy * 6}px`);
+                  }}
+                  onMouseLeave={(e) => {
+                    const el = e.currentTarget;
+                    el.style.setProperty('--tx', '0px');
+                    el.style.setProperty('--ty', '0px');
+                  }}
+                >
                   <ProductImageContainer>
                     <ProductImage 
                       src={productImages[product.id] || product.image || `https://picsum.photos/seed/${product.id}/800/500`} 
@@ -1142,18 +1163,20 @@ const Products = () => {
                     
                     <ProductInfo>
                       <ProductRating>
-                        <div className="stars">
-                          {[...Array(5)].map((_, i) => (
-                            <FiStar 
-                              key={i} 
-                              size={14} 
-                              fill={i < Math.floor(product.rating) ? '#f39c12' : 'none'} 
-                            />
-                          ))}
-                        </div>
-                        <span className="rating-text">
-                          {product.rating} ({product.reviewCount})
-                        </span>
+                        {(() => { const r = product.rating || 4.5; return (
+                          <>
+                            <div className="stars">
+                              {[...Array(5)].map((_, i) => (
+                                <FiStar
+                                  key={i}
+                                  size={14}
+                                  fill={i < Math.floor(r) ? '#f39c12' : 'none'}
+                                />
+                              ))}
+                            </div>
+                            <span className="rating-text">{r} ({product.reviewCount || 0})</span>
+                          </>
+                        ); })()}
                       </ProductRating>
                       
                       <ProductStock inStock={product.stock > 0}>
@@ -1181,11 +1204,11 @@ const Products = () => {
                     </ProductSpecs>
                     
                     <ProductActions>
-                      <AddToCartButton onClick={() => handleAddToCart(product)}>
+                      <AddToCartButton onClick={(e) => { e.stopPropagation(); handleAddToCart(product); }}>
                         <FiShoppingCart size={16} />
                         Ajouter
                       </AddToCartButton>
-                      <QuickViewButton onClick={() => navigate(`/product/${product.id}`)}>
+                      <QuickViewButton onClick={(e) => { e.stopPropagation(); navigate(`/product/${product.id}`); }}>
                         Voir
                       </QuickViewButton>
                     </ProductActions>
@@ -1196,7 +1219,26 @@ const Products = () => {
           ) : (
             <ProductsList>
               {pagedProducts.map(product => (
-                <ProductCardEnhanced key={product.id} style={{ display: 'flex', flexDirection: 'row' }}>
+                <ProductCardEnhanced
+                  key={product.id}
+                  style={{ display: 'flex', flexDirection: 'row' }}
+                  onClick={() => navigate(`/product/${product.id}`)}
+                  onMouseMove={(e) => {
+                    const el = e.currentTarget;
+                    const rect = el.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const dx = (x - rect.width / 2) / rect.width;
+                    const dy = (y - rect.height / 2) / rect.height;
+                    el.style.setProperty('--tx', `${dx * 6}px`);
+                    el.style.setProperty('--ty', `${dy * 6}px`);
+                  }}
+                  onMouseLeave={(e) => {
+                    const el = e.currentTarget;
+                    el.style.setProperty('--tx', '0px');
+                    el.style.setProperty('--ty', '0px');
+                  }}
+                >
                   <ProductImageContainer style={{ width: '200px', height: '150px' }}>
                     <ProductImage 
                       src={productImages[product.id] || product.image || `https://picsum.photos/seed/${product.id}/800/500`} 
@@ -1224,18 +1266,20 @@ const Products = () => {
                     
                     <ProductInfo>
                       <ProductRating>
-                        <div className="stars">
-                          {[...Array(5)].map((_, i) => (
-                            <FiStar 
-                              key={i} 
-                              size={14} 
-                              fill={i < Math.floor(product.rating) ? '#f39c12' : 'none'} 
-                            />
-                          ))}
-                        </div>
-                        <span className="rating-text">
-                          {product.rating} ({product.reviewCount})
-                        </span>
+                        {(() => { const r = product.rating || 4.5; return (
+                          <>
+                            <div className="stars">
+                              {[...Array(5)].map((_, i) => (
+                                <FiStar 
+                                  key={i} 
+                                  size={14} 
+                                  fill={i < Math.floor(r) ? '#f39c12' : 'none'} 
+                                />
+                              ))}
+                            </div>
+                            <span className="rating-text">{r} ({product.reviewCount || 0})</span>
+                          </>
+                        ); })()}
                       </ProductRating>
                       
                       <ProductStock inStock={product.stock > 0}>

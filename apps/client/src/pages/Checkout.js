@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { FiCreditCard, FiTruck, FiUser, FiMapPin, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
@@ -8,6 +8,7 @@ import { createOrder } from '../firebase/orders';
 import { createUser, signInUser } from '../firebase/auth';
 import { sendEmailVerification } from 'firebase/auth';
 import toast from 'react-hot-toast';
+import { getCouponByCode, validateAndComputeDiscount } from '../firebase/coupons';
 
 const CheckoutContainer = styled.div`
   max-width: 1000px;
@@ -353,6 +354,11 @@ const Checkout = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [authMode, setAuthMode] = useState('register'); // 'register' | 'login'
   const [authFields, setAuthFields] = useState({ email: '', password: '', confirm: '' });
+  const [showCoupon, setShowCoupon] = useState(false);
+  const [couponCode, setCouponCode] = useState('');
+  const [applyingCoupon, setApplyingCoupon] = useState(false);
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [discount, setDiscount] = useState(0);
 
   const handleChange = (e) => {
     setFormData({
@@ -360,6 +366,17 @@ const Checkout = () => {
       [e.target.name]: e.target.value
     });
   };
+
+  const subtotal = getCartTotal();
+  const shipping = subtotal > 50 ? 0 : 9.99;
+  const total = Math.max(0, subtotal - discount) + shipping;
+
+  // Recompute discount when subtotal changes if a coupon is applied
+  useEffect(() => {
+    if (!appliedCoupon) return;
+    const { valid, discount: d } = validateAndComputeDiscount(appliedCoupon, subtotal);
+    setDiscount(valid ? Number(d.toFixed(2)) : 0);
+  }, [subtotal]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -416,7 +433,13 @@ const Checkout = () => {
           method: 'bank'
         },
         notes: formData.notes,
-        total: subtotal + (subtotal > 50 ? 0 : 9.99)
+        total: Math.max(0, subtotal - discount) + (subtotal > 50 ? 0 : 9.99),
+        coupon: appliedCoupon ? {
+          code: appliedCoupon.code,
+          type: appliedCoupon.type,
+          value: appliedCoupon.value,
+          discount
+        } : null
       };
 
       const result = await createOrder(orderData);
@@ -435,9 +458,35 @@ const Checkout = () => {
     }
   };
 
-  const subtotal = getCartTotal();
-  const shipping = subtotal > 50 ? 0 : 9.99;
-  const total = subtotal + shipping;
+  const handleApplyCoupon = async () => {
+    const raw = (couponCode || '').trim();
+    if (!raw) return toast.error('Veuillez saisir un code');
+    try {
+      setApplyingCoupon(true);
+      // fetch coupon by code (uppercase normalized)
+      const res = await getCouponByCode(raw);
+      if (!res.success || !res.data) {
+        setAppliedCoupon(null);
+        setDiscount(0);
+        return toast.error(res.error || 'Code invalide');
+      }
+      const coupon = res.data;
+      // compute discount against current subtotal
+      const { valid, discount: d, reason } = validateAndComputeDiscount(coupon, subtotal);
+      if (!valid) {
+        setAppliedCoupon(null);
+        setDiscount(0);
+        return toast.error(reason || 'Code non applicable');
+      }
+      setAppliedCoupon(coupon);
+      setDiscount(Number(d.toFixed(2)));
+      toast.success('Code promo appliqué');
+    } catch (err) {
+      toast.error('Impossible d\'appliquer le code');
+    } finally {
+      setApplyingCoupon(false);
+    }
+  };
 
   // Si le panier est vide (ex: après clearCart), ne pas rediriger automatiquement
   // pour éviter d'annuler une navigation programmée (ex: vers /payment/bank)
@@ -466,10 +515,49 @@ const Checkout = () => {
             </button>
           </div>
         )}
+        <div style={{
+          marginTop: 12,
+          padding: '10px 12px',
+          border: '2px solid #e0e0e0',
+          borderRadius: 8,
+          background: '#f8f9fa',
+          fontWeight: 700,
+          color: '#2c5530'
+        }}>
+          Avez-vous un code promo ?{' '}
+          <button type="button" onClick={() => setShowCoupon(v => !v)} style={{ color: '#2c5530', textDecoration: 'underline', background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: 800 }}>
+            Cliquez ici pour saisir votre code
+          </button>
+        </div>
       </CheckoutHeader>
 
       <CheckoutContent>
         <CheckoutForm id="checkoutForm" onSubmit={handleSubmit}>
+          {showCoupon && (
+            <div style={{ marginBottom: 20 }}>
+              <SectionTitle>Code promo</SectionTitle>
+              <div style={{ display: 'flex', gap: 10 }}>
+                <Input
+                  type="text"
+                  name="coupon"
+                  placeholder="Saisissez votre code"
+                  value={couponCode}
+                  onChange={(e) => setCouponCode(e.target.value)}
+                />
+                <button type="button" onClick={handleApplyCoupon} disabled={applyingCoupon} style={{
+                  padding: '12px 16px',
+                  borderRadius: 8,
+                  background: '#2c5530',
+                  color: '#fff',
+                  border: 'none',
+                  fontWeight: 700,
+                  cursor: 'pointer'
+                }}>
+                  {applyingCoupon ? 'Application...' : 'Appliquer'}
+                </button>
+              </div>
+            </div>
+          )}
           <SectionTitle>
             <FiUser size={20} />
             Facturation & Expédition
@@ -663,6 +751,12 @@ const Checkout = () => {
             <span>Livraison</span>
             <span>{shipping.toFixed(2)}€</span>
           </SummaryRow>
+          {discount > 0 && (
+            <SummaryRow>
+              <span>Remise{appliedCoupon?.code ? ` (${appliedCoupon.code})` : ''}</span>
+              <span>-{discount.toFixed(2)}€</span>
+            </SummaryRow>
+          )}
           <SummaryRow className="total">
             <span>Total</span>
             <span>{total.toFixed(2)}€</span>
