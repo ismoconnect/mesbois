@@ -447,7 +447,7 @@ const Checkout = () => {
       if (result.success) {
         toast.success('Commande créée. Vérifiez votre email pour confirmer votre compte.');
         clearCart();
-        navigate(`/payment/bank?orderId=${result.id}`);
+        navigate(`/dashboard/payment/bank?orderId=${result.id}`);
       } else {
         toast.error(result.error);
       }

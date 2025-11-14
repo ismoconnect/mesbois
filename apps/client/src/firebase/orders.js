@@ -12,15 +12,41 @@ import {
 } from 'firebase/firestore';
 import { db } from './config';
 
+// Remove unsupported Firestore values: undefined/NaN; clean nested objects/arrays
+const sanitizeForFirestore = (input) => {
+  const sanitize = (val) => {
+    if (val === undefined) return undefined;
+    if (val === null) return null;
+    if (typeof val === 'number' && !Number.isFinite(val)) return null;
+    if (Array.isArray(val)) {
+      const arr = val.map(sanitize).filter((v) => v !== undefined);
+      return arr;
+    }
+    if (val && typeof val === 'object') {
+      const out = {};
+      Object.keys(val).forEach((k) => {
+        const v = sanitize(val[k]);
+        if (v !== undefined) out[k] = v;
+      });
+      return out;
+    }
+    return val;
+  };
+  return sanitize(input);
+};
+
 // Créer une commande
 export const createOrder = async (orderData) => {
   try {
-    const orderRef = await addDoc(collection(db, 'orders'), {
-      ...orderData,
+    const cleaned = sanitizeForFirestore(orderData);
+    const now = new Date();
+    const payload = {
+      ...cleaned,
       status: 'pending',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    });
+      createdAt: now,
+      updatedAt: now,
+    };
+    const orderRef = await addDoc(collection(db, 'orders'), payload);
     
     return { success: true, id: orderRef.id };
   } catch (error) {
