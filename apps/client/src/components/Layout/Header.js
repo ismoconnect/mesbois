@@ -604,6 +604,10 @@ const CartDrawer = styled.div`
     left: auto;
     width: 70vw;
     max-width: 420px;
+    top: 16px;
+    bottom: 16px;
+    height: auto;
+    max-height: calc(100vh - 32px);
   }
 `;
 
