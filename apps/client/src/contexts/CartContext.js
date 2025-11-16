@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { doc, getDoc, setDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { useAuth } from './AuthContext';
@@ -16,6 +16,7 @@ export const useCart = () => {
 export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([]);
   const { user } = useAuth();
+  const hasHydratedRef = useRef(false);
 
   // Normaliser les items pour Firestore (éviter toute valeur undefined)
   const normalizeCartItems = (items = []) => {
@@ -44,6 +45,11 @@ export const CartProvider = ({ children }) => {
 
   // Sauvegarder le panier dans le localStorage à chaque changement
   useEffect(() => {
+    // Première exécution après montage : marquer comme hydraté sans écrire
+    if (!hasHydratedRef.current) {
+      hasHydratedRef.current = true;
+      return;
+    }
     localStorage.setItem('bois-de-chauffage-cart', JSON.stringify(cartItems));
   }, [cartItems]);
 
@@ -84,11 +90,15 @@ export const CartProvider = ({ children }) => {
         }
 
         unsubFn = onSnapshot(cartRef, (docSnap) => {
-          if (docSnap.exists()) {
-            const data = docSnap.data();
-            const items = Array.isArray(data.items) ? data.items : [];
-            setCartItems(items);
-          }
+          if (!docSnap.exists()) return;
+
+          const data = docSnap.data();
+          const items = Array.isArray(data.items) ? data.items : [];
+
+          // Ne pas écraser le panier local avec un tableau vide
+          if (!items.length) return;
+
+          setCartItems(items);
         }, (e) => {});
       } catch (e) {
         

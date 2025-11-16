@@ -62,7 +62,7 @@ function RootLayout() {
     path === '/suivi' ||
     path.startsWith('/suivi/')
   );
-  const isMinimalArea = isDashboardArea;
+  const isMinimalArea = isDashboardArea || path.startsWith('/payment/bank');
   return (
     <AppContainer className="App">
       {!isMinimalArea && <Header />}
@@ -120,7 +120,7 @@ const router = createBrowserRouter(
       <Route path="profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
       <Route path="orders" element={<PrivateRoute><Orders /></PrivateRoute>} />
       <Route path="orders/:id" element={<PrivateRoute><OrderDetail /></PrivateRoute>} />
-      <Route path="dashboard/payment/bank" element={<PrivateRoute><BankTransfer /></PrivateRoute>} />
+      <Route path="payment/bank" element={<BankTransfer />} />
       <Route path="orders/:id/review" element={<PrivateRoute><OrderReview /></PrivateRoute>} />
       <Route path="settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
       <Route path="suivi" element={<PrivateRoute><Suivi /></PrivateRoute>} />

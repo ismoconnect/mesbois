@@ -822,7 +822,7 @@ const Products = () => {
 
   const handleAddToCart = (product) => {
     addToCart(product, 1);
-    toast.success('Produit ajouté au panier');
+    toast.success('Produit ajouté au panier', { id: 'add-to-cart' });
   };
 
   

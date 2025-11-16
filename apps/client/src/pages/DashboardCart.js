@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { FiPlus, FiMinus, FiTrash2, FiShoppingBag, FiArrowLeft } from 'react-icons/fi';
@@ -7,6 +7,7 @@ import { useAuth } from '../contexts/AuthContext';
 import DashboardLayout from '../components/Layout/DashboardLayout';
 import { createOrder } from '../firebase/orders';
 import toast from 'react-hot-toast';
+import { getCouponByCode, validateAndComputeDiscount } from '../firebase/coupons';
 
 const CartContainer = styled.div`
   max-width: 1200px;
@@ -167,10 +168,51 @@ const LoginPrompt = styled.div`
   a { color: #2c5530; text-decoration: none; font-weight: 600; }
 `;
 
+const CouponContainer = styled.div`
+  margin: 16px 0 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #f8f9fa;
+  border: 1px solid #e0e0e0;
+`;
+
+const CouponForm = styled.div`
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+`;
+
+const CouponInput = styled.input`
+  flex: 1;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #d0d5dd;
+  font-size: 13px;
+  outline: none;
+  &:focus { border-color: #2c5530; }
+`;
+
+const CouponButton = styled.button`
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: none;
+  background: #2c5530;
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+`;
+
 const DashboardCart = () => {
   const { cartItems, updateQuantity, removeFromCart, getCartTotal, clearCart } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [discount, setDiscount] = useState(0);
+  const [applyingCoupon, setApplyingCoupon] = useState(false);
 
   const handleQuantityChange = (productId, newQuantity) => {
     if (newQuantity <= 0) {
@@ -189,12 +231,19 @@ const DashboardCart = () => {
     try {
       const subtotal = getCartTotal();
       const shipping = subtotal > 50 ? 0 : 9.99;
+      const total = Math.max(0, subtotal - discount) + shipping;
       const orderData = {
         userId: user.uid,
         items: cartItems,
         delivery: { method: 'standard', cost: shipping },
         payment: { method: 'bank' },
-        total: subtotal + shipping,
+        total,
+        coupon: appliedCoupon ? {
+          code: appliedCoupon.code,
+          type: appliedCoupon.type,
+          value: appliedCoupon.value,
+          discount,
+        } : null,
       };
 
       const res = await createOrder(orderData);
@@ -208,10 +257,43 @@ const DashboardCart = () => {
       toast.error('Erreur lors de la création de la commande');
     }
   };
-
   const subtotal = getCartTotal();
   const shipping = subtotal > 50 ? 0 : 9.99;
-  const total = subtotal + shipping;
+  const total = Math.max(0, subtotal - discount) + shipping;
+
+  useEffect(() => {
+    if (!appliedCoupon) return;
+    const { valid, discount: d } = validateAndComputeDiscount(appliedCoupon, subtotal);
+    setDiscount(valid ? Number(d.toFixed(2)) : 0);
+  }, [subtotal, appliedCoupon]);
+
+  const handleApplyCoupon = async () => {
+    const raw = (couponCode || '').trim();
+    if (!raw) return toast.error('Veuillez saisir un code');
+    try {
+      setApplyingCoupon(true);
+      const res = await getCouponByCode(raw);
+      if (!res.success || !res.data) {
+        setAppliedCoupon(null);
+        setDiscount(0);
+        return toast.error(res.error || 'Code invalide');
+      }
+      const coupon = res.data;
+      const { valid, discount: d, reason } = validateAndComputeDiscount(coupon, subtotal);
+      if (!valid) {
+        setAppliedCoupon(null);
+        setDiscount(0);
+        return toast.error(reason || 'Code non applicable');
+      }
+      setAppliedCoupon(coupon);
+      setDiscount(Number(d.toFixed(2)));
+      toast.success('Code promo appliqué');
+    } catch (err) {
+      toast.error('Impossible d\'appliquer le code');
+    } finally {
+      setApplyingCoupon(false);
+    }
+  };
 
   return (
     <DashboardLayout>
@@ -279,10 +361,37 @@ const DashboardCart = () => {
                   <Link to="/login">Se connecter</Link>
                 </LoginPrompt>
               )}
+              <CouponContainer>
+                <div style={{ fontWeight: 700, fontSize: 13, color: '#2c5530' }}>
+                  Avez-vous un code promo ?
+                </div>
+                <CouponForm>
+                  <CouponInput
+                    type="text"
+                    placeholder="Saisissez votre code"
+                    value={couponCode}
+                    onChange={(e) => setCouponCode(e.target.value)}
+                  />
+                  <CouponButton type="button" onClick={handleApplyCoupon} disabled={applyingCoupon}>
+                    {applyingCoupon ? 'Application…' : 'Appliquer'}
+                  </CouponButton>
+                </CouponForm>
+                {appliedCoupon && discount > 0 && (
+                  <div style={{ marginTop: 6, fontSize: 12, color: '#2c5530' }}>
+                    Code appliqué : <strong>{appliedCoupon.code}</strong>
+                  </div>
+                )}
+              </CouponContainer>
               <SummaryRow>
                 <span>Sous-total</span>
                 <span>{subtotal.toFixed(2)}€</span>
               </SummaryRow>
+              {discount > 0 && (
+                <SummaryRow>
+                  <span>Remise{appliedCoupon?.code ? ` (${appliedCoupon.code})` : ''}</span>
+                  <span>-{discount.toFixed(2)}€</span>
+                </SummaryRow>
+              )}
               <SummaryRow>
                 <span>Livraison</span>
                 <span>{shipping === 0 ? 'Gratuite' : `${shipping.toFixed(2)}€`}</span>

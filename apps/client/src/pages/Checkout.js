@@ -378,18 +378,56 @@ const Checkout = () => {
     setDiscount(valid ? Number(d.toFixed(2)) : 0);
   }, [subtotal]);
 
-  const handleSubmit = async (e) => {
+  const handleAuthFieldChange = (e) => {
+    const { name, value } = e.target;
+    setAuthFields(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleLogin = async (e) => {
     e.preventDefault();
+    if (!authFields.email || !authFields.password) {
+      return toast.error('Veuillez renseigner votre email et votre mot de passe');
+    }
+    try {
+      setAuthLoading(true);
+      const res = await signInUser(authFields.email, authFields.password);
+      if (!res.success) {
+        return toast.error(res.error || 'Impossible de vous connecter');
+      }
+      toast.success('Connexion réussie, vos informations ont été chargées');
+      setAuthMode('register');
+      setAcceptCreate(false);
+      setShowCoupon(false);
+    } catch (err) {
+      toast.error('Erreur lors de la connexion');
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    if (e && typeof e.preventDefault === 'function') {
+      e.preventDefault();
+    }
     setLoading(true);
 
     try {
+      const wasGuest = !user;
       let currentUser = user;
 
-      // Si non connecté, créer automatiquement un compte et envoyer un mail de vérification
+      // Si non connecté
       if (!currentUser) {
+        // En mode connexion, on n'impose pas la création de compte :
+        // on demande à l'utilisateur de se connecter ou de choisir "Continuer sans connexion".
+        if (authMode === 'login') {
+          setLoading(false);
+          return toast.error('Veuillez vous connecter ou cliquer sur "Continuer sans connexion pour creer un compte "', { id: 'checkout-auth' });
+        }
+
+        // En mode création de compte, création automatique + mail de vérification
         if (!acceptCreate) {
           setLoading(false);
-          return toast.error('Veuillez cocher "Créer un compte ?" pour continuer');
+          return toast.error('Veuillez cocher "Créer un compte ?" pour continuer', { id: 'checkout-auth' });
         }
         if (!accountPassword || accountPassword.length < 6) {
           setLoading(false);
@@ -415,7 +453,16 @@ const Checkout = () => {
       const orderData = {
         userId: currentUser.uid,
         items: cartItems,
-        customerInfo: {
+        customerInfo: currentUser && userData ? {
+          firstName: userData.firstName || formData.firstName,
+          lastName: userData.lastName || formData.lastName,
+          email: currentUser.email || formData.email,
+          phone: userData.phone || formData.phone,
+          address: userData.address || formData.address,
+          city: userData.city || formData.city,
+          postalCode: userData.postalCode || formData.postalCode,
+          country: userData.country || formData.country
+        } : {
           firstName: formData.firstName,
           lastName: formData.lastName,
           email: formData.email,
@@ -445,9 +492,14 @@ const Checkout = () => {
       const result = await createOrder(orderData);
 
       if (result.success) {
-        toast.success('Commande créée. Vérifiez votre email pour confirmer votre compte.');
         clearCart();
-        navigate(`/dashboard/payment/bank?orderId=${result.id}`);
+        if (wasGuest) {
+          // Nouveau client: aller sur la page RIB publique avec l'orderId
+          navigate(`/payment/bank?orderId=${result.id}`);
+        } else {
+          // Client déjà connecté: aller sur la page Facturation/RIB du dashboard
+          navigate('/billing');
+        }
       } else {
         toast.error(result.error);
       }
@@ -488,10 +540,36 @@ const Checkout = () => {
     }
   };
 
-  // Si le panier est vide (ex: après clearCart), ne pas rediriger automatiquement
-  // pour éviter d'annuler une navigation programmée (ex: vers /payment/bank)
+  // Si le panier est vide (ex: accès direct à /checkout), afficher un message
+  // plutôt qu'une page blanche. Cela n'empêche pas une navigation programmée
+  // (ex: vers /payment/bank) car la redirection se fait immédiatement.
   if (cartItems.length === 0) {
-    return null;
+    return (
+      <CheckoutContainer>
+        <CheckoutHeader>
+          <CheckoutTitle>Votre panier est vide</CheckoutTitle>
+          <CheckoutSubtitle>
+            Ajoutez des produits à votre panier avant de finaliser votre commande.
+          </CheckoutSubtitle>
+          <button
+            type="button"
+            onClick={() => navigate('/products')}
+            style={{
+              marginTop: 20,
+              padding: '10px 18px',
+              borderRadius: 8,
+              border: 'none',
+              fontWeight: 700,
+              cursor: 'pointer',
+              background: '#2c5530',
+              color: '#fff'
+            }}
+          >
+            Voir les produits
+          </button>
+        </CheckoutHeader>
+      </CheckoutContainer>
+    );
   }
 
   return (
@@ -532,7 +610,75 @@ const Checkout = () => {
       </CheckoutHeader>
 
       <CheckoutContent>
-        <CheckoutForm id="checkoutForm" onSubmit={handleSubmit}>
+        {(!user || showCoupon) && (
+          <CheckoutForm id="checkoutForm" onSubmit={handleSubmit}>
+          {!user && authMode === 'login' && (
+            <div style={{
+              marginBottom: 24,
+              padding: 16,
+              borderRadius: 8,
+              border: '1px solid #e0e0e0',
+              background: '#f8f9fa'
+            }}>
+              <SectionTitle>
+                <FiLock size={20} />
+                Connexion à votre compte
+              </SectionTitle>
+              <InputGroup>
+                <Input
+                  type="email"
+                  name="email"
+                  placeholder="Email"
+                  value={authFields.email}
+                  onChange={handleAuthFieldChange}
+                  required
+                />
+              </InputGroup>
+              <InputGroup>
+                <Input
+                  type="password"
+                  name="password"
+                  placeholder="Mot de passe"
+                  value={authFields.password}
+                  onChange={handleAuthFieldChange}
+                  required
+                />
+              </InputGroup>
+              <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
+                <button
+                  type="button"
+                  onClick={handleLogin}
+                  disabled={authLoading}
+                  style={{
+                    padding: '10px 16px',
+                    borderRadius: 8,
+                    background: '#2c5530',
+                    color: '#fff',
+                    border: 'none',
+                    fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
+                >
+                  {authLoading ? 'Connexion…' : 'Se connecter'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAuthMode('register')}
+                  style={{
+                    padding: '10px 16px',
+                    borderRadius: 8,
+                    background: '#fff',
+                    color: '#2c5530',
+                    border: '1px solid #e0e0e0',
+                    fontWeight: 600,
+                    cursor: 'pointer'
+                  }}
+                >
+                  Continuer sans connexion
+                </button>
+              </div>
+            </div>
+          )}
           {showCoupon && (
             <div style={{ marginBottom: 20 }}>
               <SectionTitle>Code promo</SectionTitle>
@@ -558,188 +704,192 @@ const Checkout = () => {
               </div>
             </div>
           )}
-          <SectionTitle>
-            <FiUser size={20} />
-            Facturation & Expédition
-          </SectionTitle>
 
-          <FormGrid>
-            <InputGroup>
-              <InputIcon>
+          {!user && authMode === 'register' && (
+            <>
+              <SectionTitle>
                 <FiUser size={20} />
-              </InputIcon>
-              <Input
-                type="text"
-                name="firstName"
-                placeholder="Prénom *"
-                value={formData.firstName}
-                onChange={handleChange}
-                required
-                $withLeftIcon
-              />
-            </InputGroup>
+                Facturation & Expédition
+              </SectionTitle>
 
-            <InputGroup>
-              <Input
-                type="text"
-                name="lastName"
-                placeholder="Nom *"
-                value={formData.lastName}
-                onChange={handleChange}
-                required
-              />
-            </InputGroup>
-          </FormGrid>
+              <FormGrid>
+                <InputGroup>
+                  <InputIcon>
+                    <FiUser size={20} />
+                  </InputIcon>
+                  <Input
+                    type="text"
+                    name="firstName"
+                    placeholder="Prénom *"
+                    value={formData.firstName}
+                    onChange={handleChange}
+                    required
+                    $withLeftIcon
+                  />
+                </InputGroup>
 
-          <InputGroup>
-            <Input
-              type="text"
-              name="company"
-              placeholder="Nom de l’entreprise (facultatif)"
-              value={formData.company || ''}
-              onChange={handleChange}
-            />
-          </InputGroup>
+                <InputGroup>
+                  <Input
+                    type="text"
+                    name="lastName"
+                    placeholder="Nom *"
+                    value={formData.lastName}
+                    onChange={handleChange}
+                    required
+                  />
+                </InputGroup>
+              </FormGrid>
 
-          <InputGroup>
-            <InputIcon>
-              <FiCreditCard size={20} />
-            </InputIcon>
-            <Input
-              type="email"
-              name="email"
-              placeholder="Email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              $withLeftIcon
-            />
-          </InputGroup>
+              <InputGroup>
+                <Input
+                  type="text"
+                  name="company"
+                  placeholder="Nom de l’entreprise (facultatif)"
+                  value={formData.company || ''}
+                  onChange={handleChange}
+                />
+              </InputGroup>
 
-          <InputGroup>
-            <InputIcon>
-              <FiCreditCard size={20} />
-            </InputIcon>
-            <Input
-              type="tel"
-              name="phone"
-              placeholder="Téléphone"
-              value={formData.phone}
-              onChange={handleChange}
-              $withLeftIcon
-            />
-          </InputGroup>
+              <InputGroup>
+                <InputIcon>
+                  <FiCreditCard size={20} />
+                </InputIcon>
+                <Input
+                  type="email"
+                  name="email"
+                  placeholder="Email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                  $withLeftIcon
+                />
+              </InputGroup>
 
-          <InputGroup>
-            <InputIcon>
-              <FiMapPin size={20} />
-            </InputIcon>
-            <Input
-              type="text"
-              name="address"
-              placeholder="Numéro et nom de rue *"
-              value={formData.address}
-              onChange={handleChange}
-              required
-              $withLeftIcon
-            />
-          </InputGroup>
+              <InputGroup>
+                <InputIcon>
+                  <FiCreditCard size={20} />
+                </InputIcon>
+                <Input
+                  type="tel"
+                  name="phone"
+                  placeholder="Téléphone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  $withLeftIcon
+                />
+              </InputGroup>
 
-          <InputGroup>
-            <Input
-              type="text"
-              name="address2"
-              placeholder="Appartement, suite, unité, etc. (facultatif)"
-              value={formData.address2 || ''}
-              onChange={handleChange}
-            />
-          </InputGroup>
+              <InputGroup>
+                <InputIcon>
+                  <FiMapPin size={20} />
+                </InputIcon>
+                <Input
+                  type="text"
+                  name="address"
+                  placeholder="Numéro et nom de rue *"
+                  value={formData.address}
+                  onChange={handleChange}
+                  required
+                  $withLeftIcon
+                />
+              </InputGroup>
 
-          <FormGrid>
-            <InputGroup>
-              <Input
-                type="text"
-                name="city"
-                placeholder="Ville"
-                value={formData.city}
-                onChange={handleChange}
-                required
-              />
-            </InputGroup>
+              <InputGroup>
+                <Input
+                  type="text"
+                  name="address2"
+                  placeholder="Appartement, suite, unité, etc. (facultatif)"
+                  value={formData.address2 || ''}
+                  onChange={handleChange}
+                />
+              </InputGroup>
 
-            <InputGroup>
-              <Input
-                type="text"
-                name="postalCode"
-                placeholder="Code postal"
-                value={formData.postalCode}
-                onChange={handleChange}
-                required
-              />
-            </InputGroup>
-          </FormGrid>
+              <FormGrid>
+                <InputGroup>
+                  <Input
+                    type="text"
+                    name="city"
+                    placeholder="Ville"
+                    value={formData.city}
+                    onChange={handleChange}
+                    required
+                  />
+                </InputGroup>
 
-          <InputGroup>
-            <Select
-              name="country"
-              value={formData.country}
-              onChange={handleChange}
-            >
-              <option value="">Sélectionner un pays/région…</option>
-              <option value="Allemagne">Allemagne</option>
-              <option value="Belgique">Belgique</option>
-              <option value="France">France</option>
-              <option value="Luxembourg">Luxembourg</option>
-              <option value="Suisse">Suisse</option>
-            </Select>
-          </InputGroup>
+                <InputGroup>
+                  <Input
+                    type="text"
+                    name="postalCode"
+                    placeholder="Code postal"
+                    value={formData.postalCode}
+                    onChange={handleChange}
+                    required
+                  />
+                </InputGroup>
+              </FormGrid>
 
-          <SectionTitle>
-            <FiTruck size={20} />
-            Informations complémentaires
-          </SectionTitle>
+              <InputGroup>
+                <Select
+                  name="country"
+                  value={formData.country}
+                  onChange={handleChange}
+                >
+                  <option value="">Sélectionner un pays/région…</option>
+                  <option value="Allemagne">Allemagne</option>
+                  <option value="Belgique">Belgique</option>
+                  <option value="France">France</option>
+                  <option value="Luxembourg">Luxembourg</option>
+                  <option value="Suisse">Suisse</option>
+                </Select>
+              </InputGroup>
 
-          
+              <SectionTitle>
+                <FiTruck size={20} />
+                Informations complémentaires
+              </SectionTitle>
 
-          {/* Section paiement retirée selon demande: pas d'options affichées ici */}
+              {/* Section paiement retirée selon demande: pas d'options affichées ici */}
 
-          <InputGroup>
-            <TextArea
-              name="notes"
-              placeholder="Notes pour la livraison (optionnel)"
-              value={formData.notes}
-              onChange={handleChange}
-            />
-          </InputGroup>
+              <InputGroup>
+                <TextArea
+                  name="notes"
+                  placeholder="Notes pour la livraison (optionnel)"
+                  value={formData.notes}
+                  onChange={handleChange}
+                />
+              </InputGroup>
 
-          {!user && (
-            <div style={{ marginTop: 12 }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <input type="checkbox" name="createAccount" required checked={acceptCreate} onChange={(e)=> setAcceptCreate(e.target.checked)} />
-                Créer un compte ?
-              </label>
-              {acceptCreate && (
-                <div style={{ marginTop: 10 }}>
-                  <div style={{ position: 'relative' }}>
-                    <Input
-                      type={showPassword ? 'text' : 'password'}
-                      name="accountPassword"
-                      placeholder="Mot de passe *"
-                      value={accountPassword}
-                      onChange={(e)=> setAccountPassword(e.target.value)}
-                      required
-                      $withRightIcon
-                    />
-                    <InputRight type="button" onClick={() => setShowPassword(v => !v)} aria-label="Basculer la visibilité du mot de passe">
-                      {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
-                    </InputRight>
-                  </div>
-                  <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>6 caractères minimum</div>
+              {!user && authMode === 'register' && (
+                <div style={{ marginTop: 12 }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <input type="checkbox" name="createAccount" required checked={acceptCreate} onChange={(e)=> setAcceptCreate(e.target.checked)} />
+                    Créer un compte ?
+                  </label>
+                  {acceptCreate && (
+                    <div style={{ marginTop: 10 }}>
+                      <div style={{ position: 'relative' }}>
+                        <Input
+                          type={showPassword ? 'text' : 'password'}
+                          name="accountPassword"
+                          placeholder="Mot de passe *"
+                          value={accountPassword}
+                          onChange={(e)=> setAccountPassword(e.target.value)}
+                          required
+                          $withRightIcon
+                        />
+                        <InputRight type="button" onClick={() => setShowPassword(v => !v)} aria-label="Basculer la visibilité du mot de passe">
+                          {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+                        </InputRight>
+                      </div>
+                      <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>6 caractères minimum</div>
+                    </div>
+                  )}
                 </div>
               )}
-            </div>
+            </>
           )}
         </CheckoutForm>
+        )}
 
         <OrderSummary>
           <SectionTitle>Résumé de la commande</SectionTitle>
@@ -761,7 +911,7 @@ const Checkout = () => {
             <span>Total</span>
             <span>{total.toFixed(2)}€</span>
           </SummaryRow>
-          <PlaceOrderButton type="submit" form="checkoutForm" disabled={loading}>
+          <PlaceOrderButton type="button" onClick={handleSubmit} disabled={loading}>
             <FiLock size={20} />
             {loading ? 'Traitement...' : 'Confirmer la commande'}
           </PlaceOrderButton>

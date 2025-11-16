@@ -928,14 +928,12 @@ const ImageManager = () => {
             <Secondary type="button" onClick={() => window.history.back()}>
               <FiArrowLeft size={16} /> Annuler
             </Secondary>
-            <Secondary type="button" onClick={importProductImagesFromDocuments} title="Importe automatiquement les URLs depuis les champs image des produits">
-              <FiRefreshCw size={16} /> Importer images (documents)
-            </Secondary>
-            <Secondary type="button" onClick={importClientResolvedImages} title="Aligne les images admin sur la logique du client (centralisée > produit > catégorie > picsum)" disabled={resolvingClientImages}>
-              <FiRefreshCw size={16} /> {resolvingClientImages ? 'Import client…' : 'Importer images (client)'}
-            </Secondary>
-            <Secondary type="button" onClick={repairBrokenImages} title="Tester et remplacer les images cassées par un fallback">
-              <FiEdit2 size={16} /> Réparer images cassées
+            <Secondary
+              type="button"
+              onClick={importProductImagesFromDocuments}
+              title="Importer les vraies images produits à partir des champs image des produits"
+            >
+              <FiRefreshCw size={16} /> Importer les vraies images produits
             </Secondary>
             <Button type="button" onClick={saveProductImages} disabled={savingProducts}>
               <FiSave size={16} />

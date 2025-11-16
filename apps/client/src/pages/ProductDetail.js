@@ -352,7 +352,7 @@ const ProductDetail = () => {
 
   const handleAddToCart = () => {
     addToCart(product, quantity);
-    toast.success(`${quantity} ${product.name} ajouté(s) au panier`);
+    toast.success(`${quantity} ${product.name} ajouté(s) au panier`, { id: 'add-to-cart-detail' });
   };
 
   if (error) {

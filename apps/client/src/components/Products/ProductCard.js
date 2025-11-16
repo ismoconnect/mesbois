@@ -185,7 +185,7 @@ const ProductCard = ({ product }) => {
 
   const handleAddToCart = () => {
     addToCart(product, 1);
-    toast.success('Produit ajouté au panier');
+    toast.success('Produit ajouté au panier', { id: 'add-to-cart' });
   };
 
   return (

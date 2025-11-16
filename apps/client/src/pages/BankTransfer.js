@@ -7,7 +7,6 @@ import { FiCreditCard, FiArrowLeft } from 'react-icons/fi';
 import { auth } from '../firebase/config';
 import { signInAnonymously } from 'firebase/auth';
 import { formatTransferRef } from '../utils/ref';
-import DashboardLayout from '../components/Layout/DashboardLayout';
 
 const Container = styled.div`
   max-width: 900px;
@@ -94,45 +93,44 @@ const BankTransfer = () => {
   }, []);
 
   return (
-    <DashboardLayout>
-      <Container>
-        <Back to="/dashboard/cart">
-          ← Retour au panier
-        </Back>
-        <Card>
-          <Title>Virement bancaire</Title>
-          <p>Veuillez effectuer un virement en utilisant les informations suivantes :</p>
-          {loading && <p>Chargement…</p>}
-          <RIBGrid>
-            <RIBField>
-              <strong>Titulaire du compte</strong>
-              <div>{rib.holder}</div>
-            </RIBField>
-            <RIBField>
-              <strong>Banque</strong>
-              <div>{rib.bank}</div>
-            </RIBField>
-            <RIBField>
-              <strong>IBAN</strong>
-              <div>{rib.iban}</div>
-            </RIBField>
-            <RIBField>
-              <strong>BIC</strong>
-              <div>{rib.bic}</div>
-            </RIBField>
-            <RIBField style={{ gridColumn: '1 / -1' }}>
-              <strong>Référence du virement</strong>
-              <div>{ref}</div>
-            </RIBField>
-          </RIBGrid>
-          <p style={{ marginTop: 16, color:'#666' }}>
-            Un email de confirmation vous a été envoyé. Conservez bien la référence de virement.
-          </p>
-          <CTA to="/dashboard">Aller sur mon espace client</CTA>
-        </Card>
-      </Container>
-    </DashboardLayout>
+    <Container>
+      <Back to="/dashboard">
+        ← Retour sur mon espace client
+      </Back>
+      <Card>
+        <Title>Virement bancaire</Title>
+        <p>Veuillez effectuer un virement en utilisant les informations suivantes :</p>
+        {loading && <p>Chargement…</p>}
+        <RIBGrid>
+          <RIBField>
+            <strong>Titulaire du compte</strong>
+            <div>{rib.holder}</div>
+          </RIBField>
+          <RIBField>
+            <strong>Banque</strong>
+            <div>{rib.bank}</div>
+          </RIBField>
+          <RIBField>
+            <strong>IBAN</strong>
+            <div>{rib.iban}</div>
+          </RIBField>
+          <RIBField>
+            <strong>BIC</strong>
+            <div>{rib.bic}</div>
+          </RIBField>
+          <RIBField style={{ gridColumn: '1 / -1' }}>
+            <strong>Référence du virement</strong>
+            <div>{ref}</div>
+          </RIBField>
+        </RIBGrid>
+        <p style={{ marginTop: 16, color:'#666' }}>
+          Un email de confirmation vous a été envoyé. Conservez bien la référence de virement.
+        </p>
+        <CTA to="/dashboard">Aller sur mon espace client</CTA>
+      </Card>
+    </Container>
   );
-};
+}
+;
 
 export default BankTransfer;

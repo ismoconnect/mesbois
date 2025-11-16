@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useCart } from '../../contexts/CartContext';
 import styled from 'styled-components';
 import { FiShoppingCart, FiUser, FiMenu, FiX, FiSearch, FiPhone, FiClock } from 'react-icons/fi';
+import toast from 'react-hot-toast';
 
 const HeaderContainer = styled.header`
   background: #fff;
@@ -578,14 +579,176 @@ const RightActions = styled.div`
   gap: 8px;
 `;
 
+const CartDrawerOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  z-index: 11000;
+`;
+
+const CartDrawer = styled.div`
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 360px;
+  max-width: 100%;
+  height: 100vh;
+  background: #fff;
+  box-shadow: -4px 0 20px rgba(0,0,0,0.15);
+  z-index: 11001;
+  display: flex;
+  flex-direction: column;
+
+  @media (max-width: 480px) {
+    right: 0;
+    left: auto;
+    width: 70vw;
+    max-width: 420px;
+  }
+`;
+
+const CartDrawerHeader = styled.div`
+  padding: 18px 20px;
+  border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+`;
+
+const CartDrawerTitle = styled.h3`
+  margin: 0;
+  font-size: 18px;
+  color: #2c5530;
+`;
+
+const CartDrawerClose = styled.button`
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+`;
+
+const CartDrawerBody = styled.div`
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 20px;
+`;
+
+const CartDrawerItem = styled.div`
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+`;
+
+const CartDrawerItemImage = styled.img`
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 6px;
+  background: #f5f5f5;
+`;
+
+const CartDrawerItemInfo = styled.div`
+  flex: 1;
+`;
+
+const CartDrawerItemName = styled.div`
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 4px;
+`;
+
+const CartDrawerItemMeta = styled.div`
+  font-size: 13px;
+  color: #666;
+`;
+
+const CartDrawerItemActions = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 6px;
+`;
+
+const CartQtyControls = styled.div`
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #e0e0e0;
+  border-radius: 999px;
+  overflow: hidden;
+`;
+
+const CartQtyButton = styled.button`
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: #f5f5f5;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+const CartQtyValue = styled.span`
+  min-width: 28px;
+  text-align: center;
+  font-size: 13px;
+`;
+
+const CartRemoveButton = styled.button`
+  border: none;
+  background: none;
+  color: #e74c3c;
+  font-size: 12px;
+  cursor: pointer;
+`;
+
+const CartDrawerFooter = styled.div`
+  border-top: 1px solid #f0f0f0;
+  padding: 16px 20px 20px;
+`;
+
+const CartDrawerRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  font-size: 14px;
+`;
+
+const CartDrawerPrimary = styled.button`
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: none;
+  background: #27ae60;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 8px;
+`;
+
+const CartDrawerSecondary = styled.button`
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  background: #fff;
+  color: #2c5530;
+  font-weight: 600;
+  cursor: pointer;
+`;
+
 const Header = () => {
   const headerRef = useRef(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+  const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const { user, logout } = useAuth();
-  const { cartItems } = useCart();
+  const { cartItems, getCartTotal, updateQuantity, removeFromCart, clearCart } = useCart();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -641,7 +804,11 @@ const Header = () => {
     closeAllOverlays();
     const path = location.pathname || '';
     const inDashboardArea = path === '/dashboard' || path.startsWith('/dashboard/') || path === '/profile' || path === '/orders' || path.startsWith('/orders/');
-    navigate(inDashboardArea ? '/orders' : '/cart');
+    if (inDashboardArea) {
+      navigate('/orders');
+    } else {
+      setIsCartDrawerOpen(true);
+    }
   };
 
   const handleLinkClick = (e, to) => {
@@ -829,9 +996,97 @@ const Header = () => {
         )}
       </MobileMenu>
       </HeaderContainer>
+
+      {/* Cart drawer (public pages) */}
+      {isCartDrawerOpen && (
+        <>
+          <CartDrawerOverlay onClick={() => setIsCartDrawerOpen(false)} />
+          <CartDrawer>
+            <CartDrawerHeader>
+              <CartDrawerTitle>Panier d'achat</CartDrawerTitle>
+              <CartDrawerClose onClick={() => setIsCartDrawerOpen(false)}>×</CartDrawerClose>
+            </CartDrawerHeader>
+            <CartDrawerBody>
+              {cartItems.length === 0 ? (
+                <p>Votre panier est vide.</p>
+              ) : (
+                cartItems.map((item) => (
+                  <CartDrawerItem key={item.id}>
+                    <CartDrawerItemImage src={item.image || 'https://picsum.photos/seed/cart/80/80'} alt={item.name} />
+                    <CartDrawerItemInfo>
+                      <CartDrawerItemName>{item.name}</CartDrawerItemName>
+                      <CartDrawerItemMeta>
+                        {item.quantity} × {Number(item.price || 0).toFixed(2)}€
+                      </CartDrawerItemMeta>
+                      <CartDrawerItemActions>
+                        <CartQtyControls>
+                          <CartQtyButton
+                            type="button"
+                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                          >
+                            -
+                          </CartQtyButton>
+                          <CartQtyValue>{item.quantity}</CartQtyValue>
+                          <CartQtyButton
+                            type="button"
+                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                          >
+                            +
+                          </CartQtyButton>
+                        </CartQtyControls>
+                        <CartRemoveButton type="button" onClick={() => removeFromCart(item.id)}>
+                          Supprimer
+                        </CartRemoveButton>
+                      </CartDrawerItemActions>
+                    </CartDrawerItemInfo>
+                  </CartDrawerItem>
+                ))
+              )}
+            </CartDrawerBody>
+            <CartDrawerFooter>
+              <CartDrawerRow>
+                <span>Sous-total</span>
+                <span>{getCartTotal().toFixed(2)}€</span>
+              </CartDrawerRow>
+              {cartItems.length > 0 && (
+                <CartRemoveButton
+                  type="button"
+                  onClick={() => {
+                    clearCart();
+                  }}
+                  style={{ marginBottom: 8 }}
+                >
+                  Vider le panier
+                </CartRemoveButton>
+              )}
+              <CartDrawerSecondary
+                type="button"
+                onClick={() => {
+                  setIsCartDrawerOpen(false);
+                  navigate('/cart');
+                }}
+              >
+                Voir le panier
+              </CartDrawerSecondary>
+              <CartDrawerPrimary
+                type="button"
+                onClick={() => {
+                  if (!cartItems || cartItems.length === 0) {
+                    toast.error('Votre panier est vide');
+                    return;
+                  }
+                  setIsCartDrawerOpen(false);
+                  navigate('/checkout');
+                }}
+              >
+                Commander
+              </CartDrawerPrimary>
+            </CartDrawerFooter>
+          </CartDrawer>
+        </>
+      )}
     </>
   );
 };
 
 export default Header;
-
