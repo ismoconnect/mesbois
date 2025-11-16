@@ -122,10 +122,23 @@ const Billing = () => {
         <Info>Effectuez le virement sur le RIB ci-dessous en indiquant la référence. À réception, votre commande passe en préparation puis en livraison vers votre adresse.</Info>
 
         <Card>
-          <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 10, color: '#2c5530' }}>
-            Étapes pour finaliser votre commande
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            marginBottom: 10,
+            padding: '6px 10px',
+            borderRadius: 999,
+            background: '#fef3c7',
+            border: '1px solid #f59e0b',
+            color: '#92400e',
+            fontWeight: 800,
+            fontSize: 14
+          }}>
+            <span style={{ fontSize: 18 }}>!</span>
+            <span>Étapes importantes pour finaliser votre commande</span>
           </div>
-          <ol style={{ paddingLeft: 18, margin: 0, color: '#374151', fontSize: 14, lineHeight: 1.6 }}>
+          <ol style={{ paddingLeft: 18, margin: 0, color: '#111827', fontSize: 14, lineHeight: 1.7 }}>
             <li style={{ marginBottom: 6 }}>
               Effectuez un virement bancaire en utilisant les coordonnées ci-dessous (titulaire, banque, IBAN, BIC).
             </li>

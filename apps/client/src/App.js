@@ -5,6 +5,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
 import Layout from './components/Layout/Layout';
 import Header from './components/Layout/Header';
+import CookieBanner from './components/Layout/CookieBanner';
 import styled from 'styled-components';
 import PrivateRoute from './components/Auth/PrivateRoute';
 
@@ -23,6 +24,11 @@ import BankTransfer from './pages/BankTransfer';
 import OrderReview from './pages/OrderReview';
 import About from './pages/About';
 import Contact from './pages/Contact';
+import Delivery from './pages/Delivery';
+import Returns from './pages/Returns';
+import Privacy from './pages/Privacy';
+import Terms from './pages/Terms';
+import Legal from './pages/Legal';
 
 import Settings from './pages/Settings';
 import Dashboard from './pages/Dashboard';
@@ -73,6 +79,7 @@ function RootLayout() {
           <Outlet />
         </Layout>
       )}
+      <CookieBanner />
       <Toaster 
         position="top-right"
         toastOptions={{
@@ -127,6 +134,11 @@ const router = createBrowserRouter(
       <Route path="suivi/:id" element={<PrivateRoute><SuiviItinerary /></PrivateRoute>} />
       <Route path="about" element={<About />} />
       <Route path="contact" element={<Contact />} />
+      <Route path="legal" element={<Legal />} />
+      <Route path="delivery" element={<Delivery />} />
+      <Route path="returns" element={<Returns />} />
+      <Route path="privacy" element={<Privacy />} />
+      <Route path="terms" element={<Terms />} />
     </Route>
   )
 );

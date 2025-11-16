@@ -275,21 +275,21 @@ const Footer = () => {
         </FooterSection>
         
         <FooterSection>
-          <h3>Produits</h3>
-          <FooterLink to="/products?category=bûches">Bûches</FooterLink>
-          <FooterLink to="/products?category=granulés">Granulés</FooterLink>
-          <FooterLink to="/products?category=pellets">Pellets</FooterLink>
-          <FooterLink to="/products?category=charbon">Charbon</FooterLink>
-          <FooterLink to="/products?category=allumage">Allumage</FooterLink>
+          <h3>Catégories</h3>
+          <FooterLink to="/products?main=bois">Bois de chauffage</FooterLink>
+          <FooterLink to="/products?main=accessoires">Accessoires</FooterLink>
+          <FooterLink to="/products?main=buches-densifiees">Bûches densifiées</FooterLink>
+          <FooterLink to="/products?main=pellets">Pellets de bois</FooterLink>
+          <FooterLink to="/products?main=poeles">Poêles</FooterLink>
         </FooterSection>
         
         <FooterSection>
           <h3>Informations</h3>
-          <FooterLink to="/about">À propos</FooterLink>
-          <FooterLink to="/delivery">Livraison</FooterLink>
-          <FooterLink to="/returns">Retours</FooterLink>
-          <FooterLink to="/privacy">Confidentialité</FooterLink>
-          <FooterLink to="/terms">Conditions</FooterLink>
+          <FooterLink to="/legal">Mentions légales</FooterLink>
+          <FooterLink to="/delivery">Politique de livraison</FooterLink>
+          <FooterLink to="/privacy">Politique de confidentialité</FooterLink>
+          <FooterLink to="/returns">Retours et remboursements</FooterLink>
+          <FooterLink to="/terms">Conditions générales de vente</FooterLink>
         </FooterSection>
         
         <FooterSection>

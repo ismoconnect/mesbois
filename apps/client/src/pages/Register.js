@@ -160,7 +160,8 @@ const PasswordRequirements = styled.div`
 
 const Register = () => {
   const [formData, setFormData] = useState({
-    displayName: '',
+    firstName: '',
+    lastName: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -219,8 +220,11 @@ const Register = () => {
     }
 
     try {
+      const displayName = `${(formData.firstName || '').trim()} ${(formData.lastName || '').trim()}`.trim();
       const result = await createUser(formData.email, formData.password, {
-        displayName: formData.displayName,
+        displayName: displayName || undefined,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
         phone: formData.phone,
         address: formData.address,
         city: formData.city,
@@ -256,14 +260,30 @@ const Register = () => {
               </InputIcon>
               <Input
                 type="text"
-                name="displayName"
-                placeholder="Nom complet"
-                value={formData.displayName}
+                name="firstName"
+                placeholder="Prénom"
+                value={formData.firstName}
                 onChange={handleChange}
                 required
               />
             </InputGroup>
             
+            <InputGroup>
+              <InputIcon>
+                <FiUser size={20} />
+              </InputIcon>
+              <Input
+                type="text"
+                name="lastName"
+                placeholder="Nom"
+                value={formData.lastName}
+                onChange={handleChange}
+                required
+              />
+            </InputGroup>
+          </FormRow>
+          
+          <FormRow>
             <InputGroup>
               <InputIcon>
                 <FiPhone size={20} />
@@ -276,21 +296,21 @@ const Register = () => {
                 onChange={handleChange}
               />
             </InputGroup>
+            
+            <InputGroup>
+              <InputIcon>
+                <FiMail size={20} />
+              </InputIcon>
+              <Input
+                type="email"
+                name="email"
+                placeholder="Adresse email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+              />
+            </InputGroup>
           </FormRow>
-          
-          <InputGroup>
-            <InputIcon>
-              <FiMail size={20} />
-            </InputIcon>
-            <Input
-              type="email"
-              name="email"
-              placeholder="Adresse email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-            />
-          </InputGroup>
           
           <FormRow>
             <InputGroup>
@@ -350,6 +370,9 @@ const Register = () => {
               onChange={handleChange}
             />
           </InputGroup>
+          <div style={{ fontSize: 12, color: '#dc2626', marginTop: 4, fontWeight: 600 }}>
+            Cette adresse sera utilisée comme adresse de livraison pour vos commandes. Vous pourrez la modifier plus tard dans votre espace client.
+          </div>
           
           <FormRow>
             <InputGroup>

@@ -639,6 +639,12 @@ const Products = () => {
   const [fsProducts, setFsProducts] = useState([]);
   const [fsLoading, setFsLoading] = useState(true);
 
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, []);
+
   // Pagination (mobile uniquement)
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10); // mobile: 10, desktop: 8

@@ -92,11 +92,20 @@ const BankTransfer = () => {
         <Title>Virement bancaire</Title>
         <p>Veuillez effectuer un virement en utilisant les informations suivantes :</p>
 
-        <div style={{ margin: '10px 0 18px', padding: '12px 12px 10px', borderRadius: 10, background: '#f8f9fa', border: '1px solid #e0e0e0' }}>
-          <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 6, color: '#2c5530' }}>
-            Étapes pour finaliser votre commande
+        <div style={{ margin: '10px 0 18px', padding: '12px 12px 10px', borderRadius: 10, background: '#fffbeb', border: '1px solid #f59e0b' }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            marginBottom: 6,
+            fontWeight: 800,
+            fontSize: 14,
+            color: '#92400e'
+          }}>
+            <span style={{ fontSize: 18 }}>!</span>
+            <span>Étapes importantes pour finaliser votre commande</span>
           </div>
-          <ol style={{ paddingLeft: 18, margin: 0, color: '#374151', fontSize: 13, lineHeight: 1.6 }}>
+          <ol style={{ paddingLeft: 18, margin: 0, color: '#111827', fontSize: 13, lineHeight: 1.7 }}>
             <li style={{ marginBottom: 4 }}>
               Effectuez un virement en utilisant les coordonnées ci-dessous (titulaire, banque, IBAN, BIC).
             </li>

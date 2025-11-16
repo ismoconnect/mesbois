@@ -359,6 +359,7 @@ const Checkout = () => {
   const [applyingCoupon, setApplyingCoupon] = useState(false);
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [discount, setDiscount] = useState(0);
+  const [acceptTerms, setAcceptTerms] = useState(false);
 
   const couponSectionRef = useRef(null);
 
@@ -396,7 +397,60 @@ const Checkout = () => {
       if (!res.success) {
         return toast.error(res.error || 'Impossible de vous connecter');
       }
-      toast.success('Connexion réussie, vos informations ont été chargées');
+      toast.dismiss('login-success');
+      toast.custom((t) => (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            display: 'flex',
+            alignItems: 'flex-start',
+            justifyContent: 'center',
+            background: 'rgba(0,0,0,0.35)',
+            zIndex: 20000
+          }}
+        >
+          <div
+            style={{
+              background: '#fff',
+              borderRadius: 12,
+              padding: '20px 18px 16px',
+              maxWidth: '90vw',
+              width: 320,
+              boxShadow: '0 12px 40px rgba(0,0,0,0.25)',
+              textAlign: 'center',
+              marginTop: '22vh'
+            }}
+          >
+            <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>
+              Connexion réussie.
+            </div>
+            <div style={{ fontSize: 13, color: '#555', marginBottom: 16 }}>
+              Vos informations ont été chargées pour finaliser la commande.
+            </div>
+            <button
+              type="button"
+              onClick={() => toast.dismiss(t.id)}
+              style={{
+                padding: '8px 16px',
+                borderRadius: 999,
+                border: 'none',
+                background: '#2c5530',
+                color: '#fff',
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: 'pointer'
+              }}
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      ), {
+        id: 'login-success',
+        duration: 1000,
+        position: 'top-center'
+      });
       setAuthMode('register');
       setAcceptCreate(false);
       setShowCoupon(false);
@@ -410,6 +464,9 @@ const Checkout = () => {
   const handleSubmit = async (e) => {
     if (e && typeof e.preventDefault === 'function') {
       e.preventDefault();
+    }
+    if (!acceptTerms) {
+      return toast.error('Veuillez lire et accepter les conditions générales avant de confirmer la commande.');
     }
     setLoading(true);
 
@@ -851,6 +908,9 @@ const Checkout = () => {
                 />
               </InputGroup>
 
+              <p style={{ margin: '4px 0 6px', fontSize: 13, color: '#dc2626', fontWeight: 600 }}>
+                Merci de bien renseigner l’adresse de livraison complète (numéro, rue, code postal, ville) pour garantir une expédition sans erreur.
+              </p>
               <InputGroup>
                 <InputIcon>
                   <FiMapPin size={20} />
@@ -983,6 +1043,24 @@ const Checkout = () => {
             <span>Total</span>
             <span>{total.toFixed(2)}€</span>
           </SummaryRow>
+          <div style={{ marginTop: 12, fontSize: 12, color: '#4b5563', lineHeight: 1.5 }}>
+            Vos données personnelles seront utilisées pour le traitement de votre commande, vous accompagner au cours
+            de votre visite du site web, et pour d’autres raisons décrites dans notre{' '}
+            <a href="/privacy" style={{ color: '#2c5530', textDecoration: 'underline' }}>politique de confidentialité</a>.
+          </div>
+          <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginTop: 10, fontSize: 13, color: '#111827' }}>
+            <input
+              type="checkbox"
+              checked={acceptTerms}
+              onChange={(e) => setAcceptTerms(e.target.checked)}
+              style={{ marginTop: 3 }}
+            />
+            <span>
+              J’ai lu et j’accepte les{' '}
+              <a href="/terms" style={{ color: '#2c5530', textDecoration: 'underline' }}>conditions générales</a>.
+              <span style={{ color: '#dc2626' }}> *</span>
+            </span>
+          </label>
           <PlaceOrderButton type="button" onClick={handleSubmit} disabled={loading}>
             <FiLock size={20} />
             {loading ? 'Traitement...' : 'Confirmer la commande'}
