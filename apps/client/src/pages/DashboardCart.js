@@ -287,7 +287,60 @@ const DashboardCart = () => {
       }
       setAppliedCoupon(coupon);
       setDiscount(Number(d.toFixed(2)));
-      toast.success('Code promo appliqué');
+      toast.dismiss('coupon-applied');
+      toast.custom((t) => (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            display: 'flex',
+            alignItems: 'flex-start',
+            justifyContent: 'center',
+            background: 'rgba(0,0,0,0.35)',
+            zIndex: 20000
+          }}
+        >
+          <div
+            style={{
+              background: '#fff',
+              borderRadius: 12,
+              padding: '20px 18px 16px',
+              maxWidth: '90vw',
+              width: 320,
+              boxShadow: '0 12px 40px rgba(0,0,0,0.25)',
+              textAlign: 'center',
+              marginTop: '22vh'
+            }}
+          >
+            <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>
+              Code promo appliqué avec succès.
+            </div>
+            <div style={{ fontSize: 13, color: '#555', marginBottom: 16 }}>
+              Votre remise a été prise en compte sur le total.
+            </div>
+            <button
+              type="button"
+              onClick={() => toast.dismiss(t.id)}
+              style={{
+                padding: '8px 16px',
+                borderRadius: 999,
+                border: 'none',
+                background: '#2c5530',
+                color: '#fff',
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: 'pointer'
+              }}
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      ), {
+        id: 'coupon-applied',
+        duration: 1000,
+        position: 'top-center'
+      });
     } catch (err) {
       toast.error('Impossible d\'appliquer le code');
     } finally {

@@ -119,7 +119,30 @@ const Billing = () => {
     <DashboardLayout>
       <Container>
         <Title>Facturation</Title>
-        <Info>Effectuez le virement sur le RIB ci-dessous en indiquant la référence. À réception, votre commande sera traitée dans un bref délai et la livraison suivra. Vous pouvez suivre l’état de vos commandes via la page Suivi.</Info>
+        <Info>Effectuez le virement sur le RIB ci-dessous en indiquant la référence. À réception, votre commande passe en préparation puis en livraison vers votre adresse.</Info>
+
+        <Card>
+          <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 10, color: '#2c5530' }}>
+            Étapes pour finaliser votre commande
+          </div>
+          <ol style={{ paddingLeft: 18, margin: 0, color: '#374151', fontSize: 14, lineHeight: 1.6 }}>
+            <li style={{ marginBottom: 6 }}>
+              Effectuez un virement bancaire en utilisant les coordonnées ci-dessous (titulaire, banque, IBAN, BIC).
+            </li>
+            <li style={{ marginBottom: 6 }}>
+              Indiquez <strong>la référence du virement</strong> fournie pour votre commande afin que nous puissions l’identifier rapidement.
+            </li>
+            <li style={{ marginBottom: 6 }}>
+              Dès réception du virement, votre commande est validée et passe en <strong>préparation</strong> dans notre entrepôt.
+            </li>
+            <li style={{ marginBottom: 6 }}>
+              Une fois préparée, votre commande est <strong>expédiée à l’adresse de livraison</strong> indiquée lors de votre achat.
+            </li>
+            <li>
+              Vous pouvez suivre l’avancement (en attente de virement, préparée, expédiée, livrée) depuis la page <strong>Suivi</strong> de votre espace client.
+            </li>
+          </ol>
+        </Card>
 
         <Card>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:10, flexWrap:'wrap' }}>

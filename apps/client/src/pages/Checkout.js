@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { FiCreditCard, FiTruck, FiUser, FiMapPin, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
@@ -360,6 +360,8 @@ const Checkout = () => {
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [discount, setDiscount] = useState(0);
 
+  const couponSectionRef = useRef(null);
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -532,7 +534,60 @@ const Checkout = () => {
       }
       setAppliedCoupon(coupon);
       setDiscount(Number(d.toFixed(2)));
-      toast.success('Code promo appliqué');
+      toast.dismiss('coupon-applied');
+      toast.custom((t) => (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            display: 'flex',
+            alignItems: 'flex-start',
+            justifyContent: 'center',
+            background: 'rgba(0,0,0,0.35)',
+            zIndex: 20000
+          }}
+        >
+          <div
+            style={{
+              background: '#fff',
+              borderRadius: 12,
+              padding: '20px 18px 16px',
+              maxWidth: '90vw',
+              width: 320,
+              boxShadow: '0 12px 40px rgba(0,0,0,0.25)',
+              textAlign: 'center',
+              marginTop: '22vh'
+            }}
+          >
+            <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>
+              Code promo appliqué avec succès.
+            </div>
+            <div style={{ fontSize: 13, color: '#555', marginBottom: 16 }}>
+              Votre remise a été prise en compte sur le total.
+            </div>
+            <button
+              type="button"
+              onClick={() => toast.dismiss(t.id)}
+              style={{
+                padding: '8px 16px',
+                borderRadius: 999,
+                border: 'none',
+                background: '#2c5530',
+                color: '#fff',
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: 'pointer'
+              }}
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      ), {
+        id: 'coupon-applied',
+        duration: 1000,
+        position: 'top-center'
+      });
     } catch (err) {
       toast.error('Impossible d\'appliquer le code');
     } finally {
@@ -603,7 +658,24 @@ const Checkout = () => {
           color: '#2c5530'
         }}>
           Avez-vous un code promo ?{' '}
-          <button type="button" onClick={() => setShowCoupon(v => !v)} style={{ color: '#2c5530', textDecoration: 'underline', background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: 800 }}>
+          <button
+            type="button"
+            onClick={() => {
+              // toggle: si déjà ouvert, on le referme; sinon on l'ouvre et on scrolle jusqu'au champ
+              if (showCoupon) {
+                setShowCoupon(false);
+                return;
+              }
+              setShowCoupon(true);
+              // petit délai pour laisser le DOM afficher la section puis scroller jusqu'au champ
+              setTimeout(() => {
+                if (couponSectionRef.current) {
+                  couponSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+              }, 10);
+            }}
+            style={{ color: '#2c5530', textDecoration: 'underline', background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: 800 }}
+          >
             Cliquez ici pour saisir votre code
           </button>
         </div>
@@ -680,7 +752,7 @@ const Checkout = () => {
             </div>
           )}
           {showCoupon && (
-            <div style={{ marginBottom: 20 }}>
+            <div ref={couponSectionRef} style={{ marginBottom: 20 }}>
               <SectionTitle>Code promo</SectionTitle>
               <div style={{ display: 'flex', gap: 10 }}>
                 <Input

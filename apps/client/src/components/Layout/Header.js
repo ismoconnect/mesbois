@@ -4,7 +4,6 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useCart } from '../../contexts/CartContext';
 import styled from 'styled-components';
 import { FiShoppingCart, FiUser, FiMenu, FiX, FiSearch, FiPhone, FiClock } from 'react-icons/fi';
-import toast from 'react-hot-toast';
 
 const HeaderContainer = styled.header`
   background: #fff;
@@ -586,6 +585,48 @@ const CartDrawerOverlay = styled.div`
   z-index: 11000;
 `;
 
+const EmptyCartAlertOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 12000;
+`;
+
+const EmptyCartAlertBox = styled.div`
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 20px 24px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  max-width: 320px;
+  width: 80vw;
+  text-align: center;
+`;
+
+const EmptyCartAlertTitle = styled.div`
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: #2c5530;
+`;
+
+const EmptyCartAlertText = styled.div`
+  font-size: 14px;
+  color: #444;
+  margin-bottom: 16px;
+`;
+
+const EmptyCartAlertButton = styled.button`
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: none;
+  background: #2c5530;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+`;
+
 const CartDrawer = styled.div`
   position: fixed;
   top: 0;
@@ -752,6 +793,7 @@ const Header = () => {
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
+  const [isEmptyCartAlertOpen, setIsEmptyCartAlertOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const { user, logout } = useAuth();
   const { cartItems, getCartTotal, updateQuantity, removeFromCart, clearCart } = useCart();
@@ -1096,7 +1138,7 @@ const Header = () => {
                 type="button"
                 onClick={() => {
                   if (!cartItems || cartItems.length === 0) {
-                    toast.error('Votre panier est vide');
+                    setIsEmptyCartAlertOpen(true);
                     return;
                   }
                   setIsCartDrawerOpen(false);
@@ -1108,6 +1150,23 @@ const Header = () => {
             </CartDrawerFooter>
           </CartDrawer>
         </>
+      )}
+
+      {isEmptyCartAlertOpen && (
+        <EmptyCartAlertOverlay onClick={() => { setIsEmptyCartAlertOpen(false); setIsCartDrawerOpen(false); }}>
+          <EmptyCartAlertBox onClick={(e) => e.stopPropagation()}>
+            <EmptyCartAlertTitle>Votre panier est vide</EmptyCartAlertTitle>
+            <EmptyCartAlertText>
+              Ajoutez des produits à votre panier avant de passer commande.
+            </EmptyCartAlertText>
+            <EmptyCartAlertButton
+              type="button"
+              onClick={() => { setIsEmptyCartAlertOpen(false); setIsCartDrawerOpen(false); }}
+            >
+              OK
+            </EmptyCartAlertButton>
+          </EmptyCartAlertBox>
+        </EmptyCartAlertOverlay>
       )}
     </>
   );

@@ -4,8 +4,6 @@ import { useSearchParams, Link } from 'react-router-dom';
 import { getRIB } from '../firebase/rib';
 import toast from 'react-hot-toast';
 import { FiCreditCard, FiArrowLeft } from 'react-icons/fi';
-import { auth } from '../firebase/config';
-import { signInAnonymously } from 'firebase/auth';
 import { formatTransferRef } from '../utils/ref';
 
 const Container = styled.div`
@@ -67,13 +65,6 @@ const BankTransfer = () => {
 
   useEffect(() => {
     const load = async () => {
-      try {
-        if (!auth.currentUser) {
-          await signInAnonymously(auth);
-        }
-      } catch (e) {
-        // Pas bloquant, on tentera quand même la lecture
-      }
       const res = await getRIB();
       if (res.success) {
         setRib(res.data);
@@ -100,6 +91,26 @@ const BankTransfer = () => {
       <Card>
         <Title>Virement bancaire</Title>
         <p>Veuillez effectuer un virement en utilisant les informations suivantes :</p>
+
+        <div style={{ margin: '10px 0 18px', padding: '12px 12px 10px', borderRadius: 10, background: '#f8f9fa', border: '1px solid #e0e0e0' }}>
+          <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 6, color: '#2c5530' }}>
+            Étapes pour finaliser votre commande
+          </div>
+          <ol style={{ paddingLeft: 18, margin: 0, color: '#374151', fontSize: 13, lineHeight: 1.6 }}>
+            <li style={{ marginBottom: 4 }}>
+              Effectuez un virement en utilisant les coordonnées ci-dessous (titulaire, banque, IBAN, BIC).
+            </li>
+            <li style={{ marginBottom: 4 }}>
+              Indiquez <strong>la référence du virement</strong> affichée ci-dessous pour que nous puissions associer le paiement à votre commande.
+            </li>
+            <li style={{ marginBottom: 4 }}>
+              Dès réception du virement, votre commande est validée et passe en <strong>préparation</strong> dans notre entrepôt.
+            </li>
+            <li>
+              Une fois préparée, elle est <strong>expédiée à l'adresse de livraison</strong> indiquée lors de votre commande. Vous pouvez suivre l'état de la commande dans votre espace client.
+            </li>
+          </ol>
+        </div>
         {loading && <p>Chargement…</p>}
         <RIBGrid>
           <RIBField>

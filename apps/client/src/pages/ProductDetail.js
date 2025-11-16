@@ -352,7 +352,92 @@ const ProductDetail = () => {
 
   const handleAddToCart = () => {
     addToCart(product, quantity);
-    toast.success(`${quantity} ${product.name} ajouté(s) au panier`, { id: 'add-to-cart-detail' });
+    toast.dismiss('add-to-cart');
+    toast.custom((t) => (
+      <div
+        style={{
+          position: 'fixed',
+          inset: 0,
+          display: 'flex',
+          alignItems: 'flex-start',
+          justifyContent: 'center',
+          background: 'rgba(0,0,0,0.35)',
+          zIndex: 20000
+        }}
+      >
+        <div
+          style={{
+            background: '#fff',
+            borderRadius: 12,
+            padding: '20px 18px 16px',
+            maxWidth: '90vw',
+            width: 320,
+            boxShadow: '0 12px 40px rgba(0,0,0,0.25)',
+            textAlign: 'center',
+            marginTop: '22vh'
+          }}
+        >
+          <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>
+            Le produit a été ajouté avec succès à votre panier.
+          </div>
+          <div style={{ fontSize: 13, color: '#555', marginBottom: 16 }}>
+            Que souhaitez-vous faire ?
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              gap: 8,
+              justifyContent: 'center',
+              flexWrap: 'wrap'
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => toast.dismiss(t.id)}
+              style={{
+                flex: 1,
+                minWidth: 120,
+                padding: '8px 10px',
+                borderRadius: 999,
+                border: '1px solid #ccc',
+                background: '#fff',
+                color: '#333',
+                fontSize: 13,
+                fontWeight: 500,
+                cursor: 'pointer'
+              }}
+            >
+              Poursuivre les achats
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                toast.dismiss(t.id);
+                navigate('/cart');
+              }}
+              style={{
+                flex: 1,
+                minWidth: 120,
+                padding: '8px 10px',
+                borderRadius: 999,
+                border: 'none',
+                background: '#e95420',
+                color: '#fff',
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: 'pointer'
+              }}
+            >
+              Voir le panier
+            </button>
+          </div>
+        </div>
+      </div>
+    ), {
+      id: 'add-to-cart',
+      duration: 100,
+      position: 'top-center'
+    });
   };
 
   if (error) {
