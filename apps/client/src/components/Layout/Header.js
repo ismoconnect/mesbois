@@ -712,7 +712,7 @@ const CartDrawerFooter = styled.div`
   padding: 16px 20px 20px;
 
   @media (max-width: 480px) {
-    padding-bottom: 52px; /* remonter davantage le bloc CTA sur mobile */
+    padding-bottom: 64px; /* remonter encore le bloc CTA sur mobile */
   }
 `;
 
