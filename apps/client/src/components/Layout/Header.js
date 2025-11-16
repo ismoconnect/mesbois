@@ -844,6 +844,20 @@ const Header = () => {
     };
   }, [isMobileMenuOpen, isUserDropdownOpen, isMobileSearchOpen]);
 
+  // Empêcher le scroll de la page en arrière-plan quand le panier est ouvert
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+
+    const originalOverflow = document.body.style.overflow;
+    if (isCartDrawerOpen) {
+      document.body.style.overflow = 'hidden';
+    }
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isCartDrawerOpen]);
+
   return (
     <>
       {/* Desktop Top Bar */}
