@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCart } from '../../contexts/CartContext';
+import { useSiteSettings } from '../../contexts/SiteSettingsContext';
 import styled from 'styled-components';
 import { FiShoppingCart, FiUser, FiMenu, FiX, FiSearch, FiPhone, FiClock } from 'react-icons/fi';
 
@@ -35,6 +36,21 @@ const HeaderContainer = styled.header`
   @media (max-width: 375px) {
     height: 50px !important;
   }
+`;
+
+const LogoIcon = styled.span`
+  font-size: 32px;
+  display: flex;
+  align-items: center;
+  @media (min-width: 769px) {
+    font-size: 40px;
+  }
+`;
+
+const LogoText = styled.span`
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
 `;
 
 const TopBar = styled.div`
@@ -799,6 +815,24 @@ const Header = () => {
   const { cartItems, getCartTotal, updateQuantity, removeFromCart, clearCart } = useCart();
   const navigate = useNavigate();
   const location = useLocation();
+  const { settings, loaded } = useSiteSettings();
+
+  const headerSiteName = loaded ? (settings.siteName || '') : '';
+  const headerPhone = loaded ? (settings.supportPhone || '') : '';
+
+  let headerSiteNameDisplay = headerSiteName;
+  if (headerSiteName.length > 10) {
+    const breakIndex = headerSiteName.indexOf(' ', 10);
+    if (breakIndex !== -1 && breakIndex < headerSiteName.length - 1) {
+      headerSiteNameDisplay = (
+        <>
+          {headerSiteName.slice(0, breakIndex)}
+          <br />
+          {headerSiteName.slice(breakIndex + 1)}
+        </>
+      );
+    }
+  }
 
   const cartItemsCount = cartItems.reduce((total, item) => total + item.quantity, 0);
 
@@ -917,7 +951,7 @@ const Header = () => {
         <TopBarContent>
           <InfoGroup>
             <InfoItem>
-              <FiPhone /> <span>01 23 45 67 89</span>
+              <FiPhone /> <span>{headerPhone}</span>
             </InfoItem>
             <InfoItem>
               <FiClock /> <span>Lun–Sam 9h–18h</span>
@@ -948,7 +982,8 @@ const Header = () => {
       <HeaderContainer ref={headerRef}>
       <HeaderContent>
         <Logo to="/" onClick={(e) => handleLinkClick(e, '/') }>
-          🌲 Bois de Chauffage
+          <LogoIcon>🌲</LogoIcon>
+          <LogoText>{headerSiteNameDisplay}</LogoText>
         </Logo>
         
         <SearchBar>

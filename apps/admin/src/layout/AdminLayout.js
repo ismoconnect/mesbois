@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase/config';
-import { FiHome, FiUsers, FiShoppingBag, FiShoppingCart, FiImage, FiLogOut, FiMenu, FiX } from 'react-icons/fi';
+import { FiHome, FiUsers, FiShoppingBag, FiShoppingCart, FiImage, FiLogOut, FiMenu, FiX, FiSettings } from 'react-icons/fi';
 
 const Shell = styled.div`
   min-height: 100vh;
@@ -298,6 +298,14 @@ const AdminLayout = ({ children }) => {
           >
             <FiImage size={18} />
             Gestion des images
+          </NavItem>
+          <NavItem 
+            to="/settings/site" 
+            $active={isActive('/settings/site')}
+            onClick={() => setSidebarOpen(false)}
+          >
+            <FiSettings size={18} />
+            Paramètres du site
           </NavItem>
         </NavSection>
       </Sidebar>

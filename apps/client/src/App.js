@@ -3,6 +3,7 @@ import { createBrowserRouter, createRoutesFromElements, RouterProvider, Route, O
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
+import { SiteSettingsProvider } from './contexts/SiteSettingsContext';
 import Layout from './components/Layout/Layout';
 import Header from './components/Layout/Header';
 import CookieBanner from './components/Layout/CookieBanner';
@@ -147,10 +148,12 @@ function App() {
   return (
     <AuthProvider>
       <CartProvider>
-        <RouterProvider 
-          router={router}
-          future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-        />
+        <SiteSettingsProvider>
+          <RouterProvider 
+            router={router}
+            future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+          />
+        </SiteSettingsProvider>
       </CartProvider>
     </AuthProvider>
   );

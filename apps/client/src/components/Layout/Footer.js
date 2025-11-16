@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { FiMapPin, FiPhone, FiMail, FiFacebook, FiTwitter, FiInstagram } from 'react-icons/fi';
+import { useSiteSettings } from '../../contexts/SiteSettingsContext';
 
 const FooterContainer = styled.footer`
   background: #2c5530;
@@ -251,11 +252,17 @@ const FooterBottom = styled.div`
 `;
 
 const Footer = () => {
+  const { settings, loaded } = useSiteSettings();
+  const siteName = loaded ? (settings.siteName || '') : '';
+  const footerAddress = loaded ? (settings.legalAddress || '') : '';
+  const footerPhone = loaded ? (settings.supportPhone || '') : '';
+  const footerEmail = loaded ? (settings.supportEmail || '') : '';
+
   return (
     <FooterContainer>
       <FooterContent>
         <FooterSection>
-          <h3>Bois de Chauffage</h3>
+          <h3>{siteName}</h3>
           <p>
             Votre spécialiste du bois de chauffage de qualité. 
             Nous vous proposons une large gamme de produits 
@@ -296,21 +303,21 @@ const Footer = () => {
           <h3>Contact</h3>
           <ContactInfo>
             <FiMapPin size={16} />
-            <span>123 Rue du Bois, 75001 Paris, France</span>
+            <span>{footerAddress}</span>
           </ContactInfo>
           <ContactInfo>
             <FiPhone size={16} />
-            <span>+33 1 23 45 67 89</span>
+            <span>{footerPhone}</span>
           </ContactInfo>
           <ContactInfo>
             <FiMail size={16} />
-            <span>contact@boisdechauffage.fr</span>
+            <span>{footerEmail}</span>
           </ContactInfo>
         </FooterSection>
       </FooterContent>
       
       <FooterBottom>
-        <p>&copy; 2024 Bois de Chauffage. Tous droits réservés.</p>
+        <p>&copy; 2024 {siteName}. Tous droits réservés.</p>
       </FooterBottom>
     </FooterContainer>
   );

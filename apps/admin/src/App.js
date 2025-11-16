@@ -9,6 +9,7 @@ import Orders from './pages/Orders';
 import OrderDetail from './pages/OrderDetail';
 import Carts from './pages/Carts';
 import CartDetail from './pages/CartDetail';
+import SiteSettings from './pages/SiteSettings';
 import AdminRoute from './components/Auth/AdminRoute';
 import AdminLayout from './layout/AdminLayout';
 
@@ -93,6 +94,16 @@ const App = () => {
           <AdminRoute>
             <AdminLayout>
               <ImageManager />
+            </AdminLayout>
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/settings/site"
+        element={
+          <AdminRoute>
+            <AdminLayout>
+              <SiteSettings />
             </AdminLayout>
           </AdminRoute>
         }
