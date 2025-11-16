@@ -710,6 +710,10 @@ const CartRemoveButton = styled.button`
 const CartDrawerFooter = styled.div`
   border-top: 1px solid #f0f0f0;
   padding: 16px 20px 20px;
+
+  @media (max-width: 480px) {
+    padding-bottom: 28px; /* remonter légèrement le bloc CTA sur mobile */
+  }
 `;
 
 const CartDrawerRow = styled.div`
