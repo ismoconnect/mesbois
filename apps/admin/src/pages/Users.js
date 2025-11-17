@@ -3,28 +3,31 @@ import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 import { collection, getDocs, orderBy, query, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase/config';
-import { FiSearch, FiUsers, FiMail, FiCalendar, FiEye, FiTrash2, FiUserCheck, FiShoppingBag } from 'react-icons/fi';
+import { FiUsers, FiMail, FiCalendar, FiEye, FiTrash2, FiUserCheck, FiShoppingBag } from 'react-icons/fi';
 
 const Page = styled.div`
   max-width: 1400px;
+  width: 100%;
   margin: 0 auto;
   display: grid;
   gap: 16px;
+  padding: 16px 10px 24px;
+  box-sizing: border-box;
   
   @media (min-width: 768px) {
     gap: 24px;
+    padding: 24px 16px 32px;
+  }
+  
+  @media (max-width: 767px) {
+    overflow-x: hidden;
   }
 `;
 
 const Header = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  @media (min-width: 768px) {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-  }
+  gap: 8px;
 `;
 
 const Title = styled.h1`
@@ -48,47 +51,6 @@ const Subtitle = styled.p`
   }
 `;
 
-const SearchBox = styled.div`
-  position: relative;
-  flex: 1;
-  max-width: 100%;
-  
-  @media (min-width: 600px) {
-    max-width: 400px;
-  }
-`;
-
-const SearchInput = styled.input`
-  width: 100%;
-  border: 2px solid #e6eae7;
-  border-radius: 10px;
-  padding: 10px 12px 10px 40px;
-  font-size: 13px;
-  transition: border-color 0.2s;
-  
-  @media (min-width: 768px) {
-    border-radius: 12px;
-    padding: 12px 14px 12px 44px;
-    font-size: 14px;
-  }
-  
-  &:focus {
-    outline: none;
-    border-color: #2c5530;
-  }
-`;
-
-const SearchIcon = styled.div`
-  position: absolute;
-  left: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #6b7c6d;
-  
-  @media (min-width: 768px) {
-    left: 14px;
-  }
-`;
 
 const StatsBar = styled.div`
   display: grid;
@@ -377,7 +339,6 @@ const EmptyState = styled.div`
 `;
 
 const Users = () => {
-  const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState([]);
   const [stats, setStats] = useState({
@@ -425,15 +386,8 @@ const Users = () => {
     }
   };
 
-  // Filtrer les utilisateurs
-  const filteredUsers = users.filter(user => {
-    const search = searchTerm.toLowerCase();
-    return !search || 
-      user.email?.toLowerCase().includes(search) ||
-      user.displayName?.toLowerCase().includes(search) ||
-      user.firstName?.toLowerCase().includes(search) ||
-      user.lastName?.toLowerCase().includes(search);
-  });
+  // Pas de filtre de recherche côté UI, on affiche tous les utilisateurs
+  const filteredUsers = users;
 
   return (
     <Page>
@@ -442,14 +396,6 @@ const Users = () => {
           <Title>Gestion des Utilisateurs</Title>
           <Subtitle>{users.length} utilisateur{users.length > 1 ? 's' : ''} inscrit{users.length > 1 ? 's' : ''}</Subtitle>
         </div>
-        <SearchBox>
-          <SearchIcon><FiSearch size={20} /></SearchIcon>
-          <SearchInput
-            placeholder="Rechercher par email, nom..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </SearchBox>
       </Header>
 
       <StatsBar>
@@ -502,10 +448,12 @@ const Users = () => {
             ) : (
               filteredUsers.map(user => {
                 const initial = (user.displayName || user.email || 'U').charAt(0).toUpperCase();
-                const displayName = user.displayName || user.firstName && user.lastName 
-                  ? `${user.firstName} ${user.lastName}` 
-                  : user.email?.split('@')[0];
-                
+                const displayName = user.displayName
+                  ? user.displayName
+                  : (user.firstName && user.lastName)
+                    ? `${user.firstName} ${user.lastName}`
+                    : (user.email?.split('@')[0] || 'Utilisateur');
+
                 return (
                   <tr key={user.id}>
                     <td>

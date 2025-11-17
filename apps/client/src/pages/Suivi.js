@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import DashboardLayout from '../components/Layout/DashboardLayout';
 import { getUserOrders } from '../firebase/orders';
-import { FiPackage, FiTruck, FiCheckCircle, FiClock, FiXCircle } from 'react-icons/fi';
+import { FiPackage, FiTruck, FiCheckCircle, FiClock, FiXCircle, FiCreditCard } from 'react-icons/fi';
 
 const Container = styled.div`
   max-width: 1200px;
@@ -43,6 +43,19 @@ const Row = styled.div`
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
+  
+  > div:first-child {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    
+    @media (max-width: 600px) {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
+    }
+  }
 `;
 
 const FollowButton = styled(Link)`
@@ -70,6 +83,7 @@ const Status = styled.span`
   background: ${props => {
     switch (props.status) {
       case 'pending': return '#fff3cd';
+      case 'awaiting_payment': return '#ffeaa7';
       case 'processing': return '#d1ecf1';
       case 'shipped': return '#d4edda';
       case 'delivered': return '#d4edda';
@@ -80,6 +94,7 @@ const Status = styled.span`
   color: ${props => {
     switch (props.status) {
       case 'pending': return '#856404';
+      case 'awaiting_payment': return '#b8860b';
       case 'processing': return '#0c5460';
       case 'shipped': return '#155724';
       case 'delivered': return '#155724';
@@ -92,6 +107,7 @@ const Status = styled.span`
 function iconFor(status) {
   switch (status) {
     case 'pending': return <FiClock size={14} />;
+    case 'awaiting_payment': return <FiCreditCard size={14} />;
     case 'processing': return <FiPackage size={14} />;
     case 'shipped': return <FiTruck size={14} />;
     case 'delivered': return <FiCheckCircle size={14} />;
@@ -102,8 +118,9 @@ function iconFor(status) {
 
 function textFor(status) {
   switch (status) {
-    case 'pending': return 'En attente';
-    case 'processing': return 'En cours';
+    case 'pending': return 'Commande reçue';
+    case 'awaiting_payment': return 'En attente de paiement';
+    case 'processing': return 'Préparation en cours';
     case 'shipped': return 'Expédié';
     case 'delivered': return 'Livré';
     case 'cancelled': return 'Annulé';
@@ -143,16 +160,15 @@ const Suivi = () => {
             {orders.map((o) => (
               <Card key={o.id}>
                 <Row>
-                  <strong>Commande #{o.id.slice(-8)}</strong>
-                  {o.status === 'pending' ? (
-                    <FollowButton to={`/suivi/${o.id}`}>
-                      <FiTruck /> Suivre
-                    </FollowButton>
-                  ) : (
+                  <div>
+                    <strong>Commande #{o.id.slice(-8)}</strong>
                     <Status status={o.status}>
                       {iconFor(o.status)} {textFor(o.status)}
                     </Status>
-                  )}
+                  </div>
+                  <FollowButton to={`/suivi/${o.id}`}>
+                    <FiTruck /> Suivre
+                  </FollowButton>
                 </Row>
               </Card>
             ))}

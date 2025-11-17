@@ -3,16 +3,24 @@ import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 import { collection, getDocs, orderBy, query, updateDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase/config';
-import { FiSearch, FiFilter, FiPackage, FiClock, FiTruck, FiCheckCircle, FiXCircle, FiEye } from 'react-icons/fi';
+import { FiPackage, FiClock, FiTruck, FiCheckCircle, FiXCircle, FiEye } from 'react-icons/fi';
 
 const Page = styled.div`
   max-width: 1400px;
+  width: 100%;
   margin: 0 auto;
   display: grid;
   gap: 16px;
+  padding: 16px 10px 24px;
+  box-sizing: border-box;
   
   @media (min-width: 768px) {
     gap: 24px;
+    padding: 24px 16px 32px;
+  }
+  
+  @media (max-width: 767px) {
+    overflow-x: hidden;
   }
 `;
 
@@ -48,94 +56,20 @@ const Subtitle = styled.p`
   }
 `;
 
-const Filters = styled.div`
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  
-  @media (min-width: 768px) {
-    gap: 12px;
-  }
-`;
-
-const SearchBox = styled.div`
-  position: relative;
-  flex: 1;
-  min-width: 100%;
-  max-width: 100%;
-  
-  @media (min-width: 600px) {
-    min-width: 250px;
-    max-width: 400px;
-  }
-`;
-
-const SearchInput = styled.input`
-  width: 100%;
-  border: 2px solid #e6eae7;
-  border-radius: 10px;
-  padding: 10px 12px 10px 38px;
-  font-size: 13px;
-  transition: border-color 0.2s;
-  
-  @media (min-width: 768px) {
-    border-radius: 12px;
-    padding: 10px 12px 10px 40px;
-    font-size: 14px;
-  }
-  
-  &:focus {
-    outline: none;
-    border-color: #2c5530;
-  }
-`;
-
-const SearchIcon = styled.div`
-  position: absolute;
-  left: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #6b7c6d;
-  
-  @media (min-width: 768px) {
-    left: 12px;
-  }
-`;
-
-const Select = styled.select`
-  border: 2px solid #e6eae7;
-  border-radius: 10px;
-  padding: 10px 12px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #2c5530;
-  background: #fff;
-  cursor: pointer;
-  transition: border-color 0.2s;
-  flex: 1;
-  min-width: 140px;
-  
-  @media (min-width: 768px) {
-    border-radius: 12px;
-    padding: 10px 14px;
-    font-size: 14px;
-    flex: initial;
-  }
-  
-  &:focus {
-    outline: none;
-    border-color: #2c5530;
-  }
-`;
+// plus de filtre de statut: on retire le Select et on garde seulement le titre et les stats
 
 const StatsBar = styled.div`
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 12px;
+  width: 100%;
+  padding: 0 2px;
+  box-sizing: border-box;
   
   @media (min-width: 768px) {
     grid-template-columns: repeat(4, 1fr);
     gap: 16px;
+    padding: 0;
   }
 `;
 
@@ -207,7 +141,7 @@ const TableWrapper = styled.div`
     background: transparent;
     border: none;
     box-shadow: none;
-    overflow: visible;
+    overflow-x: hidden;
   }
 `;
 
@@ -456,10 +390,9 @@ function getStatusText(status) {
 }
 
 const Orders = () => {
-  const [statusFilter, setStatusFilter] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [orders, setOrders] = useState([]);
+  const [userIndex, setUserIndex] = useState({}); // index des utilisateurs par uid
   const [stats, setStats] = useState({
     total: 0,
     pending: 0,
@@ -474,8 +407,15 @@ const Orders = () => {
       const qr = query(col, orderBy('createdAt', 'desc'));
       const snap = await getDocs(qr);
       const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+      // Trier les commandes par UID (userId) pour les regrouper par client
+      const sortedByUser = [...list].sort((a, b) => {
+        const ua = (a.userId || '').toString();
+        const ub = (b.userId || '').toString();
+        return ua.localeCompare(ub);
+      });
       
-      setOrders(list);
+      setOrders(sortedByUser);
       
       // Calculer les stats
       setStats({
@@ -495,6 +435,28 @@ const Orders = () => {
     fetchOrders();
   }, []);
 
+  // Charger les infos de base des utilisateurs pour afficher un nom lisible dans le tableau
+  useEffect(() => {
+    const loadUsers = async () => {
+      try {
+        const snap = await getDocs(collection(db, 'users'));
+        const index = {};
+        snap.docs.forEach(d => {
+          const data = d.data() || {};
+          index[d.id] = {
+            displayName: data.displayName || '',
+            email: data.email || '',
+          };
+        });
+        setUserIndex(index);
+      } catch (e) {
+        setUserIndex({});
+      }
+    };
+
+    loadUsers();
+  }, []);
+
   const handleStatusChange = async (orderId, newStatus) => {
     try {
       await updateDoc(doc(db, 'orders', orderId), {
@@ -508,16 +470,35 @@ const Orders = () => {
     }
   };
 
-  // Filtrer les commandes
-  const filteredOrders = orders.filter(order => {
-    const matchesStatus = !statusFilter || order.status === statusFilter;
-    const matchesSearch = !searchTerm || 
-      order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.customerInfo?.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.customerInfo?.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.customerInfo?.email?.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesStatus && matchesSearch;
-  });
+  // Plus de filtre UI: on affiche toutes les commandes
+  const filteredOrders = orders;
+
+  // Regrouper les commandes par utilisateur (userId)
+  const userOrderGroups = (() => {
+    const byUser = {};
+    const groups = [];
+    filteredOrders.forEach(order => {
+      const key = order.userId || 'unknown';
+      if (!byUser[key]) {
+        byUser[key] = {
+          userId: key,
+          orders: [],
+          totalAmount: 0,
+          lastOrder: null,
+        };
+        groups.push(byUser[key]);
+      }
+      const group = byUser[key];
+      group.orders.push(order);
+      group.totalAmount += order.total || 0;
+      const curTs = order.createdAt?.seconds || 0;
+      const lastTs = group.lastOrder?.createdAt?.seconds || 0;
+      if (curTs >= lastTs) {
+        group.lastOrder = order;
+      }
+    });
+    return groups;
+  })();
 
   return (
     <Page>
@@ -526,25 +507,6 @@ const Orders = () => {
           <Title>Gestion des Commandes</Title>
           <Subtitle>{orders.length} commande{orders.length > 1 ? 's' : ''} au total</Subtitle>
         </div>
-        <Filters>
-          <SearchBox>
-            <SearchIcon><FiSearch size={18} /></SearchIcon>
-            <SearchInput 
-              type="text" 
-              placeholder="Rechercher..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </SearchBox>
-          <Select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
-            <option value="">Tous les statuts</option>
-            <option value="pending">En attente</option>
-            <option value="processing">En cours</option>
-            <option value="shipped">Expédié</option>
-            <option value="delivered">Livré</option>
-            <option value="cancelled">Annulé</option>
-          </Select>
-        </Filters>
       </Header>
 
       <StatsBar>
@@ -579,24 +541,23 @@ const Orders = () => {
       </StatsBar>
 
       <TableWrapper>
-        {/* Desktop Table */}
+        {/* Desktop Table : une ligne par utilisateur */}
         <Table>
           <thead>
             <tr>
-              <th>N° Commande</th>
               <th>Client</th>
-              <th>Montant</th>
-              <th>Statut</th>
-              <th>Date</th>
+              <th>Nombre de commandes</th>
+              <th>Montant total</th>
+              <th>Dernière commande</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan="6" style={{ textAlign: 'center', padding: '40px' }}>Chargement...</td></tr>
-            ) : filteredOrders.length === 0 ? (
+              <tr><td colSpan="5" style={{ textAlign: 'center', padding: '40px' }}>Chargement...</td></tr>
+            ) : userOrderGroups.length === 0 ? (
               <tr>
-                <td colSpan="6">
+                <td colSpan="5">
                   <EmptyState>
                     <FiPackage />
                     <h3>Aucune commande trouvée</h3>
@@ -605,156 +566,164 @@ const Orders = () => {
                 </td>
               </tr>
             ) : (
-              filteredOrders.map(order => (
-                <tr key={order.id}>
-                  <td style={{ width: '80px' }}>
-                    <strong style={{ fontSize: '11px', display: 'block' }}>#{order.id.slice(-6)}</strong>
-                  </td>
-                  <td style={{ minWidth: '110px', maxWidth: '130px' }}>
-                    <div style={{ 
-                      fontSize: '11px', 
-                      fontWeight: '600',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis'
-                    }}>
-                      {order.customerInfo?.firstName?.charAt(0)}. {order.customerInfo?.lastName}
-                    </div>
-                    <div style={{ 
-                      fontSize: '9px', 
-                      color: '#6b7c6d',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis'
-                    }}>
-                      {order.customerInfo?.email}
-                    </div>
-                  </td>
-                  <td style={{ width: '70px' }}>
-                    <strong style={{ fontSize: '12px', whiteSpace: 'nowrap' }}>
-                      {order.total?.toFixed(0) || '0'} €
-                    </strong>
-                  </td>
-                  <td style={{ width: '75px', padding: '8px 4px' }}>
-                    <StatusSelect 
-                      value={order.status || 'pending'}
-                      onChange={(e) => handleStatusChange(order.id, e.target.value)}
-                    >
-                      <option value="pending">Attente</option>
-                      <option value="processing">Cours</option>
-                      <option value="shipped">Expédié</option>
-                      <option value="delivered">Livré</option>
-                      <option value="cancelled">Annulé</option>
-                    </StatusSelect>
-                  </td>
-                  <td style={{ width: '75px' }}>
-                    <div style={{ 
-                      fontSize: '10px',
-                      whiteSpace: 'nowrap'
-                    }}>
-                      {order.createdAt?.seconds 
-                        ? new Date(order.createdAt.seconds * 1000).toLocaleDateString('fr-FR', {
-                            day: '2-digit',
-                            month: '2-digit'
-                          })
-                        : 'N/A'
-                      }
-                    </div>
-                    <div style={{ 
-                      fontSize: '9px',
-                      color: '#6b7c6d'
-                    }}>
-                      {order.createdAt?.seconds 
-                        ? new Date(order.createdAt.seconds * 1000).toLocaleTimeString('fr-FR', {
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })
-                        : ''
-                      }
-                    </div>
-                  </td>
-                  <td style={{ width: '60px', padding: '8px 4px' }}>
-                    <ActionButton to={`/orders/${order.id}`} style={{ padding: '6px 8px', fontSize: '10px' }}>
-                      <FiEye size={12} />
-                      <span style={{ display: 'none' }}>Détails</span>
-                    </ActionButton>
-                  </td>
-                </tr>
-              ))
+              userOrderGroups.map(group => {
+                const order = group.lastOrder || group.orders[0];
+                const firstName = order.customerInfo?.firstName;
+                const lastName = order.customerInfo?.lastName;
+                const emailFromOrder = order.customerInfo?.email;
+                const fullNameFromOrder = firstName && lastName
+                  ? `${firstName} ${lastName}`
+                  : firstName || lastName || '';
+
+                const userInfo = userIndex[group.userId] || {};
+                const primary = userInfo.displayName
+                  ? userInfo.displayName
+                  : fullNameFromOrder || userInfo.email || emailFromOrder || group.userId || 'Utilisateur';
+                const secondarySource = userInfo.email || emailFromOrder;
+                const secondary = secondarySource && secondarySource !== primary ? secondarySource : '';
+
+                return (
+                  <tr key={group.userId}>
+                    <td style={{ minWidth: '140px', maxWidth: '220px' }}>
+                      <div style={{ 
+                        fontSize: '11px', 
+                        fontWeight: '600',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis'
+                      }}>
+                        {primary}
+                      </div>
+                      {secondary && (
+                        <div style={{ 
+                          fontSize: '9px', 
+                          color: '#6b7c6d',
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis'
+                        }}>
+                          {secondary}
+                        </div>
+                      )}
+                    </td>
+                    <td style={{ width: '80px', fontSize: '12px', fontWeight: 600 }}>
+                      {group.orders.length}
+                    </td>
+                    <td style={{ width: '90px' }}>
+                      <strong style={{ fontSize: '12px', whiteSpace: 'nowrap' }}>
+                        {group.totalAmount.toFixed(0)} €
+                      </strong>
+                    </td>
+                    <td style={{ width: '90px' }}>
+                      <div style={{ fontSize: '10px', whiteSpace: 'nowrap' }}>
+                        {order.createdAt?.seconds 
+                          ? new Date(order.createdAt.seconds * 1000).toLocaleDateString('fr-FR', {
+                              day: '2-digit',
+                              month: '2-digit'
+                            })
+                          : 'N/A'
+                        }
+                      </div>
+                      <div style={{ fontSize: '9px', color: '#6b7c6d' }}>
+                        {order.createdAt?.seconds 
+                          ? new Date(order.createdAt.seconds * 1000).toLocaleTimeString('fr-FR', {
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })
+                          : ''
+                        }
+                      </div>
+                    </td>
+                    <td style={{ width: '80px', padding: '8px 4px' }}>
+                      <ActionButton
+                        to={group.userId !== 'unknown' ? `/users/${group.userId}` : `/orders/${order.id}`}
+                        style={{ padding: '6px 8px', fontSize: '10px' }}
+                      >
+                        <FiEye size={12} />
+                        <span style={{ display: 'none' }}>Gérer les commandes</span>
+                      </ActionButton>
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </Table>
 
-        {/* Mobile Cards */}
+        {/* Mobile Cards : une carte par utilisateur */}
         <MobileOrdersList>
           {loading ? (
             <div style={{ textAlign: 'center', padding: '40px' }}>Chargement...</div>
-          ) : filteredOrders.length === 0 ? (
+          ) : userOrderGroups.length === 0 ? (
             <EmptyState>
               <FiPackage />
               <h3>Aucune commande trouvée</h3>
               <p>Essayez de modifier vos filtres</p>
             </EmptyState>
           ) : (
-            filteredOrders.map(order => (
-              <MobileOrderCard key={order.id}>
-                <MobileCardHeader>
-                  <MobileOrderId>#{order.id.slice(-8)}</MobileOrderId>
-                  <MobileOrderAmount>{order.total?.toFixed(2) || '0.00'} €</MobileOrderAmount>
-                </MobileCardHeader>
-                
-                <MobileCardBody>
-                  <MobileCardRow>
-                    <MobileCardLabel>Client</MobileCardLabel>
-                    <MobileCardValue>
-                      {order.customerInfo?.firstName} {order.customerInfo?.lastName}
-                    </MobileCardValue>
-                  </MobileCardRow>
-                  
-                  <MobileCardRow>
-                    <MobileCardLabel>Email</MobileCardLabel>
-                    <MobileCardValue>{order.customerInfo?.email}</MobileCardValue>
-                  </MobileCardRow>
-                  
-                  <MobileCardRow>
-                    <MobileCardLabel>Date</MobileCardLabel>
-                    <MobileCardValue>
-                      {order.createdAt?.seconds 
-                        ? new Date(order.createdAt.seconds * 1000).toLocaleDateString('fr-FR', {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })
-                        : 'N/A'
-                      }
-                    </MobileCardValue>
-                  </MobileCardRow>
-                  
-                  <MobileCardRow>
-                    <MobileCardLabel>Statut</MobileCardLabel>
-                    <StatusSelect 
-                      value={order.status || 'pending'}
-                      onChange={(e) => handleStatusChange(order.id, e.target.value)}
-                      style={{ fontSize: '12px', padding: '6px 8px' }}
+            userOrderGroups.map(group => {
+              const order = group.lastOrder || group.orders[0];
+              const firstName = order.customerInfo?.firstName;
+              const lastName = order.customerInfo?.lastName;
+              const emailFromOrder = order.customerInfo?.email;
+              const fullNameFromOrder = firstName && lastName
+                ? `${firstName} ${lastName}`
+                : firstName || lastName || '';
+
+              const userInfo = userIndex[group.userId] || {};
+              const primary = userInfo.displayName
+                ? userInfo.displayName
+                : fullNameFromOrder || userInfo.email || emailFromOrder || group.userId || 'Utilisateur';
+              const secondarySource = userInfo.email || emailFromOrder;
+              const secondary = secondarySource && secondarySource !== primary ? secondarySource : '';
+
+              return (
+                <MobileOrderCard key={group.userId}>
+                  <MobileCardHeader>
+                    <MobileOrderId>{primary}</MobileOrderId>
+                    <MobileOrderAmount>{group.totalAmount.toFixed(2)} €</MobileOrderAmount>
+                  </MobileCardHeader>
+
+                  <MobileCardBody>
+                    {secondary && (
+                      <MobileCardRow>
+                        <MobileCardLabel>Email</MobileCardLabel>
+                        <MobileCardValue>{secondary}</MobileCardValue>
+                      </MobileCardRow>
+                    )}
+
+                    <MobileCardRow>
+                      <MobileCardLabel>Nombre de commandes</MobileCardLabel>
+                      <MobileCardValue>{group.orders.length}</MobileCardValue>
+                    </MobileCardRow>
+
+                    <MobileCardRow>
+                      <MobileCardLabel>Dernière commande</MobileCardLabel>
+                      <MobileCardValue>
+                        {order.createdAt?.seconds
+                          ? new Date(order.createdAt.seconds * 1000).toLocaleDateString('fr-FR', {
+                              day: '2-digit',
+                              month: '2-digit',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })
+                          : 'N/A'}
+                      </MobileCardValue>
+                    </MobileCardRow>
+                  </MobileCardBody>
+
+                  <MobileCardActions>
+                    <ActionButton
+                      to={group.userId !== 'unknown' ? `/users/${group.userId}` : `/orders/${order.id}`}
+                      style={{ flex: 1, justifyContent: 'center' }}
                     >
-                      <option value="pending">En attente</option>
-                      <option value="processing">En cours</option>
-                      <option value="shipped">Expédié</option>
-                      <option value="delivered">Livré</option>
-                      <option value="cancelled">Annulé</option>
-                    </StatusSelect>
-                  </MobileCardRow>
-                </MobileCardBody>
-                
-                <MobileCardActions>
-                  <ActionButton to={`/orders/${order.id}`} style={{ flex: 1, justifyContent: 'center' }}>
-                    <FiEye size={14} /> Voir détails
-                  </ActionButton>
-                </MobileCardActions>
-              </MobileOrderCard>
-            ))
+                      <FiEye size={14} /> Gérer les commandes
+                    </ActionButton>
+                  </MobileCardActions>
+                </MobileOrderCard>
+              );
+            })
           )}
         </MobileOrdersList>
       </TableWrapper>

@@ -1,13 +1,29 @@
 {
   "version": 2,
-  "buildCommand": "cd apps/client && npm install && npm run build",
-  "outputDirectory": "apps/client/build",
-  "installCommand": "npm install",
-  "framework": null,
-  "rewrites": [
+  "builds": [
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "src": "apps/client/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "build"
+      }
+    },
+    {
+      "src": "apps/admin/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "build"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/admin/(.*)",
+      "dest": "/apps/admin/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/apps/client/$1"
     }
   ]
 }

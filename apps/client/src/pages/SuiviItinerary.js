@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { useParams, Link } from 'react-router-dom';
-import { FiArrowLeft, FiPackage, FiTruck, FiCheckCircle, FiClock, FiMapPin, FiCreditCard } from 'react-icons/fi';
+import { FiArrowLeft, FiPackage, FiTruck, FiCheckCircle, FiClock, FiMapPin, FiCreditCard, FiXCircle, FiDownload } from 'react-icons/fi';
 import { useAuth } from '../contexts/AuthContext';
 import DashboardLayout from '../components/Layout/DashboardLayout';
 import { getOrderById } from '../firebase/orders';
@@ -137,6 +137,31 @@ const TimelineDescription = styled.div`
   margin-top: 4px;
 `;
 
+const DownloadButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 20px;
+  
+  &:hover {
+    background: #c82333;
+    transform: translateY(-1px);
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
+`;
+
 const Status = styled.span`
   display: inline-flex;
   align-items: center;
@@ -148,6 +173,7 @@ const Status = styled.span`
   background: ${props => {
     switch (props.status) {
       case 'pending': return '#fff3cd';
+      case 'awaiting_payment': return '#ffeaa7';
       case 'processing': return '#d1ecf1';
       case 'shipped': return '#d4edda';
       case 'delivered': return '#d4edda';
@@ -158,6 +184,7 @@ const Status = styled.span`
   color: ${props => {
     switch (props.status) {
       case 'pending': return '#856404';
+      case 'awaiting_payment': return '#b8860b';
       case 'processing': return '#0c5460';
       case 'shipped': return '#155724';
       case 'delivered': return '#155724';
@@ -169,8 +196,9 @@ const Status = styled.span`
 
 function getStatusText(status) {
   switch (status) {
-    case 'pending': return 'En attente';
-    case 'processing': return 'En cours de traitement';
+    case 'pending': return 'Commande reçue';
+    case 'awaiting_payment': return 'En attente de paiement';
+    case 'processing': return 'Préparation en cours';
     case 'shipped': return 'Expédié';
     case 'delivered': return 'Livré';
     case 'cancelled': return 'Annulé';
@@ -179,6 +207,10 @@ function getStatusText(status) {
 }
 
 function getTimelineSteps(order) {
+  const currentStatus = order?.status || 'pending';
+  const statusOrder = ['pending', 'awaiting_payment', 'processing', 'shipped', 'delivered'];
+  const currentIndex = currentStatus === 'cancelled' ? -1 : statusOrder.indexOf(currentStatus);
+
   const steps = [
     {
       id: 'pending',
@@ -191,34 +223,51 @@ function getTimelineSteps(order) {
       id: 'awaiting_payment',
       title: 'En attente de votre paiement',
       icon: <FiCreditCard />,
-      description: 'Votre paiement est en cours de validation',
+      description: currentIndex >= 1 ? 'Votre paiement a été validé avec succès' : 'Votre paiement est en cours de validation',
       date: order?.awaitingPaymentDate ? new Date(order.awaitingPaymentDate.seconds * 1000).toLocaleDateString('fr-FR') : '',
     },
     {
       id: 'processing',
       title: 'Préparation en cours',
       icon: <FiPackage />,
-      description: 'Votre commande est en cours de préparation',
+      description: currentIndex >= 2 ? 'Préparation en cours car le paiement est reçu' : 'Votre commande sera préparée dès réception du paiement',
       date: order?.processingDate ? new Date(order.processingDate.seconds * 1000).toLocaleDateString('fr-FR') : '',
     },
     {
       id: 'shipped',
       title: 'Expédié',
       icon: <FiTruck />,
-      description: 'Votre commande est en cours de livraison',
+      description: currentIndex >= 3 ? 'Votre commande est en cours de livraison' : 'Votre commande sera expédiée après préparation',
       date: order?.shippedDate ? new Date(order.shippedDate.seconds * 1000).toLocaleDateString('fr-FR') : '',
     },
     {
       id: 'delivered',
       title: 'Livré',
       icon: <FiCheckCircle />,
-      description: 'Votre commande a été livrée avec succès',
+      description: currentIndex >= 4 ? 'Votre commande a été livrée avec succès' : 'Votre commande sera livrée à l\'adresse indiquée',
       date: order?.deliveredDate ? new Date(order.deliveredDate.seconds * 1000).toLocaleDateString('fr-FR') : '',
     },
   ];
 
-  const statusOrder = ['pending', 'awaiting_payment', 'processing', 'shipped', 'delivered'];
-  const currentIndex = statusOrder.indexOf(order?.status || 'pending');
+  // Si la commande est annulée, ajouter une étape d'annulation
+  if (currentStatus === 'cancelled') {
+    steps.push({
+      id: 'cancelled',
+      title: 'Commande annulée',
+      icon: <FiXCircle />,
+      description: 'Votre commande a été annulée',
+      date: order?.cancelledDate ? new Date(order.cancelledDate.seconds * 1000).toLocaleDateString('fr-FR') : '',
+      active: true,
+      isLast: true,
+    });
+    
+    // Marquer toutes les étapes précédentes comme actives jusqu'au point d'annulation
+    return steps.map((step, index) => ({
+      ...step,
+      active: step.id === 'cancelled' || index <= Math.max(0, statusOrder.indexOf('pending')),
+      isLast: step.id === 'cancelled',
+    }));
+  }
 
   return steps.map((step, index) => ({
     ...step,
@@ -232,6 +281,332 @@ const SuiviItinerary = () => {
   const { user } = useAuth();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const generatePDF = async () => {
+    if (!order) return;
+    
+    const getStatusDescription = (status) => {
+      switch (status) {
+        case 'pending': return 'Votre commande a été reçue et est en cours de traitement.';
+        case 'awaiting_payment': return 'En attente de la validation de votre paiement.';
+        case 'processing': return 'Votre commande est en cours de préparation.';
+        case 'shipped': return 'Votre commande a été expédiée et est en cours de livraison.';
+        case 'delivered': return 'Votre commande a été livrée avec succès.';
+        case 'cancelled': return 'Votre commande a été annulée.';
+        default: return 'Statut de la commande.';
+      }
+    };
+
+    const getDocumentTitle = (status) => {
+      switch (status) {
+        case 'pending': return 'Accusé_de_réception_de_commande';
+        case 'awaiting_payment': return 'Confirmation_de_commande';
+        case 'processing': return 'Bon_de_préparation';
+        case 'shipped': return 'Bon_d_expédition';
+        case 'delivered': return 'Reçu_de_livraison';
+        case 'cancelled': return 'Avis_d_annulation';
+        default: return 'Document_de_commande';
+      }
+    };
+    
+    // Créer le contenu PDF sous forme de données structurées avec design professionnel
+    const pdfContent = `%PDF-1.4
+1 0 obj
+<<
+/Type /Catalog
+/Pages 2 0 R
+>>
+endobj
+
+2 0 obj
+<<
+/Type /Pages
+/Kids [3 0 R]
+/Count 1
+>>
+endobj
+
+3 0 obj
+<<
+/Type /Page
+/Parent 2 0 R
+/MediaBox [0 0 612 792]
+/Contents 4 0 R
+/Resources <<
+/Font <<
+/F1 5 0 R
+/F2 6 0 R
+/F3 7 0 R
+>>
+>>
+>>
+endobj
+
+4 0 obj
+<<
+/Length 2500
+>>
+stream
+q
+% En-tête avec fond coloré
+0.17 0.33 0.19 rg
+50 720 512 60 re
+f
+Q
+
+BT
+% Titre principal en blanc
+1 1 1 rg
+/F3 20 Tf
+60 750 Td
+(${getDocumentTitle(order.status).replace(/_/g, ' ').replace(/[àáâãäå]/g, 'a').replace(/[èéêë]/g, 'e').replace(/[ìíîï]/g, 'i').replace(/[òóôõö]/g, 'o').replace(/[ùúûü]/g, 'u').replace(/[ç]/g, 'c').replace(/[ñ]/g, 'n').toUpperCase()}) Tj
+
+% Sous-titre
+/F2 14 Tf
+0 -25 Td
+(Commande #${order.id.slice(-8)}) Tj
+
+% Date de generation
+/F1 10 Tf
+0 -15 Td
+(Genere le ${new Date().toLocaleDateString('fr-FR')} a ${new Date().toLocaleTimeString('fr-FR')}) Tj
+ET
+
+% Ligne de séparation
+q
+0.17 0.33 0.19 RG
+2 w
+60 680 492 0 l
+S
+Q
+
+BT
+% Retour au noir pour le contenu
+0 0 0 rg
+
+ET
+
+% Section Informations
+q
+0.96 0.98 0.96 rg
+60 580 492 60 re
+f
+0.17 0.33 0.19 RG
+1 w
+60 580 492 60 re
+S
+Q
+
+BT
+0 0 0 rg
+/F2 16 Tf
+60 650 Td
+(INFORMATIONS DE LA COMMANDE) Tj
+
+/F1 12 Tf
+70 620 Td
+(Date de commande: ${order.createdAt ? new Date(order.createdAt.seconds * 1000).toLocaleDateString('fr-FR', { 
+  year: 'numeric', 
+  month: 'long', 
+  day: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit'
+}).replace(/[àáâãäå]/g, 'a').replace(/[èéêë]/g, 'e').replace(/[ìíîï]/g, 'i').replace(/[òóôõö]/g, 'o').replace(/[ùúûü]/g, 'u').replace(/[ç]/g, 'c') : 'N/A'}) Tj
+
+0 -18 Td
+(Statut actuel: ${getStatusText(order.status).replace(/[àáâãäå]/g, 'a').replace(/[èéêë]/g, 'e').replace(/[ìíîï]/g, 'i').replace(/[òóôõö]/g, 'o').replace(/[ùúûü]/g, 'u').replace(/[ç]/g, 'c')}) Tj
+
+/F2 12 Tf
+0 -18 Td
+(Montant total: ${order.total?.toFixed(2) || '0.00'} EUR) Tj
+
+ET
+
+% État de la commande avec encadré coloré
+q
+0.91 0.96 0.91 rg
+60 480 492 50 re
+f
+0.17 0.33 0.19 RG
+3 w
+60 480 5 50 re
+f
+Q
+
+BT
+0 0 0 rg
+/F2 14 Tf
+70 510 Td
+(ETAT DE LA COMMANDE) Tj
+
+/F1 11 Tf
+0 -20 Td
+(${getStatusDescription(order.status).replace(/[àáâãäå]/g, 'a').replace(/[èéêë]/g, 'e').replace(/[ìíîï]/g, 'i').replace(/[òóôõö]/g, 'o').replace(/[ùúûü]/g, 'u').replace(/[ç]/g, 'c')}) Tj
+
+${order.shippingAddress ? `
+ET
+
+% Adresse de livraison
+q
+0.98 0.98 1 rg
+60 360 492 60 re
+f
+0.17 0.33 0.19 RG
+1 w
+60 360 492 60 re
+S
+Q
+
+BT
+0 0 0 rg
+/F2 14 Tf
+60 430 Td
+(ADRESSE DE LIVRAISON) Tj
+
+/F2 11 Tf
+70 400 Td
+(${order.shippingAddress.fullName.replace(/[àáâãäå]/g, 'a').replace(/[èéêë]/g, 'e').replace(/[ìíîï]/g, 'i').replace(/[òóôõö]/g, 'o').replace(/[ùúûü]/g, 'u').replace(/[ç]/g, 'c')}) Tj
+
+/F1 10 Tf
+0 -15 Td
+(${order.shippingAddress.address.replace(/[àáâãäå]/g, 'a').replace(/[èéêë]/g, 'e').replace(/[ìíîï]/g, 'i').replace(/[òóôõö]/g, 'o').replace(/[ùúûü]/g, 'u').replace(/[ç]/g, 'c')}) Tj
+
+0 -15 Td
+(${order.shippingAddress.postalCode} ${order.shippingAddress.city.replace(/[àáâãäå]/g, 'a').replace(/[èéêë]/g, 'e').replace(/[ìíîï]/g, 'i').replace(/[òóôõö]/g, 'o').replace(/[ùúûü]/g, 'u').replace(/[ç]/g, 'c')}) Tj
+
+${order.shippingAddress.phone ? `
+0 -15 Td
+(Telephone: ${order.shippingAddress.phone}) Tj
+` : ''}
+` : ''}
+
+ET
+
+% En-tete du tableau
+q
+0.96 0.96 0.96 rg
+60 ${order.shippingAddress ? '280' : '360'} 492 25 re
+f
+Q
+
+BT
+0 0 0 rg
+% Articles commandes
+/F2 16 Tf
+60 ${order.shippingAddress ? '320' : '400'} Td
+(ARTICLES COMMANDES) Tj
+
+/F2 10 Tf
+70 ${order.shippingAddress ? '290' : '370'} Td
+(ARTICLE) Tj
+200 0 Td
+(QTE) Tj
+80 0 Td
+(PRIX UNIT.) Tj
+100 0 Td
+(TOTAL) Tj
+
+% Articles
+/F1 10 Tf
+${order.items?.map((item, index) => {
+  const baseY = order.shippingAddress ? 260 : 340;
+  const yPos = baseY - (index * 20);
+  return `
+70 ${yPos} Td
+(${item.name.substring(0, 30).replace(/[àáâãäå]/g, 'a').replace(/[èéêë]/g, 'e').replace(/[ìíîï]/g, 'i').replace(/[òóôõö]/g, 'o').replace(/[ùúûü]/g, 'u').replace(/[ç]/g, 'c')}) Tj
+200 0 Td
+(${item.quantity}) Tj
+80 0 Td
+(${item.price?.toFixed(2)} EUR) Tj
+100 0 Td
+(${(item.price * item.quantity).toFixed(2)} EUR) Tj
+-380 0 Td
+`;
+}).join('') || ''}
+
+ET
+
+% Total final avec fond coloré
+q
+0.17 0.33 0.19 rg
+60 ${order.shippingAddress ? (180 - (order.items?.length || 0) * 20) : (260 - (order.items?.length || 0) * 20)} 492 40 re
+f
+Q
+
+BT
+1 1 1 rg
+/F3 16 Tf
+${306 - 246} ${order.shippingAddress ? (200 - (order.items?.length || 0) * 20) : (280 - (order.items?.length || 0) * 20)} Td
+(TOTAL: ${order.total?.toFixed(2) || '0.00'} EUR) Tj
+
+% Pied de page
+0.5 0.5 0.5 rg
+/F1 8 Tf
+60 50 Td
+(Document genere automatiquement par le systeme de commande) Tj
+0 -12 Td
+(Pour toute question, contactez notre service client) Tj
+0 -12 Td
+(Copyright ${new Date().getFullYear()} - Tous droits reserves) Tj
+ET
+endstream
+endobj
+
+5 0 obj
+<<
+/Type /Font
+/Subtype /Type1
+/BaseFont /Helvetica
+>>
+endobj
+
+6 0 obj
+<<
+/Type /Font
+/Subtype /Type1
+/BaseFont /Helvetica-Bold
+>>
+endobj
+
+7 0 obj
+<<
+/Type /Font
+/Subtype /Type1
+/BaseFont /Helvetica-BoldOblique
+>>
+endobj
+
+xref
+0 8
+0000000000 65535 f 
+0000000010 00000 n 
+0000000079 00000 n 
+0000000173 00000 n 
+0000000301 00000 n 
+0000002900 00000 n 
+0000002970 00000 n 
+0000003045 00000 n 
+trailer
+<<
+/Size 8
+/Root 1 0 R
+>>
+startxref
+3125
+%%EOF`;
+
+    // Créer un blob PDF et le télécharger automatiquement
+    const blob = new Blob([pdfContent], { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${getDocumentTitle(order.status)}_${order.id.slice(-8)}.pdf`;
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
 
   useEffect(() => {
     if (!user || !id) return;
@@ -333,6 +708,10 @@ const SuiviItinerary = () => {
                   </TimelineItem>
                 ))}
               </Timeline>
+              
+              <DownloadButton onClick={generatePDF}>
+                <FiDownload /> Télécharger le PDF
+              </DownloadButton>
             </Card>
           </>
         )}

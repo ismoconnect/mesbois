@@ -3,19 +3,25 @@ import styled from 'styled-components';
 import { doc, getDoc, setDoc, collection, getDocs, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { FiImage, FiSave, FiArrowLeft, FiUpload, FiHome, FiPackage, FiEdit2, FiRefreshCw, FiPlus, FiTrash2 } from 'react-icons/fi';
+import { debugImages } from '../debug-images';
 import { initImages } from '../init-images';
 import { initProducts } from '../init-products';
 import { bulkImportProducts } from '../bulk-import-products';
+import { checkProductCount } from '../check-product-count';
 import { importCatalogueProducts } from '../import-catalogue-products';
 
 const Container = styled.div`
   max-width: 1200px;
+  width: 100%;
   margin: 0 auto;
   display: grid;
   gap: 16px;
-  
+  padding: 16px 10px 24px;
+  box-sizing: border-box;
+
   @media (min-width: 768px) {
     gap: 24px;
+    padding: 24px 16px 32px;
   }
 `;
 
@@ -85,10 +91,12 @@ const Card = styled.div`
   border: 1px solid #e6eae7;
   padding: 16px;
   box-shadow: 0 4px 16px rgba(0,0,0,0.04);
-  
+  margin: 0 2px;
+
   @media (min-width: 768px) {
     border-radius: 16px;
     padding: 24px;
+    margin: 0;
   }
 `;
 
@@ -127,6 +135,8 @@ const Label = styled.label`
 
 const Input = styled.input`
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   padding: 10px 12px;
   border: 2px solid #e6eae7;
   border-radius: 8px;
@@ -188,14 +198,25 @@ const Actions = styled.div`
   display: flex;
   gap: 10px;
   justify-content: flex-end;
+  flex-wrap: wrap;
   margin-top: 20px;
   padding-top: 20px;
   border-top: 1px solid #e6eae7;
-  
+
+  @media (max-width: 767px) {
+    justify-content: center;
+
+    > button {
+      flex: 1 1 100%;
+    }
+  }
+
   @media (min-width: 768px) {
     gap: 12px;
     margin-top: 24px;
     padding-top: 24px;
+    flex-wrap: nowrap;
+    justify-content: flex-end;
   }
 `;
 
@@ -242,13 +263,11 @@ const Secondary = styled(Button)`
 
 const Tabs = styled.div`
   display: flex;
-  gap: 8px;
+  gap: 0;
   border-bottom: 2px solid #e6eae7;
   margin-bottom: 16px;
-  overflow-x: auto;
-  
+
   @media (min-width: 768px) {
-    gap: 12px;
     margin-bottom: 24px;
   }
 `;
@@ -256,22 +275,27 @@ const Tabs = styled.div`
 const Tab = styled.button`
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  flex: 1 1 0;
   gap: 6px;
   background: none;
   border: none;
-  padding: 10px 16px;
-  font-size: 13px;
+  padding: 10px 8px;
+  font-size: 12px;
   font-weight: 600;
   color: ${p => p.$active ? '#2c5530' : '#6b7c6d'};
   border-bottom: 3px solid ${p => p.$active ? '#2c5530' : 'transparent'};
   cursor: pointer;
   transition: all 0.2s;
-  white-space: nowrap;
+  white-space: normal;
+  text-align: center;
   
   @media (min-width: 768px) {
     gap: 8px;
     padding: 12px 20px;
     font-size: 14px;
+    flex: 0 0 auto;
+    white-space: nowrap;
   }
   
   &:hover {
@@ -399,7 +423,6 @@ const ImageManager = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [savingProducts, setSavingProducts] = useState(false);
-  const [resolvingClientImages, setResolvingClientImages] = useState(false);
   const [initializing, setInitializing] = useState(false);
   const [addingProducts, setAddingProducts] = useState(false);
   const [bulkImporting, setBulkImporting] = useState(false);
@@ -417,6 +440,8 @@ const ImageManager = () => {
 
   useEffect(() => {
     loadAll();
+    debugImages();
+    checkProductCount();
   }, []);
 
   const loadAll = async () => {
@@ -450,7 +475,7 @@ const ImageManager = () => {
       const productsList = productsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
       setProducts(productsList);
     } catch (e) {
-      alert('Erreur chargement');
+      console.error('Erreur chargement:', e);
     } finally {
       setLoading(false);
     }
@@ -500,6 +525,7 @@ const ImageManager = () => {
         alert('Aucune image trouvée dans les documents produits');
       }
     } catch (e) {
+      console.error('Erreur import images:', e);
       alert('Erreur lors de l\'import des images');
     }
   };
@@ -517,7 +543,9 @@ const ImageManager = () => {
             image: imageUrl,
             updatedAt: new Date()
           });
-        } catch (e) {}
+        } catch (e) {
+          console.warn(`Erreur mise à jour produit ${productId}:`, e);
+        }
       }
       
       setSavingProducts(false);
@@ -525,6 +553,7 @@ const ImageManager = () => {
       await loadAll();
     } catch (e) {
       setSavingProducts(false);
+      console.error('Erreur lors de la sauvegarde:', e);
       alert('Erreur lors de la sauvegarde');
     }
   };
@@ -605,6 +634,7 @@ const ImageManager = () => {
       await loadAll();
     } catch (e) {
       setSavingProducts(false);
+      console.error('Erreur réparation images:', e);
       alert('Erreur lors de la réparation des images');
     }
   };
@@ -701,65 +731,6 @@ const ImageManager = () => {
     }
   };
 
-  const importClientResolvedImages = async () => {
-    try {
-      setResolvingClientImages(true);
-      // Helpers: normaliser catégorie et calculer image comme le client (mêmes URLs et tailles)
-      const toAscii = (s='') => s.normalize('NFD').replace(/\p{Diacritic}/gu, '');
-      const toSlug = (s='') => toAscii(String(s)).toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-      // Copie de la logique du client (apps/client/src/utils/categoryImages.js)
-      const getClientCategoryImage = (category) => {
-        const slug = toSlug(category || '');
-        const map = {
-          'bois': 'https://images.unsplash.com/photo-1527061011665-3652c757a4d7?q=80&w=1600&auto=format&fit=crop',
-          'pellets': 'https://images.unsplash.com/photo-1615485737594-3b42cfaa6a8a?q=80&w=1600&auto=format&fit=crop',
-          'buches-densifiees': 'https://images.unsplash.com/photo-1527061011665-3652c757a4d7?q=80&w=1600&auto=format&fit=crop',
-          'poeles': 'https://images.unsplash.com/photo-1556911261-6bd341186b66?q=80&w=1600&auto=format&fit=crop',
-          'accessoires': 'https://images.unsplash.com/photo-1527061011665-3652c757a4d7?q=80&w=1600&auto=format&fit=crop'
-        };
-        // gestion de variantes
-        if (slug.startsWith('buches-densifiees')) return map['buches-densifiees'];
-        return map[slug] || '';
-      };
-
-      const SIZE_W = 600, SIZE_H = 400; // même taille picsum que ProductCard côté client
-
-      const resolved = {};
-      for (const product of products) {
-        const id = product.id;
-        const fromDoc = product.image;
-        const fromCategory = getClientCategoryImage(product.category);
-        const fallback = `https://picsum.photos/seed/${id}/${SIZE_W}/${SIZE_H}`;
-        // Écrase l'URL centralisée avec la résolution client: produit > catégorie > picsum
-        resolved[id] = fromDoc || fromCategory || fallback;
-      }
-
-      // Sauvegarder dans settings/productImages avec cacheBuster
-      const ref = doc(db, 'settings', 'productImages');
-      await setDoc(ref, { images: { ...resolved }, updatedAt: new Date(), cacheBuster: Date.now() }, { merge: true });
-
-      // Mettre à jour également les documents produits pour cohérence
-      for (const [productId, imageUrl] of Object.entries(resolved)) {
-        try {
-          await updateDoc(doc(db, 'products', productId), {
-            image: imageUrl,
-            updatedAt: new Date()
-          });
-        } catch (e) {
-          console.warn(`Erreur mise à jour produit ${productId}:`, e);
-        }
-      }
-
-      setProductImages(resolved);
-      alert('Images importées "comme le client" et sauvegardées avec succès.');
-      await loadAll();
-    } catch (e) {
-      alert('Erreur lors de l\'import des images (comme client)');
-    } finally {
-      setResolvingClientImages(false);
-    }
-  };
-
   if (loading) return (
     <Container>
       <div style={{ textAlign: 'center', padding: '60px 20px', color: '#6b7c6d' }}>
@@ -775,8 +746,6 @@ const ImageManager = () => {
     { key: 'pellets', label: 'Pellets' },
     { key: 'poeles', label: 'Poêles' }
   ];
-
-  const categories = Array.from(new Set(products.map(p => (p.category || 'Autres')))).sort();
 
   return (
     <Container>
@@ -872,68 +841,60 @@ const ImageManager = () => {
           <SectionTitle>
             <FiPackage /> Images des produits du catalogue
           </SectionTitle>
-          {products.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '40px', color: '#6b7c6d' }}>
-              Aucun produit trouvé
-            </div>
-          ) : (
-            categories.map(cat => (
-              <div key={cat} style={{ marginBottom: 24 }}>
-                <SectionTitle>
-                  <FiPackage /> {cat}
-                </SectionTitle>
-                <Grid>
-                  {products.filter(p => (p.category || 'Autres') === cat).map(product => (
-                    <Field key={product.id}>
-                      <Label>
-                        <FiImage size={16} />
-                        {product.name}
-                      </Label>
-                      <Input
-                        value={productImages[product.id] || ''}
-                        onChange={e => updateProductImage(product.id, e.target.value)}
-                        placeholder="Collez l'URL de l'image ici..."
-                      />
-                      <Preview>
-                        {productImages[product.id] ? (
-                          <Img 
-                            src={productImages[product.id]} 
-                            alt={product.name} 
-                            onError={(e) => { 
-                              e.currentTarget.src = '/placeholder-wood.jpg'; 
-                            }} 
-                          />
-                        ) : product.image ? (
-                          <Img 
-                            src={product.image} 
-                            alt={product.name} 
-                            onError={(e) => { 
-                              e.currentTarget.src = '/placeholder-wood.jpg'; 
-                            }} 
-                          />
-                        ) : (
-                          <EmptyPreview>
-                            <FiUpload />
-                            <span>Aucune image</span>
-                          </EmptyPreview>
-                        )}
-                      </Preview>
-                    </Field>
-                  ))}
-                </Grid>
+          <Grid>
+            {products.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '40px', color: '#6b7c6d' }}>
+                Aucun produit trouvé
               </div>
-            ))
-          )}
+            ) : (
+              products.map(product => (
+                <Field key={product.id}>
+                  <Label>
+                    <FiImage size={16} />
+                    {product.name}
+                  </Label>
+                  <Input
+                    value={productImages[product.id] || ''}
+                    onChange={e => updateProductImage(product.id, e.target.value)}
+                    placeholder="Collez l'URL de l'image ici..."
+                  />
+                  <Preview>
+                    {productImages[product.id] ? (
+                      <Img 
+                        src={productImages[product.id]} 
+                        alt={product.name} 
+                        onError={(e) => { 
+                          e.currentTarget.src = '/placeholder-wood.jpg'; 
+                        }} 
+                      />
+                    ) : product.image ? (
+                      <Img 
+                        src={product.image} 
+                        alt={product.name} 
+                        onError={(e) => { 
+                          e.currentTarget.src = '/placeholder-wood.jpg'; 
+                        }} 
+                      />
+                    ) : (
+                      <EmptyPreview>
+                        <FiUpload />
+                        <span>Aucune image</span>
+                      </EmptyPreview>
+                    )}
+                  </Preview>
+                </Field>
+              ))
+            )}
+          </Grid>
           <Actions>
             <Secondary type="button" onClick={() => window.history.back()}>
               <FiArrowLeft size={16} /> Annuler
             </Secondary>
-            <Secondary
-              type="button"
-              onClick={importProductImagesFromDocuments}
-              title="Importer les vraies images produits à partir des champs image des produits"
-            >
-              <FiRefreshCw size={16} /> Importer les vraies images produits
+            <Secondary type="button" onClick={importProductImagesFromDocuments} title="Importe automatiquement les URLs depuis les champs image des produits">
+              <FiRefreshCw size={16} /> [DEBUG] Importer images
+            </Secondary>
+            <Secondary type="button" onClick={repairBrokenImages} title="Tester et remplacer les images cassées par un fallback">
+              <FiEdit2 size={16} /> Réparer images cassées
             </Secondary>
             <Button type="button" onClick={saveProductImages} disabled={savingProducts}>
               <FiSave size={16} />

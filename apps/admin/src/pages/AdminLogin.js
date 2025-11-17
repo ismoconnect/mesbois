@@ -14,8 +14,9 @@ const Container = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px 16px; /* réduit pour éviter tout scroll sur petits écrans */
-  overflow: hidden;   /* empêche le scroll */
+  padding: 24px 16px;
+  box-sizing: border-box;
+  overflow: hidden;
   overscroll-behavior: none;
   background: radial-gradient(1000px 500px at 10% -10%, #d9f0db 0%, transparent 60%),
               radial-gradient(800px 400px at 90% 110%, #e8f4ea 0%, transparent 60%),

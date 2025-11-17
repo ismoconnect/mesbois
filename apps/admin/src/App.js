@@ -10,6 +10,7 @@ import OrderDetail from './pages/OrderDetail';
 import Carts from './pages/Carts';
 import CartDetail from './pages/CartDetail';
 import SiteSettings from './pages/SiteSettings';
+import FirestoreDebug from './pages/FirestoreDebug';
 import AdminRoute from './components/Auth/AdminRoute';
 import AdminLayout from './layout/AdminLayout';
 
@@ -24,6 +25,16 @@ const App = () => {
           <AdminRoute>
             <AdminLayout>
               <AdminDashboard />
+            </AdminLayout>
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/debug/firestore"
+        element={
+          <AdminRoute>
+            <AdminLayout>
+              <FirestoreDebug />
             </AdminLayout>
           </AdminRoute>
         }

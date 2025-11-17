@@ -7,9 +7,17 @@ import { db, auth } from '../firebase/config';
 
 const Page = styled.div`
   max-width: 1400px;
+  width: 100%;
   margin: 0 auto;
   display: grid;
   gap: 16px;
+  padding: 16px 10px 24px;
+  box-sizing: border-box;
+
+  @media (min-width: 768px) {
+    gap: 24px;
+    padding: 24px 16px 32px;
+  }
 `;
 
 const Heading = styled.div`

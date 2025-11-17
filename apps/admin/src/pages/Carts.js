@@ -3,28 +3,31 @@ import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 import { collection, getDocs, orderBy, query, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase/config';
-import { FiShoppingCart, FiPackage, FiCalendar, FiEye, FiTrash2, FiSearch } from 'react-icons/fi';
+import { FiShoppingCart, FiPackage, FiCalendar, FiEye, FiTrash2 } from 'react-icons/fi';
 
 const Page = styled.div`
   max-width: 1200px;
+  width: 100%;
   margin: 0 auto;
   display: grid;
   gap: 16px;
+  padding: 16px 10px 24px;
+  box-sizing: border-box;
   
   @media (min-width: 768px) {
     gap: 24px;
+    padding: 24px 16px 32px;
+  }
+  
+  @media (max-width: 767px) {
+    overflow-x: hidden;
   }
 `;
 
 const Header = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  @media (min-width: 768px) {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-  }
+  gap: 8px;
 `;
 
 const Title = styled.h1`
@@ -48,47 +51,6 @@ const Subtitle = styled.p`
   }
 `;
 
-const SearchBox = styled.div`
-  position: relative;
-  flex: 1;
-  max-width: 100%;
-  
-  @media (min-width: 600px) {
-    max-width: 400px;
-  }
-`;
-
-const SearchInput = styled.input`
-  width: 100%;
-  border: 2px solid #e6eae7;
-  border-radius: 10px;
-  padding: 10px 12px 10px 40px;
-  font-size: 13px;
-  transition: border-color 0.2s;
-  
-  @media (min-width: 768px) {
-    border-radius: 12px;
-    padding: 12px 14px 12px 44px;
-    font-size: 14px;
-  }
-  
-  &:focus {
-    outline: none;
-    border-color: #2c5530;
-  }
-`;
-
-const SearchIcon = styled.div`
-  position: absolute;
-  left: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #6b7c6d;
-  
-  @media (min-width: 768px) {
-    left: 14px;
-  }
-`;
 
 const StatsBar = styled.div`
   display: grid;
@@ -323,7 +285,6 @@ const EmptyState = styled.div`
 const Carts = () => {
   const [carts, setCarts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
   const [stats, setStats] = useState({
     total: 0,
     withItems: 0,
@@ -337,8 +298,15 @@ const Carts = () => {
       const qr = query(col, orderBy('updatedAt', 'desc'));
       const snap = await getDocs(qr);
       const cartsList = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+      // Trier les paniers par UID (id) pour les regrouper par utilisateur
+      const sortedByUser = [...cartsList].sort((a, b) => {
+        const ua = (a.id || '').toString();
+        const ub = (b.id || '').toString();
+        return ua.localeCompare(ub);
+      });
       
-      setCarts(cartsList);
+      setCarts(sortedByUser);
       
       // Calculer stats
       const withItems = cartsList.filter(c => c.items?.length > 0).length;
@@ -373,11 +341,8 @@ const Carts = () => {
     }
   };
 
-  // Filtrer les paniers
-  const filteredCarts = carts.filter(cart => {
-    const search = searchTerm.toLowerCase();
-    return !search || cart.id.toLowerCase().includes(search);
-  });
+  // Pas de filtre de recherche côté UI, on affiche tous les paniers
+  const filteredCarts = carts;
 
   return (
     <Page>
@@ -386,14 +351,6 @@ const Carts = () => {
           <Title>Gestion des Paniers</Title>
           <Subtitle>{carts.length} panier{carts.length > 1 ? 's' : ''} actif{carts.length > 1 ? 's' : ''}</Subtitle>
         </div>
-        <SearchBox>
-          <SearchIcon><FiSearch size={20} /></SearchIcon>
-          <SearchInput
-            placeholder="Rechercher par ID utilisateur..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </SearchBox>
       </Header>
 
       <StatsBar>

@@ -5,9 +5,16 @@ import { db } from '../firebase/config';
 
 const Page = styled.div`
   max-width: 900px;
+  width: 100%;
   margin: 0 auto;
   display: grid;
   gap: 16px;
+  padding: 16px 10px 24px;
+  box-sizing: border-box;
+
+  @media (min-width: 768px) {
+    padding: 24px 16px 32px;
+  }
 `;
 
 const Title = styled.h1`
@@ -30,6 +37,11 @@ const Card = styled.div`
   box-shadow: 0 8px 20px rgba(44,85,48,0.06);
   display: grid;
   gap: 12px;
+  margin: 0 2px;
+
+  @media (min-width: 768px) {
+    margin: 0;
+  }
 `;
 
 const Field = styled.div`
@@ -48,6 +60,9 @@ const Input = styled.input`
   border: 1px solid #d1d5db;
   padding: 8px 10px;
   font-size: 14px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 `;
 
 const TextArea = styled.textarea`
@@ -56,6 +71,9 @@ const TextArea = styled.textarea`
   padding: 8px 10px;
   font-size: 14px;
   min-height: 80px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 `;
 
 const Actions = styled.div`
@@ -63,6 +81,15 @@ const Actions = styled.div`
   justify-content: flex-end;
   gap: 8px;
   margin-top: 8px;
+  flex-wrap: wrap;
+
+  @media (max-width: 767px) {
+    justify-content: center;
+
+    > button {
+      flex: 1 1 100%;
+    }
+  }
 `;
 
 const Button = styled.button`
