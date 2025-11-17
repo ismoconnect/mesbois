@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import { FiFilter, FiGrid, FiList, FiStar, FiShoppingCart, FiTag, FiTruck, FiShield } from 'react-icons/fi';
 import { products as catalogue } from '../data/catalogue.js';
@@ -620,6 +620,7 @@ const NoProducts = styled.div`
 
 const Products = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
   const { productImages } = useProductImages();
   const [filters, setFilters] = useState({
     category: searchParams.get('category') || '',
@@ -635,6 +636,7 @@ const Products = () => {
   const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '');
   const [viewMode, setViewMode] = useState('grid');
   const navigate = useNavigate();
+  const inDashboard = location.pathname.startsWith('/dashboard');
   const { addToCart } = useCart();
   const [fsProducts, setFsProducts] = useState([]);
   const [fsLoading, setFsLoading] = useState(true);
@@ -1212,7 +1214,7 @@ const Products = () => {
               {pagedProducts.map(product => (
                 <ProductCardEnhanced
                   key={product.id}
-                  onClick={() => navigate(`/product/${product.id}`)}
+                  onClick={() => navigate(inDashboard ? `/dashboard/product/${product.id}` : `/product/${product.id}`)}
                   onMouseMove={(e) => {
                     const el = e.currentTarget;
                     const rect = el.getBoundingClientRect();
@@ -1299,7 +1301,7 @@ const Products = () => {
                         <FiShoppingCart size={16} />
                         Ajouter
                       </AddToCartButton>
-                      <QuickViewButton onClick={(e) => { e.stopPropagation(); navigate(`/product/${product.id}`); }}>
+                      <QuickViewButton onClick={(e) => { e.stopPropagation(); navigate(inDashboard ? `/dashboard/product/${product.id}` : `/product/${product.id}`); }}>
                         Voir
                       </QuickViewButton>
                     </ProductActions>
@@ -1313,7 +1315,7 @@ const Products = () => {
                 <ProductCardEnhanced
                   key={product.id}
                   style={{ display: 'flex', flexDirection: 'row' }}
-                  onClick={() => navigate(`/product/${product.id}`)}
+                  onClick={() => navigate(inDashboard ? `/dashboard/product/${product.id}` : `/product/${product.id}`)}
                   onMouseMove={(e) => {
                     const el = e.currentTarget;
                     const rect = el.getBoundingClientRect();
@@ -1383,7 +1385,7 @@ const Products = () => {
                         <FiShoppingCart size={16} />
                         Ajouter
                       </AddToCartButton>
-                      <QuickViewButton onClick={() => navigate(`/product/${product.id}`)}>
+                      <QuickViewButton onClick={() => navigate(inDashboard ? `/dashboard/product/${product.id}` : `/product/${product.id}`)}>
                         Voir
                       </QuickViewButton>
                     </ProductActions>

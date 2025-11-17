@@ -167,6 +167,32 @@ const Login = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  const mapAuthError = (raw) => {
+    if (!raw) return "Une erreur est survenue";
+    const msg = String(raw).toLowerCase();
+
+    if (msg.includes('auth/invalid-login-credentials') || msg.includes('auth/wrong-password')) {
+      return "Adresse e-mail ou mot de passe incorrect.";
+    }
+    if (msg.includes('auth/user-not-found')) {
+      return "Aucun compte ne correspond à cette adresse e-mail.";
+    }
+    if (msg.includes('auth/too-many-requests')) {
+      return "Trop de tentatives. Veuillez réessayer plus tard ou réinitialiser votre mot de passe.";
+    }
+    if (msg.includes('auth/network-request-failed')) {
+      return "Impossible de se connecter au serveur. Vérifiez votre connexion internet.";
+    }
+    if (msg.includes('auth/user-disabled')) {
+      return "Ce compte est désactivé. Contactez le support si besoin.";
+    }
+    if (msg.includes('auth/invalid-email')) {
+      return "Adresse e-mail invalide.";
+    }
+
+    return "Une erreur s'est produite lors de la connexion. Veuillez réessayer.";
+  };
+
   // Rediriger si déjà connecté (uniquement quand on est sur la page /login)
   React.useEffect(() => {
     const path = typeof window !== 'undefined' ? window.location.pathname : '';
@@ -195,10 +221,10 @@ const Login = () => {
         toast.success('Connexion réussie !');
         navigate('/dashboard', { replace: true });
       } else {
-        setError(result.error);
+        setError(mapAuthError(result.error));
       }
     } catch (err) {
-      setError('Une erreur est survenue');
+      setError("Une erreur s'est produite lors de la connexion. Veuillez réessayer.");
     } finally {
       setLoading(false);
     }
@@ -215,7 +241,7 @@ const Login = () => {
       if (result.success) {
         toast.success('Email de réinitialisation envoyé !');
       } else {
-        toast.error(result.error);
+        toast.error(mapAuthError(result.error));
       }
     } catch (err) {
       toast.error('Erreur lors de l\'envoi de l\'email');

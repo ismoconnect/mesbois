@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { FiUser, FiMail, FiPhone, FiMapPin, FiEdit3, FiSave, FiX } from 'react-icons/fi';
 import { useAuth } from '../contexts/AuthContext';
-import { signOutUser } from '../firebase/auth';
+import { signOutUser, updateUserData } from '../firebase/auth';
 import toast from 'react-hot-toast';
 import DashboardLayout from '../components/Layout/DashboardLayout';
 
@@ -11,7 +11,9 @@ const ProfileContainer = styled.div`
   max-width: 800px;
   margin: 0 auto;
   padding: 40px 20px;
-  @media (max-width: 600px) { padding: 20px 12px; }
+  @media (max-width: 600px) {
+    padding: 20px 12px 28px;
+  }
 `;
 
 const ProfileHeader = styled.div`
@@ -20,7 +22,10 @@ const ProfileHeader = styled.div`
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   padding: 30px;
   margin-bottom: 30px;
-  @media (max-width: 600px) { padding: 18px; }
+  @media (max-width: 600px) {
+    padding: 18px 14px;
+    margin-bottom: 20px;
+  }
 `;
 
 const ProfileTitle = styled.h1`
@@ -31,12 +36,19 @@ const ProfileTitle = styled.h1`
   display: flex;
   align-items: center;
   gap: 10px;
+  @media (max-width: 600px) {
+    font-size: 22px;
+    margin-bottom: 16px;
+  }
 `;
 
 const ProfileInfo = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 20px;
+  @media (max-width: 600px) {
+    gap: 14px;
+  }
 `;
 
 const InfoItem = styled.div`
@@ -44,9 +56,19 @@ const InfoItem = styled.div`
   align-items: center;
   gap: 10px;
   color: #666;
+  font-size: 15px;
+  flex-wrap: nowrap;
+  min-width: 0;
   
   svg {
     color: #2c5530;
+    flex-shrink: 0;
+  }
+
+  span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 `;
 
@@ -73,7 +95,10 @@ const EditForm = styled.form`
   border-radius: 12px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   padding: 30px;
-  @media (max-width: 600px) { padding: 18px; }
+  @media (max-width: 600px) {
+    padding: 18px 14px;
+    margin-top: 10px;
+  }
 `;
 
 const FormTitle = styled.h2`
@@ -100,7 +125,7 @@ const InputGroup = styled.div`
 
 const Input = styled.input`
   width: 100%;
-  padding: 12px 40px 12px 16px;
+  padding: 12px 12px 12px 40px;
   border: 2px solid #e0e0e0;
   border-radius: 8px;
   font-size: 16px;
@@ -118,11 +143,16 @@ const InputIcon = styled.div`
   top: 50%;
   transform: translateY(-50%);
   color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
 `;
 
 const Select = styled.select`
   width: 100%;
-  padding: 12px 40px 12px 16px;
+  padding: 12px 12px 12px 40px;
   border: 2px solid #e0e0e0;
   border-radius: 8px;
   font-size: 16px;
@@ -139,7 +169,10 @@ const ButtonGroup = styled.div`
   display: flex;
   gap: 15px;
   justify-content: flex-end;
-  @media (max-width: 600px) { flex-direction: column; align-items: stretch; }
+  @media (max-width: 600px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
 `;
 
 const SaveButton = styled.button`
@@ -189,7 +222,12 @@ const LogoutButton = styled.button`
   border-radius: 8px;
   cursor: pointer;
   font-weight: 600;
-  margin-top: 20px;
+  margin-top: 24px;
+  width: 100%;
+  text-align: center;
+  @media (max-width: 600px) {
+    padding: 12px 16px;
+  }
   
   &:hover {
     background: #c0392b;
@@ -197,7 +235,7 @@ const LogoutButton = styled.button`
 `;
 
 const Profile = () => {
-  const { user, userData } = useAuth();
+  const { user, userData, setUserData } = useAuth();
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -240,8 +278,19 @@ const Profile = () => {
     setLoading(true);
 
     try {
-      // Mettre à jour les données utilisateur dans Firestore
-      // Cette fonction devrait être implémentée dans firebase/auth.js
+      if (!user) {
+        throw new Error('Utilisateur non connecté');
+      }
+
+      const res = await updateUserData(user.uid, formData);
+      if (!res.success) {
+        throw new Error(res.error || 'Erreur lors de la mise à jour');
+      }
+
+      if (res.data) {
+        setUserData(res.data);
+      }
+
       toast.success('Profil mis à jour avec succès !');
       setIsEditing(false);
     } catch (error) {

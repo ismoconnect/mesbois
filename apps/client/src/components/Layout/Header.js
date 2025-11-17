@@ -53,6 +53,19 @@ const LogoText = styled.span`
   line-height: 1.1;
 `;
 
+const HeaderAvatar = styled.div`
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: #2c5530;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+`;
+
 const TopBar = styled.div`
   display: none;
   background: #f3f6f4;
@@ -565,7 +578,13 @@ const DropdownItem = styled(Link)`
   color: #333;
   text-decoration: none;
   transition: background-color 0.3s ease;
-  
+  width: 100%;
+  text-align: left;
+  font-size: 14px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+
   &:hover {
     background-color: #f5f5f5;
   }
@@ -811,7 +830,7 @@ const Header = () => {
   const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
   const [isEmptyCartAlertOpen, setIsEmptyCartAlertOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const { user, logout } = useAuth();
+  const { user, userData, logout } = useAuth();
   const { cartItems, getCartTotal, updateQuantity, removeFromCart, clearCart } = useCart();
   const navigate = useNavigate();
   const location = useLocation();
@@ -819,6 +838,8 @@ const Header = () => {
 
   const headerSiteName = loaded ? (settings.siteName || '') : '';
   const headerPhone = loaded ? (settings.supportPhone || '') : '';
+  const profileDisplayName = userData?.displayName || user?.email || '';
+  const profileInitial = profileDisplayName ? profileDisplayName.charAt(0).toUpperCase() : 'U';
 
   let headerSiteNameDisplay = headerSiteName;
   if (headerSiteName.length > 10) {
@@ -839,7 +860,7 @@ const Header = () => {
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchTerm.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchTerm.trim())}`);
+      navigate(`/products?q=${encodeURIComponent(searchTerm.trim())}`);
     }
   };
 
@@ -1017,15 +1038,17 @@ const Header = () => {
             {user ? (
               <Dropdown>
                 <UserButton onClick={handleUserToggle}>
-                  <ResponsiveIcon>
-                    <FiUser />
-                  </ResponsiveIcon>
+                  <HeaderAvatar>{profileInitial}</HeaderAvatar>
                 </UserButton>
                 <DropdownContent isOpen={isUserDropdownOpen}>
-                  <DropdownItem to="/profile" onClick={() => setIsUserDropdownOpen(false)}>Mon Profil</DropdownItem>
+                  <DropdownItem to="/dashboard" onClick={() => setIsUserDropdownOpen(false)}>Mon espace client</DropdownItem>
                   <DropdownItem to="/orders" onClick={() => setIsUserDropdownOpen(false)}>Mes Commandes</DropdownItem>
-                  <DropdownItem to="/orders" onClick={() => setIsUserDropdownOpen(false)}>Mes Avis</DropdownItem>
-                  <DropdownItem as="button" onClick={handleLogout}>
+                  <DropdownItem to="/profile" onClick={() => setIsUserDropdownOpen(false)}>Mon Profil</DropdownItem>
+                  <DropdownItem
+                    as="button"
+                    onClick={handleLogout}
+                    style={{ color: '#b91c1c', fontWeight: 600 }}
+                  >
                     Déconnexion
                   </DropdownItem>
                 </DropdownContent>

@@ -214,6 +214,68 @@ const DashboardCart = () => {
   const [discount, setDiscount] = useState(0);
   const [applyingCoupon, setApplyingCoupon] = useState(false);
 
+  const showCenterAlert = (message, type = 'error') => {
+    toast.dismiss('dashboard-alert');
+    toast.custom((t) => (
+      <div
+        style={{
+          position: 'fixed',
+          inset: 0,
+          display: 'flex',
+          alignItems: 'flex-start',
+          justifyContent: 'center',
+          background: 'rgba(0,0,0,0.35)',
+          zIndex: 20000
+        }}
+      >
+        <div
+          style={{
+            background: '#fff',
+            borderRadius: 12,
+            padding: '18px 20px 16px',
+            maxWidth: '90vw',
+            width: 340,
+            boxShadow: '0 12px 40px rgba(0,0,0,0.25)',
+            textAlign: 'center',
+            marginTop: '22vh',
+            border: type === 'error' ? '1px solid #fca5a5' : '1px solid #bbf7d0'
+          }}
+        >
+          <div
+            style={{
+              fontSize: 15,
+              fontWeight: 600,
+              marginBottom: 12,
+              color: type === 'error' ? '#b91c1c' : '#166534'
+            }}
+          >
+            {message}
+          </div>
+          <button
+            type="button"
+            onClick={() => toast.dismiss(t.id)}
+            style={{
+              padding: '8px 16px',
+              borderRadius: 999,
+              border: 'none',
+              background: '#2c5530',
+              color: '#fff',
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
+          >
+            OK
+          </button>
+        </div>
+      </div>
+    ), {
+      id: 'dashboard-alert',
+      duration: 2500,
+      position: 'top-center'
+    });
+  };
+
   const handleQuantityChange = (productId, newQuantity) => {
     if (newQuantity <= 0) {
       removeFromCart(productId);
@@ -249,12 +311,12 @@ const DashboardCart = () => {
       const res = await createOrder(orderData);
       if (res.success) {
         clearCart();
-        navigate(`/dashboard/payment/bank?orderId=${res.id}`);
+        navigate('/billing');
       } else {
-        toast.error(res.error || 'Impossible de créer la commande');
+        showCenterAlert(res.error || 'Impossible de créer la commande', 'error');
       }
     } catch (e) {
-      toast.error('Erreur lors de la création de la commande');
+      showCenterAlert('Erreur lors de la création de la commande', 'error');
     }
   };
   const subtotal = getCartTotal();
@@ -269,21 +331,26 @@ const DashboardCart = () => {
 
   const handleApplyCoupon = async () => {
     const raw = (couponCode || '').trim();
-    if (!raw) return toast.error('Veuillez saisir un code');
+    if (!raw) {
+      showCenterAlert('Veuillez saisir un code', 'error');
+      return;
+    }
     try {
       setApplyingCoupon(true);
       const res = await getCouponByCode(raw);
       if (!res.success || !res.data) {
         setAppliedCoupon(null);
         setDiscount(0);
-        return toast.error(res.error || 'Code invalide');
+        showCenterAlert(res.error || 'Code invalide', 'error');
+        return;
       }
       const coupon = res.data;
       const { valid, discount: d, reason } = validateAndComputeDiscount(coupon, subtotal);
       if (!valid) {
         setAppliedCoupon(null);
         setDiscount(0);
-        return toast.error(reason || 'Code non applicable');
+        showCenterAlert(reason || 'Code non applicable', 'error');
+        return;
       }
       setAppliedCoupon(coupon);
       setDiscount(Number(d.toFixed(2)));
@@ -342,7 +409,7 @@ const DashboardCart = () => {
         position: 'top-center'
       });
     } catch (err) {
-      toast.error('Impossible d\'appliquer le code');
+      showCenterAlert("Impossible d'appliquer le code", 'error');
     } finally {
       setApplyingCoupon(false);
     }

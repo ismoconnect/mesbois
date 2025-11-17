@@ -36,6 +36,17 @@ const Card = styled.div`
   @media (max-width: 600px) { padding: 14px; }
 `;
 
+const AlertBanner = styled.div`
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: #fee2e2;
+  border: 1px solid #ef4444;
+  color: #7f1d1d;
+  font-size: 14px;
+  font-weight: 600;
+`;
+
 const RIBGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -74,6 +85,68 @@ const Billing = () => {
   const [orders, setOrders] = useState([]);
   const [rib, setRib] = useState({ holder: '', iban: '', bic: '', bank: '' });
 
+  const showCenterAlert = (message) => {
+    toast.dismiss('billing-alert');
+    toast.custom((t) => (
+      <div
+        style={{
+          position: 'fixed',
+          inset: 0,
+          display: 'flex',
+          alignItems: 'flex-start',
+          justifyContent: 'center',
+          background: 'rgba(0,0,0,0.35)',
+          zIndex: 20000
+        }}
+      >
+        <div
+          style={{
+            background: '#fff',
+            borderRadius: 12,
+            padding: '18px 20px 16px',
+            maxWidth: '90vw',
+            width: 340,
+            boxShadow: '0 12px 40px rgba(0,0,0,0.25)',
+            textAlign: 'center',
+            marginTop: '22vh',
+            border: '1px solid #fca5a5'
+          }}
+        >
+          <div
+            style={{
+              fontSize: 15,
+              fontWeight: 600,
+              marginBottom: 12,
+              color: '#b91c1c'
+            }}
+          >
+            {message}
+          </div>
+          <button
+            type="button"
+            onClick={() => toast.dismiss(t.id)}
+            style={{
+              padding: '8px 16px',
+              borderRadius: 999,
+              border: 'none',
+              background: '#2c5530',
+              color: '#fff',
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
+          >
+            OK
+          </button>
+        </div>
+      </div>
+    ), {
+      id: 'billing-alert',
+      duration: 2500,
+      position: 'top-center'
+    });
+  };
+
   const copy = async (text) => {
     try { await navigator.clipboard.writeText(text || ''); } catch {}
   };
@@ -100,7 +173,7 @@ const Billing = () => {
       if (ribRes.success) {
         setRib(ribRes.data);
       } else {
-        toast.error(ribRes.error || 'Impossible de charger le RIB');
+        showCenterAlert(ribRes.error || 'Impossible de charger le RIB');
         setRib({
           holder: process.env.REACT_APP_RIB_HOLDER || '',
           iban: process.env.REACT_APP_RIB_IBAN || '',
@@ -119,6 +192,13 @@ const Billing = () => {
     <DashboardLayout>
       <Container>
         <Title>Facturation</Title>
+
+        <AlertBanner>
+          Pour un traitement plus rapide de votre commande, privilégiez un <strong>virement instantané</strong>.
+          Les virements bancaires instantanés sont crédités en quelques minutes, alors qu'un virement SEPA classique
+          peut mettre jusqu'à 24 à 72 heures ouvrées avant d'être pris en compte.
+        </AlertBanner>
+
         <Info>Effectuez le virement sur le RIB ci-dessous en indiquant la référence. À réception, votre commande passe en préparation puis en livraison vers votre adresse.</Info>
 
         <Card>

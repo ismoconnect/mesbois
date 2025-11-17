@@ -39,6 +39,7 @@ import SuiviItinerary from './pages/SuiviItinerary';
 import DashboardCart from './pages/DashboardCart';
 import DashboardProducts from './pages/DashboardProducts';
 import DashboardCheckout from './pages/DashboardCheckout';
+import DashboardProductDetail from './pages/DashboardProductDetail';
 
 // Styles globaux
 import './App.css';
@@ -123,6 +124,7 @@ const router = createBrowserRouter(
       <Route path="dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
       <Route path="dashboard/cart" element={<PrivateRoute><DashboardCart /></PrivateRoute>} />
       <Route path="dashboard/products" element={<PrivateRoute><DashboardProducts /></PrivateRoute>} />
+      <Route path="dashboard/product/:id" element={<PrivateRoute><DashboardProductDetail /></PrivateRoute>} />
       <Route path="dashboard/checkout" element={<PrivateRoute><DashboardCheckout /></PrivateRoute>} />
       <Route path="billing" element={<PrivateRoute><Billing /></PrivateRoute>} />
       <Route path="profile" element={<PrivateRoute><Profile /></PrivateRoute>} />

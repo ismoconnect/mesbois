@@ -346,6 +346,69 @@ const Orders = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [cancellingId, setCancellingId] = useState(null);
+  const [confirmId, setConfirmId] = useState(null);
+
+  const showCenterAlert = (message, type = 'success') => {
+    toast.dismiss('orders-alert');
+    toast.custom((t) => (
+      <div
+        style={{
+          position: 'fixed',
+          inset: 0,
+          display: 'flex',
+          alignItems: 'flex-start',
+          justifyContent: 'center',
+          background: 'rgba(0,0,0,0.35)',
+          zIndex: 20000
+        }}
+      >
+        <div
+          style={{
+            background: '#fff',
+            borderRadius: 12,
+            padding: '18px 20px 16px',
+            maxWidth: '90vw',
+            width: 340,
+            boxShadow: '0 12px 40px rgba(0,0,0,0.25)',
+            textAlign: 'center',
+            marginTop: '22vh',
+            border: type === 'error' ? '1px solid #fca5a5' : '1px solid #bbf7d0'
+          }}
+        >
+          <div
+            style={{
+              fontSize: 15,
+              fontWeight: 600,
+              marginBottom: 12,
+              color: type === 'error' ? '#b91c1c' : '#166534'
+            }}
+          >
+            {message}
+          </div>
+          <button
+            type="button"
+            onClick={() => toast.dismiss(t.id)}
+            style={{
+              padding: '8px 16px',
+              borderRadius: 999,
+              border: 'none',
+              background: '#2c5530',
+              color: '#fff',
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
+          >
+            OK
+          </button>
+        </div>
+      </div>
+    ), {
+      id: 'orders-alert',
+      duration: 3000,
+      position: 'top-center'
+    });
+  };
 
   const fetchOrders = async () => {
     try {
@@ -370,21 +433,18 @@ const Orders = () => {
   }, [user]);
 
   const handleCancelOrder = async (orderId) => {
-    if (!window.confirm('Êtes-vous sûr de vouloir annuler cette commande ?')) {
-      return;
-    }
-
     setCancellingId(orderId);
     const result = await cancelOrder(orderId, 'Annulation client');
     
     if (result.success) {
-      toast.success('Commande annulée avec succès');
+      showCenterAlert('Commande annulée avec succès');
       // Recharger les commandes
       fetchOrders();
     } else {
-      toast.error('Erreur lors de l\'annulation de la commande');
+      showCenterAlert("Erreur lors de l'annulation de la commande", 'error');
     }
     setCancellingId(null);
+    setConfirmId(null);
   };
 
   if (!user) return null;
@@ -513,7 +573,7 @@ const Orders = () => {
                 )}
                 {(order.status === 'pending' || order.status === 'processing') && (
                   <CancelButton 
-                    onClick={() => handleCancelOrder(order.id)}
+                    onClick={() => setConfirmId(order.id)}
                     disabled={cancellingId === order.id}
                   >
                     {cancellingId === order.id ? 'Annulation...' : 'Annuler la commande'}
@@ -523,6 +583,76 @@ const Orders = () => {
             </OrderCard>
           ))}
         </OrdersList>
+
+        {confirmId && (
+          <div
+            style={{
+              position: 'fixed',
+              inset: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'rgba(0,0,0,0.35)',
+              zIndex: 20000
+            }}
+            onClick={() => !cancellingId && setConfirmId(null)}
+          >
+            <div
+              style={{
+                background: '#fff',
+                borderRadius: 12,
+                padding: '18px 20px 16px',
+                maxWidth: '90vw',
+                width: 360,
+                boxShadow: '0 12px 40px rgba(0,0,0,0.25)',
+                textAlign: 'center'
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 10 }}>
+                Êtes-vous sûr de vouloir annuler cette commande ?
+              </div>
+              <div style={{ fontSize: 13, color: '#555', marginBottom: 16 }}>
+                Cette action est définitive. Votre commande passera en statut « Annulée ».
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: 10 }}>
+                <button
+                  type="button"
+                  onClick={() => setConfirmId(null)}
+                  disabled={!!cancellingId}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: 999,
+                    border: '1px solid #e5e7eb',
+                    background: '#f9fafb',
+                    fontSize: 13,
+                    fontWeight: 600,
+                    cursor: 'pointer'
+                  }}
+                >
+                  Non, revenir
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleCancelOrder(confirmId)}
+                  disabled={!!cancellingId}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: 999,
+                    border: 'none',
+                    background: '#dc2626',
+                    color: '#fff',
+                    fontSize: 13,
+                    fontWeight: 600,
+                    cursor: 'pointer'
+                  }}
+                >
+                  Oui, annuler
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </OrdersContainer>
     </DashboardLayout>
   );

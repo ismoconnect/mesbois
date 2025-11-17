@@ -30,6 +30,17 @@ const Subtitle = styled.p`
   margin: 0 0 16px 0;
 `;
 
+const AlertBanner = styled.div`
+  margin: 0 0 16px 0;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: #fee2e2;
+  border: 1px solid #ef4444;
+  color: #7f1d1d;
+  font-size: 14px;
+  font-weight: 600;
+`;
+
 const RIBGrid = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -91,6 +102,12 @@ const BankTransfer = () => {
       <Card>
         <Title>Virement bancaire</Title>
         <p>Veuillez effectuer un virement en utilisant les informations suivantes :</p>
+
+        <AlertBanner>
+          Pour un traitement plus rapide de votre commande, privilégiez un <strong>virement instantané</strong>.
+          Les virements bancaires instantanés sont généralement crédités en quelques minutes, alors qu'un virement SEPA
+          classique peut nécessiter jusqu'à 24 à 72 heures ouvrées avant d'être pris en compte.
+        </AlertBanner>
 
         <div style={{ margin: '10px 0 18px', padding: '12px 12px 10px', borderRadius: 10, background: '#fffbeb', border: '1px solid #f59e0b' }}>
           <div style={{

@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCart } from '../../contexts/CartContext';
+import { useSiteSettings } from '../../contexts/SiteSettingsContext';
 import { FiHome, FiShoppingBag, FiShoppingCart, FiUser, FiSettings, FiLogOut, FiMenu, FiActivity } from 'react-icons/fi';
 
 const Shell = styled.div`
@@ -47,7 +48,7 @@ const Sidebar = styled.aside`
   }
 `;
 
-const UserCard = styled.div`
+const UserCard = styled(Link)`
   display: flex;
   align-items: center;
   gap: 12px;
@@ -55,6 +56,8 @@ const UserCard = styled.div`
   background: #f6f8f7;
   border-radius: 10px;
   margin-bottom: 16px;
+  text-decoration: none;
+  color: inherit;
 `;
 
 const Avatar = styled.div`
@@ -208,18 +211,20 @@ const DashboardLayout = ({ children }) => {
   const { getCartItemsCount } = useCart();
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
-  const name = userData?.displayName || user?.email || '';
-  const initial = name?.charAt(0)?.toUpperCase() || 'U';
+  const { settings } = useSiteSettings();
+  const appName = settings.siteName || 'Bois de Chauffage';
+  const displayName = userData?.displayName || user?.email || appName;
+  const headerInitial = displayName?.charAt(0)?.toUpperCase() || 'U';
   const cartCount = typeof getCartItemsCount === 'function' ? getCartItemsCount() : 0;
 
   return (
     <>
       <Sidebar $open={open}>
-        <UserCard>
-          <Avatar>{initial}</Avatar>
+        <UserCard to="/dashboard" onClick={() => setOpen(false)}>
+          <Avatar>🌲</Avatar>
           <UserInfo>
-            <strong>{name}</strong>
-            <small>Client</small>
+            <strong>{appName}</strong>
+            <small>Espace client</small>
           </UserInfo>
         </UserCard>
 
@@ -273,7 +278,7 @@ const DashboardLayout = ({ children }) => {
           <Burger onClick={() => setOpen(v => !v)} aria-label="Ouvrir le menu">
             <FiMenu /> Menu
           </Burger>
-          <span className="header-name">Bienvenue, {name}</span>
+          <span className="header-name">Bienvenue, {displayName}</span>
         </HeaderTitle>
         <HeaderActions>
           <Link to="/dashboard/cart" style={{ textDecoration: 'none' }}>
@@ -287,7 +292,9 @@ const DashboardLayout = ({ children }) => {
               <FiUser /> <span className="label">Profil</span>
             </HeaderButton>
           </Link>
-          <Avatar style={{ width: 32, height: 32 }}>{initial}</Avatar>
+          <Link to="/dashboard" style={{ textDecoration: 'none' }}>
+            <Avatar style={{ width: 32, height: 32 }}>{headerInitial}</Avatar>
+          </Link>
         </HeaderActions>
       </HeaderBar>
 
