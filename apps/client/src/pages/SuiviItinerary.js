@@ -309,70 +309,56 @@ const SuiviItinerary = () => {
       }
     };
     
-    // Créer le contenu PDF sous forme de données structurées avec design professionnel
-    const pdfContent = `%PDF-1.4
-1 0 obj
-<<
-/Type /Catalog
-/Pages 2 0 R
->>
-endobj
+    // Quelques utilitaires pour la mise en page
+    const sanitize = (s) => (s || '')
+      .toString()
+      .replace(/[\n\r\t]/g, ' ')
+      .replace(/[()]/g, '')
+      .replace(/[àáâãäå]/g, 'a')
+      .replace(/[èéêë]/g, 'e')
+      .replace(/[ìíîï]/g, 'i')
+      .replace(/[òóôõö]/g, 'o')
+      .replace(/[ùúûü]/g, 'u')
+      .replace(/[ç]/g, 'c')
+      .replace(/[ñ]/g, 'n');
 
-2 0 obj
-<<
-/Type /Pages
-/Kids [3 0 R]
-/Count 1
->>
-endobj
+    const yStart = order.shippingAddress ? 330 : 400; // zone de tableau selon adresse
+    const rowHeight = 18;
+    const rows = (order.items || []).map((item, i) => {
+      const y = yStart - (i * rowHeight);
+      const name = sanitize((item.name || '').substring(0, 45));
+      const qty = `${item.quantity || 0}`;
+      const unit = (item.price != null ? item.price.toFixed(2) : '0.00') + ' EUR';
+      const total = (((item.price || 0) * (item.quantity || 0)).toFixed(2)) + ' EUR';
+      return [
+        `1 0 0 1 70 ${y} Tm (${name}) Tj`,
+        `1 0 0 1 360 ${y} Tm (${qty}) Tj`,
+        `1 0 0 1 430 ${y} Tm (${unit}) Tj`,
+        `1 0 0 1 510 ${y} Tm (${total}) Tj`
+      ].join('\n');
+    }).join('\n');
 
-3 0 obj
-<<
-/Type /Page
-/Parent 2 0 R
-/MediaBox [0 0 612 792]
-/Contents 4 0 R
-/Resources <<
-/Font <<
-/F1 5 0 R
-/F2 6 0 R
-/F3 7 0 R
->>
->>
->>
-endobj
-
-4 0 obj
-<<
-/Length 2500
->>
-stream
+    // Construire le corps du flux PDF (stream) avec positions absolues
+    const streamBody = `
 q
-% En-tête avec fond coloré
 0.17 0.33 0.19 rg
 50 720 512 60 re
 f
 Q
 
 BT
-% Titre principal en blanc
 1 1 1 rg
 /F3 20 Tf
 60 750 Td
-(${getDocumentTitle(order.status).replace(/_/g, ' ').replace(/[àáâãäå]/g, 'a').replace(/[èéêë]/g, 'e').replace(/[ìíîï]/g, 'i').replace(/[òóôõö]/g, 'o').replace(/[ùúûü]/g, 'u').replace(/[ç]/g, 'c').replace(/[ñ]/g, 'n').toUpperCase()}) Tj
-
-% Sous-titre
+(${sanitize(getDocumentTitle(order.status).replace(/_/g, ' ').toUpperCase())}) Tj
 /F2 14 Tf
 0 -25 Td
 (Commande #${order.id.slice(-8)}) Tj
-
-% Date de generation
 /F1 10 Tf
 0 -15 Td
 (Genere le ${new Date().toLocaleDateString('fr-FR')} a ${new Date().toLocaleTimeString('fr-FR')}) Tj
 ET
 
-% Ligne de séparation
 q
 0.17 0.33 0.19 RG
 2 w
@@ -380,13 +366,6 @@ q
 S
 Q
 
-BT
-% Retour au noir pour le contenu
-0 0 0 rg
-
-ET
-
-% Section Informations
 q
 0.96 0.98 0.96 rg
 60 580 492 60 re
@@ -402,27 +381,16 @@ BT
 /F2 16 Tf
 60 650 Td
 (INFORMATIONS DE LA COMMANDE) Tj
-
 /F1 12 Tf
 70 620 Td
-(Date de commande: ${order.createdAt ? new Date(order.createdAt.seconds * 1000).toLocaleDateString('fr-FR', { 
-  year: 'numeric', 
-  month: 'long', 
-  day: 'numeric',
-  hour: '2-digit',
-  minute: '2-digit'
-}).replace(/[àáâãäå]/g, 'a').replace(/[èéêë]/g, 'e').replace(/[ìíîï]/g, 'i').replace(/[òóôõö]/g, 'o').replace(/[ùúûü]/g, 'u').replace(/[ç]/g, 'c') : 'N/A'}) Tj
-
+(Date de commande: ${order.createdAt ? sanitize(new Date(order.createdAt.seconds * 1000).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })) : 'N/A'}) Tj
 0 -18 Td
-(Statut actuel: ${getStatusText(order.status).replace(/[àáâãäå]/g, 'a').replace(/[èéêë]/g, 'e').replace(/[ìíîï]/g, 'i').replace(/[òóôõö]/g, 'o').replace(/[ùúûü]/g, 'u').replace(/[ç]/g, 'c')}) Tj
-
+(Statut actuel: ${sanitize(getStatusText(order.status))}) Tj
 /F2 12 Tf
 0 -18 Td
 (Montant total: ${order.total?.toFixed(2) || '0.00'} EUR) Tj
-
 ET
 
-% État de la commande avec encadré coloré
 q
 0.91 0.96 0.91 rg
 60 480 492 50 re
@@ -438,108 +406,45 @@ BT
 /F2 14 Tf
 70 510 Td
 (ETAT DE LA COMMANDE) Tj
-
 /F1 11 Tf
 0 -20 Td
-(${getStatusDescription(order.status).replace(/[àáâãäå]/g, 'a').replace(/[èéêë]/g, 'e').replace(/[ìíîï]/g, 'i').replace(/[òóôõö]/g, 'o').replace(/[ùúûü]/g, 'u').replace(/[ç]/g, 'c')}) Tj
-
-${order.shippingAddress ? `
+(${sanitize(getStatusDescription(order.status))}) Tj
 ET
 
-% Adresse de livraison
-q
-0.98 0.98 1 rg
-60 360 492 60 re
-f
-0.17 0.33 0.19 RG
-1 w
-60 360 492 60 re
-S
-Q
+${order.shippingAddress ? `q\n0.98 0.98 1 rg\n60 360 492 60 re\nf\n0.17 0.33 0.19 RG\n1 w\n60 360 492 60 re\nS\nQ\n\nBT\n0 0 0 rg\n/F2 14 Tf\n60 430 Td\n(ADRESSE DE LIVRAISON) Tj\n/F2 11 Tf\n70 400 Td\n(${sanitize(order.shippingAddress.fullName)}) Tj\n/F1 10 Tf\n0 -15 Td\n(${sanitize(order.shippingAddress.address)}) Tj\n0 -15 Td\n(${order.shippingAddress.postalCode} ${sanitize(order.shippingAddress.city)}) Tj\n${order.shippingAddress.phone ? `0 -15 Td\n(Telephone: ${order.shippingAddress.phone}) Tj\n` : ''}ET\n` : ''}
 
-BT
-0 0 0 rg
-/F2 14 Tf
-60 430 Td
-(ADRESSE DE LIVRAISON) Tj
-
-/F2 11 Tf
-70 400 Td
-(${order.shippingAddress.fullName.replace(/[àáâãäå]/g, 'a').replace(/[èéêë]/g, 'e').replace(/[ìíîï]/g, 'i').replace(/[òóôõö]/g, 'o').replace(/[ùúûü]/g, 'u').replace(/[ç]/g, 'c')}) Tj
-
-/F1 10 Tf
-0 -15 Td
-(${order.shippingAddress.address.replace(/[àáâãäå]/g, 'a').replace(/[èéêë]/g, 'e').replace(/[ìíîï]/g, 'i').replace(/[òóôõö]/g, 'o').replace(/[ùúûü]/g, 'u').replace(/[ç]/g, 'c')}) Tj
-
-0 -15 Td
-(${order.shippingAddress.postalCode} ${order.shippingAddress.city.replace(/[àáâãäå]/g, 'a').replace(/[èéêë]/g, 'e').replace(/[ìíîï]/g, 'i').replace(/[òóôõö]/g, 'o').replace(/[ùúûü]/g, 'u').replace(/[ç]/g, 'c')}) Tj
-
-${order.shippingAddress.phone ? `
-0 -15 Td
-(Telephone: ${order.shippingAddress.phone}) Tj
-` : ''}
-` : ''}
-
-ET
-
-% En-tete du tableau
 q
 0.96 0.96 0.96 rg
-60 ${order.shippingAddress ? '280' : '360'} 492 25 re
+60 ${order.shippingAddress ? '300' : '380'} 492 28 re
 f
 Q
 
 BT
 0 0 0 rg
-% Articles commandes
 /F2 16 Tf
-60 ${order.shippingAddress ? '320' : '400'} Td
+60 ${order.shippingAddress ? '340' : '420'} Td
 (ARTICLES COMMANDES) Tj
-
 /F2 10 Tf
-70 ${order.shippingAddress ? '290' : '370'} Td
-(ARTICLE) Tj
-200 0 Td
-(QTE) Tj
-80 0 Td
-(PRIX UNIT.) Tj
-100 0 Td
-(TOTAL) Tj
-
-% Articles
+1 0 0 1 70 ${order.shippingAddress ? '308' : '388'} Tm (ARTICLE) Tj
+1 0 0 1 360 ${order.shippingAddress ? '308' : '388'} Tm (QTE) Tj
+1 0 0 1 430 ${order.shippingAddress ? '308' : '388'} Tm (PRIX UNIT.) Tj
+1 0 0 1 510 ${order.shippingAddress ? '308' : '388'} Tm (TOTAL) Tj
 /F1 10 Tf
-${order.items?.map((item, index) => {
-  const baseY = order.shippingAddress ? 260 : 340;
-  const yPos = baseY - (index * 20);
-  return `
-70 ${yPos} Td
-(${item.name.substring(0, 30).replace(/[àáâãäå]/g, 'a').replace(/[èéêë]/g, 'e').replace(/[ìíîï]/g, 'i').replace(/[òóôõö]/g, 'o').replace(/[ùúûü]/g, 'u').replace(/[ç]/g, 'c')}) Tj
-200 0 Td
-(${item.quantity}) Tj
-80 0 Td
-(${item.price?.toFixed(2)} EUR) Tj
-100 0 Td
-(${(item.price * item.quantity).toFixed(2)} EUR) Tj
--380 0 Td
-`;
-}).join('') || ''}
-
+${rows}
 ET
 
-% Total final avec fond coloré
 q
 0.17 0.33 0.19 rg
-60 ${order.shippingAddress ? (180 - (order.items?.length || 0) * 20) : (260 - (order.items?.length || 0) * 20)} 492 40 re
+60 ${order.shippingAddress ? (yStart - (order.items?.length || 0) * rowHeight - 30) : (yStart - (order.items?.length || 0) * rowHeight - 30)} 492 40 re
 f
 Q
 
 BT
 1 1 1 rg
 /F3 16 Tf
-${306 - 246} ${order.shippingAddress ? (200 - (order.items?.length || 0) * 20) : (280 - (order.items?.length || 0) * 20)} Td
-(TOTAL: ${order.total?.toFixed(2) || '0.00'} EUR) Tj
-
-% Pied de page
+1 0 0 1 60 ${order.shippingAddress ? (yStart - (order.items?.length || 0) * rowHeight - 10) : (yStart - (order.items?.length || 0) * rowHeight - 10)} Tm (TOTAL:) Tj
+/F3 16 Tf
+1 0 0 1 510 ${order.shippingAddress ? (yStart - (order.items?.length || 0) * rowHeight - 10) : (yStart - (order.items?.length || 0) * rowHeight - 10)} Tm (${(order.total?.toFixed(2) || '0.00') + ' EUR'}) Tj
 0.5 0.5 0.5 rg
 /F1 8 Tf
 60 50 Td
@@ -548,52 +453,13 @@ ${306 - 246} ${order.shippingAddress ? (200 - (order.items?.length || 0) * 20) :
 (Pour toute question, contactez notre service client) Tj
 0 -12 Td
 (Copyright ${new Date().getFullYear()} - Tous droits reserves) Tj
-ET
-endstream
-endobj
+ET`;
 
-5 0 obj
-<<
-/Type /Font
-/Subtype /Type1
-/BaseFont /Helvetica
->>
-endobj
+    const encoder = new TextEncoder();
+    const streamBytes = encoder.encode(streamBody);
+    const streamLength = streamBytes.length;
 
-6 0 obj
-<<
-/Type /Font
-/Subtype /Type1
-/BaseFont /Helvetica-Bold
->>
-endobj
-
-7 0 obj
-<<
-/Type /Font
-/Subtype /Type1
-/BaseFont /Helvetica-BoldOblique
->>
-endobj
-
-xref
-0 8
-0000000000 65535 f 
-0000000010 00000 n 
-0000000079 00000 n 
-0000000173 00000 n 
-0000000301 00000 n 
-0000002900 00000 n 
-0000002970 00000 n 
-0000003045 00000 n 
-trailer
-<<
-/Size 8
-/Root 1 0 R
->>
-startxref
-3125
-%%EOF`;
+    const pdfContent = `%PDF-1.4\n1 0 obj\n<<\n/Type /Catalog\n/Pages 2 0 R\n>>\nendobj\n\n2 0 obj\n<<\n/Type /Pages\n/Kids [3 0 R]\n/Count 1\n>>\nendobj\n\n3 0 obj\n<<\n/Type /Page\n/Parent 2 0 R\n/MediaBox [0 0 612 792]\n/Contents 4 0 R\n/Resources <<\n/Font <<\n/F1 5 0 R\n/F2 6 0 R\n/F3 7 0 R\n>>\n>>\n>>\nendobj\n\n4 0 obj\n<<\n/Length ${streamLength}\n>>\nstream\n${streamBody}\nendstream\nendobj\n\n5 0 obj\n<<\n/Type /Font\n/Subtype /Type1\n/BaseFont /Helvetica\n>>\nendobj\n\n6 0 obj\n<<\n/Type /Font\n/Subtype /Type1\n/BaseFont /Helvetica-Bold\n>>\nendobj\n\n7 0 obj\n<<\n/Type /Font\n/Subtype /Type1\n/BaseFont /Helvetica-BoldOblique\n>>\nendobj\n\nxref\n0 8\n0000000000 65535 f \n0000000010 00000 n \n0000000079 00000 n \n0000000173 00000 n \n0000000301 00000 n \n0000000000 00000 n \n0000000000 00000 n \n0000000000 00000 n \ntrailer\n<<\n/Size 8\n/Root 1 0 R\n>>\nstartxref\n0\n%%EOF`;
 
     // Créer un blob PDF et le télécharger automatiquement
     const blob = new Blob([pdfContent], { type: 'application/pdf' });
