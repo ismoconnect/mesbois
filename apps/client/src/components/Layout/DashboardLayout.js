@@ -213,8 +213,8 @@ const DashboardLayout = ({ children }) => {
   const navigate = useNavigate();
   const { settings } = useSiteSettings();
   const appName = settings.siteName || 'Bois de Chauffage';
-  const displayName = userData?.displayName || user?.email || appName;
-  const headerInitial = displayName?.charAt(0)?.toUpperCase() || 'U';
+  const displayName = userData?.displayName || appName;
+  const headerInitial = displayName?.charAt(0)?.toUpperCase() || '';
   const cartCount = typeof getCartItemsCount === 'function' ? getCartItemsCount() : 0;
 
   return (

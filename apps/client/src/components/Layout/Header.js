@@ -838,8 +838,8 @@ const Header = () => {
 
   const headerSiteName = loaded ? (settings.siteName || '') : '';
   const headerPhone = loaded ? (settings.supportPhone || '') : '';
-  const profileDisplayName = userData?.displayName || user?.email || '';
-  const profileInitial = profileDisplayName ? profileDisplayName.charAt(0).toUpperCase() : 'U';
+  const profileDisplayName = userData?.displayName || '';
+  const profileInitial = profileDisplayName ? profileDisplayName.charAt(0).toUpperCase() : '';
 
   let headerSiteNameDisplay = headerSiteName;
   if (headerSiteName.length > 10) {
