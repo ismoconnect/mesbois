@@ -12,7 +12,8 @@ import { getCouponByCode, validateAndComputeDiscount } from '../firebase/coupons
 const CartContainer = styled.div`
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 20px 24px;
+  padding: 0 16px 16px;
+  @media (max-width: 768px) { padding: 0 12px 12px; }
 `;
 
 const CartHeader = styled.div`
@@ -47,17 +48,18 @@ const CartTitle = styled.h1`
 
 const CartContent = styled.div`
   display: grid;
-  grid-template-columns: 1fr 380px;
-  gap: 28px;
-  @media (max-width: 768px) { grid-template-columns: 1fr; }
-  @media (max-width: 600px) { gap: 16px; }
+  grid-template-columns: 1fr 360px;
+  gap: 20px;
+  @media (max-width: 1024px) { grid-template-columns: 1fr 320px; gap: 18px; }
+  @media (max-width: 768px) { grid-template-columns: 1fr; gap: 12px; }
 `;
 
 const CartItems = styled.div`
   background: white;
   border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  padding: 16px;
+  @media (max-width: 768px) { padding: 12px; }
 `;
 
 const ClearCartButton = styled.button`
@@ -78,16 +80,17 @@ const ClearCartButton = styled.button`
 const CartItem = styled.div`
   display: flex;
   align-items: center;
-  gap: 20px;
-  padding: 16px 0;
+  gap: 14px;
+  padding: 10px 0;
   border-bottom: 1px solid #f0f0f0;
   &:last-child { border-bottom: none; }
-  @media (max-width: 600px) { flex-direction: column; align-items: stretch; gap: 12px; }
+  @media (max-width: 600px) { flex-direction: column; align-items: stretch; gap: 8px; padding: 8px 0; }
 `;
 
 const ItemImage = styled.img`
-  width: 96px; height: 96px; object-fit: cover; border-radius: 8px; border: 1px solid #eee;
-  @media (max-width: 600px) { width: 80px; height: 80px; }
+  width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid #eee;
+  @media (max-width: 768px) { width: 72px; height: 72px; }
+  @media (max-width: 600px) { width: 64px; height: 64px; }
 `;
 
 const ItemInfo = styled.div`
@@ -95,37 +98,42 @@ const ItemInfo = styled.div`
 `;
 
 const ItemName = styled.h3`
-  font-size: 18px; font-weight: 600; color: #2c5530; margin-bottom: 5px;
+  font-size: 16px; font-weight: 600; color: #2c5530; margin-bottom: 4px;
+  @media (max-width: 600px) { font-size: 15px; }
 `;
 
 const ItemDescription = styled.p`
-  color: #666; font-size: 14px; margin-bottom: 10px;
+  color: #666; font-size: 13px; margin-bottom: 6px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 `;
 
 const ItemPrice = styled.div`
-  font-size: 16px; font-weight: 600; color: #2c5530;
+  font-size: 15px; font-weight: 600; color: #2c5530;
 `;
 
 const QuantityControls = styled.div`
-  display: flex; align-items: center; gap: 10px; margin: 10px 0;
+  display: flex; align-items: center; gap: 6px; margin: 6px 0;
   @media (max-width: 600px) { flex-wrap: wrap; }
 `;
 
 const QuantityButton = styled.button`
-  width: 36px; height: 36px; border: 2px solid #e0e0e0; background: white; border-radius: 6px; cursor: pointer;
-  display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;
+  width: 30px; height: 30px; border: 2px solid #e0e0e0; background: white; border-radius: 6px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; transition: all 0.2s ease;
   &:hover { border-color: #2c5530; color: #2c5530; }
   &:disabled { opacity: 0.5; cursor: not-allowed; }
 `;
 
 const QuantityInput = styled.input`
-  width: 64px; text-align: center; border: 2px solid #e0e0e0; border-radius: 6px; padding: 8px; font-weight: 600;
+  width: 50px; text-align: center; border: 2px solid #e0e0e0; border-radius: 6px; padding: 6px; font-weight: 600;
   &:focus { outline: none; border-color: #2c5530; }
-  @media (max-width: 600px) { width: 56px; }
+  @media (max-width: 600px) { width: 46px; }
 `;
 
 const RemoveButton = styled.button`
-  background: #e74c3c; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 5px; font-size: 12px;
+  background: #e74c3c; color: white; border: none; padding: 6px 8px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 5px; font-size: 11px;
   &:hover { background: #c0392b; }
 `;
 
@@ -141,23 +149,23 @@ const ShopButton = styled(Link)`
 `;
 
 const CartSummary = styled.div`
-  background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); padding: 20px; height: fit-content; position: sticky; top: 20px;
-  @media (max-width: 768px) { position: static; top: auto; }
+  background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); padding: 16px; height: fit-content; position: sticky; top: 16px;
+  @media (max-width: 768px) { position: static; top: auto; padding: 12px; }
 `;
 
 const SummaryTitle = styled.h3`
-  font-size: 18px; font-weight: 700; color: #2c5530; margin-bottom: 16px;
-  @media (max-width: 600px) { font-size: 16px; }
+  font-size: 16px; font-weight: 700; color: #2c5530; margin-bottom: 12px;
+  @media (max-width: 600px) { font-size: 15px; }
 `;
 
 const SummaryRow = styled.div`
-  display: flex; justify-content: space-between; margin-bottom: 12px; color: #666;
-  &.total { font-size: 18px; font-weight: 700; color: #2c5530; border-top: 2px solid #f0f0f0; padding-top: 12px; margin-top: 12px; }
-  @media (max-width: 600px) { font-size: 14px; }
+  display: flex; justify-content: space-between; margin-bottom: 10px; color: #666; font-size: 14px;
+  &.total { font-size: 16px; font-weight: 700; color: #2c5530; border-top: 2px solid #f0f0f0; padding-top: 10px; margin-top: 10px; }
+  @media (max-width: 600px) { font-size: 13px; &.total { font-size: 15px; } }
 `;
 
 const CheckoutButton = styled.button`
-  width: 100%; background: #27ae60; color: white; border: none; padding: 14px; border-radius: 8px; font-size: 16px; font-weight: 700; cursor: pointer;
+  width: 100%; background: #27ae60; color: white; border: none; padding: 12px; border-radius: 8px; font-size: 15px; font-weight: 700; cursor: pointer;
   &:hover { background: #219a52; }
   &:disabled { background: #ccc; cursor: not-allowed; }
 `;
@@ -461,7 +469,7 @@ const DashboardCart = () => {
                     </QuantityControls>
                   </ItemInfo>
                   <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '18px', fontWeight: '600', color: '#2c5530', marginBottom: '10px' }}>
+                    <div style={{ fontSize: '16px', fontWeight: '600', color: '#2c5530', marginBottom: '8px' }}>
                       {(item.price * item.quantity).toFixed(2)}€
                     </div>
                     <RemoveButton onClick={() => removeFromCart(item.id)}>

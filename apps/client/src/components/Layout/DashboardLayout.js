@@ -8,12 +8,14 @@ import { FiHome, FiShoppingBag, FiShoppingCart, FiUser, FiSettings, FiLogOut, Fi
 
 const Shell = styled.div`
   width: 100%;
-  margin: 0;
+  max-width: 1200px;
+  margin: 0 auto;
   padding: 96px 20px 24px calc(260px + 24px);
   box-sizing: border-box;
 
   @media (max-width: 900px) {
     padding: 88px 12px 24px 12px;
+    overflow-x: hidden;
   }
 `;
 
@@ -113,7 +115,11 @@ const LogoutButton = styled.button`
   &:hover { background: #ffecec; }
 `;
 
-const Main = styled.main``;
+const Main = styled.main`
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+`;
 
 const HeaderBar = styled.div`
   position: fixed;
