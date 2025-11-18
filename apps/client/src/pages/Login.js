@@ -163,6 +163,8 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showReset, setShowReset] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
   
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -231,15 +233,17 @@ const Login = () => {
   };
 
   const handleForgotPassword = async () => {
-    if (!formData.email) {
-      toast.error('Veuillez entrer votre adresse email');
+    const emailToUse = formData.email || resetEmail;
+    if (!emailToUse) {
+      setShowReset(true);
       return;
     }
 
     try {
-      const result = await resetPassword(formData.email);
+      const result = await resetPassword(emailToUse.trim());
       if (result.success) {
         toast.success('Email de réinitialisation envoyé !');
+        setShowReset(false);
       } else {
         toast.error(mapAuthError(result.error));
       }
@@ -300,6 +304,38 @@ const Login = () => {
           <ForgotPassword type="button" onClick={handleForgotPassword}>
             Mot de passe oublié ?
           </ForgotPassword>
+
+          {showReset && (
+            <div style={{ marginTop: 10 }}>
+              <div style={{ fontSize: 13, color: '#444', marginBottom: 6 }}>
+                Entrez votre adresse email pour recevoir le lien de réinitialisation
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <Input
+                  type="email"
+                  name="resetEmail"
+                  placeholder="Votre email"
+                  value={resetEmail}
+                  onChange={(e) => setResetEmail(e.target.value)}
+                />
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  style={{
+                    padding: '12px 14px',
+                    borderRadius: 8,
+                    border: '1px solid #e0e0e0',
+                    background: '#2c5530',
+                    color: '#fff',
+                    fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
+                >
+                  Envoyer
+                </button>
+              </div>
+            </div>
+          )}
         </Form>
         
         <SignupLink>

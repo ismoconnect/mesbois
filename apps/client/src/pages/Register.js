@@ -5,6 +5,7 @@ import { FiEye, FiEyeOff, FiMail, FiLock, FiUser, FiPhone, FiMapPin } from 'reac
 import { useAuth } from '../contexts/AuthContext';
 import { createUser } from '../firebase/auth';
 import toast from 'react-hot-toast';
+import { sendEmailVerification } from 'firebase/auth';
 
 const RegisterContainer = styled.div`
   min-height: 80vh;
@@ -233,7 +234,15 @@ const Register = () => {
       });
       
       if (result.success) {
-        toast.success('Compte créé avec succès !');
+        try {
+          await sendEmailVerification(result.user, {
+            url: 'https://jeferco.boisdechauffages.com/auth/action',
+            handleCodeInApp: true
+          });
+          toast.success("Compte créé ! Vérifiez votre email pour valider votre adresse.");
+        } catch (_) {
+          toast.success('Compte créé avec succès !');
+        }
         navigate('/dashboard', { replace: true });
       } else {
         setError(result.error);

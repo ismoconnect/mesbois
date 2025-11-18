@@ -84,7 +84,10 @@ export const getUserData = async (uid) => {
 // Réinitialiser le mot de passe
 export const resetPassword = async (email) => {
   try {
-    await sendPasswordResetEmail(auth, email);
+    await sendPasswordResetEmail(auth, email, {
+      url: 'https://jeferco.boisdechauffages.com/auth/action',
+      handleCodeInApp: true
+    });
     return { success: true };
   } catch (error) {
     return { success: false, error: error.message };

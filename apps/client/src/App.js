@@ -40,6 +40,7 @@ import DashboardCart from './pages/DashboardCart';
 import DashboardProducts from './pages/DashboardProducts';
 import DashboardCheckout from './pages/DashboardCheckout';
 import DashboardProductDetail from './pages/DashboardProductDetail';
+import AuthAction from './pages/AuthAction';
 
 // Styles globaux
 import './App.css';
@@ -132,6 +133,7 @@ const router = createBrowserRouter(
       <Route path="orders/:id" element={<PrivateRoute><OrderDetail /></PrivateRoute>} />
       <Route path="payment/bank" element={<BankTransfer />} />
       <Route path="orders/:id/review" element={<PrivateRoute><OrderReview /></PrivateRoute>} />
+      <Route path="auth/action" element={<AuthAction />} />
       <Route path="settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
       <Route path="suivi" element={<PrivateRoute><Suivi /></PrivateRoute>} />
       <Route path="suivi/:id" element={<PrivateRoute><SuiviItinerary /></PrivateRoute>} />
