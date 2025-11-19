@@ -180,6 +180,24 @@ const Register = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  const mapAuthError = (raw) => {
+    if (!raw) return 'Une erreur est survenue';
+    const msg = String(raw).toLowerCase();
+    if (msg.includes('auth/email-already-in-use')) {
+      return "Cette adresse e‑mail est déjà utilisée. Connectez‑vous ou réinitialisez votre mot de passe.";
+    }
+    if (msg.includes('auth/invalid-email')) {
+      return "Adresse e‑mail invalide.";
+    }
+    if (msg.includes('auth/weak-password')) {
+      return "Mot de passe trop faible (minimum 6 caractères).";
+    }
+    if (msg.includes('network') || msg.includes('request-failed')) {
+      return "Problème de réseau. Veuillez réessayer.";
+    }
+    return 'Une erreur est survenue';
+  };
+
   // Rediriger si déjà connecté (uniquement quand on est sur la page /register)
   React.useEffect(() => {
     const path = typeof window !== 'undefined' ? window.location.pathname : '';
@@ -245,10 +263,10 @@ const Register = () => {
         }
         navigate('/dashboard', { replace: true });
       } else {
-        setError(result.error);
+        setError(mapAuthError(result.error));
       }
     } catch (err) {
-      setError('Une erreur est survenue');
+      setError(mapAuthError(err?.message || String(err)));
     } finally {
       setLoading(false);
     }
@@ -259,7 +277,30 @@ const Register = () => {
       <RegisterCard>
         <RegisterTitle>Créer un compte</RegisterTitle>
         
-        {error && <ErrorMessage>{error}</ErrorMessage>}
+        {error && (
+          <>
+            <ErrorMessage>{error}</ErrorMessage>
+            {error.includes('déjà utilisée') && (
+              <div style={{ textAlign: 'center', marginTop: 8 }}>
+                <button
+                  type="button"
+                  onClick={() => navigate('/login')}
+                  style={{
+                    padding: '8px 14px',
+                    borderRadius: 8,
+                    border: '1px solid #e0e0e0',
+                    background: '#2c5530',
+                    color: '#fff',
+                    fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
+                >
+                  Aller à la connexion
+                </button>
+              </div>
+            )}
+          </>
+        )}
         
         <Form onSubmit={handleSubmit}>
           <FormRow>
