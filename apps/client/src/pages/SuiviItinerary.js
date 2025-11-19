@@ -322,19 +322,32 @@ const SuiviItinerary = () => {
       .replace(/[ç]/g, 'c')
       .replace(/[ñ]/g, 'n');
 
-    const yStart = order.shippingAddress ? 330 : 400; // zone de tableau selon adresse
+    const yStart = order.shippingAddress ? 330 : 400; // top Y for table rows
     const rowHeight = 18;
+    const colNameX = 70;
+    const colQtyX = 400;
+    const colUnitX = 470;
+    const colTotalX = 520;
     const rows = (order.items || []).map((item, i) => {
       const y = yStart - (i * rowHeight);
-      const name = sanitize((item.name || '').substring(0, 45));
+      const rectY = y - 6; // background stripe Y
+      const name = sanitize((item.name || '').substring(0, 60));
       const qty = `${item.quantity || 0}`;
       const unit = (item.price != null ? item.price.toFixed(2) : '0.00') + ' EUR';
       const total = (((item.price || 0) * (item.quantity || 0)).toFixed(2)) + ' EUR';
       return [
-        `1 0 0 1 70 ${y} Tm (${name}) Tj`,
-        `1 0 0 1 360 ${y} Tm (${qty}) Tj`,
-        `1 0 0 1 430 ${y} Tm (${unit}) Tj`,
-        `1 0 0 1 510 ${y} Tm (${total}) Tj`
+        // zebra striping on odd rows
+        ...(i % 2 === 1 ? [
+          'q',
+          '0.97 0.97 0.97 rg',
+          `60 ${rectY} 492 16 re`,
+          'f',
+          'Q'
+        ] : []),
+        `1 0 0 1 ${colNameX} ${y} Tm (${name}) Tj`,
+        `1 0 0 1 ${colQtyX} ${y} Tm (${qty}) Tj`,
+        `1 0 0 1 ${colUnitX} ${y} Tm (${unit}) Tj`,
+        `1 0 0 1 ${colTotalX} ${y} Tm (${total}) Tj`
       ].join('\n');
     }).join('\n');
 
@@ -414,7 +427,7 @@ ET
 ${order.shippingAddress ? `q\n0.98 0.98 1 rg\n60 360 492 60 re\nf\n0.17 0.33 0.19 RG\n1 w\n60 360 492 60 re\nS\nQ\n\nBT\n0 0 0 rg\n/F2 14 Tf\n60 430 Td\n(ADRESSE DE LIVRAISON) Tj\n/F2 11 Tf\n70 400 Td\n(${sanitize(order.shippingAddress.fullName)}) Tj\n/F1 10 Tf\n0 -15 Td\n(${sanitize(order.shippingAddress.address)}) Tj\n0 -15 Td\n(${order.shippingAddress.postalCode} ${sanitize(order.shippingAddress.city)}) Tj\n${order.shippingAddress.phone ? `0 -15 Td\n(Telephone: ${order.shippingAddress.phone}) Tj\n` : ''}ET\n` : ''}
 
 q
-0.96 0.96 0.96 rg
+0.92 0.95 0.92 rg
 60 ${order.shippingAddress ? '300' : '380'} 492 28 re
 f
 Q
@@ -425,10 +438,14 @@ BT
 60 ${order.shippingAddress ? '340' : '420'} Td
 (ARTICLES COMMANDES) Tj
 /F2 10 Tf
-1 0 0 1 70 ${order.shippingAddress ? '308' : '388'} Tm (ARTICLE) Tj
-1 0 0 1 360 ${order.shippingAddress ? '308' : '388'} Tm (QTE) Tj
-1 0 0 1 430 ${order.shippingAddress ? '308' : '388'} Tm (PRIX UNIT.) Tj
-1 0 0 1 510 ${order.shippingAddress ? '308' : '388'} Tm (TOTAL) Tj
+1 0 0 1 ${colNameX} ${order.shippingAddress ? '308' : '388'} Tm (ARTICLE) Tj
+1 0 0 1 ${colQtyX} ${order.shippingAddress ? '308' : '388'} Tm (QTE) Tj
+1 0 0 1 ${colUnitX} ${order.shippingAddress ? '308' : '388'} Tm (PRIX UNIT.) Tj
+1 0 0 1 ${colTotalX} ${order.shippingAddress ? '308' : '388'} Tm (TOTAL) Tj
+0.75 0.75 0.75 RG
+1 w
+60 ${order.shippingAddress ? '304' : '384'} 492 0 l
+S
 /F1 10 Tf
 ${rows}
 ET
@@ -442,9 +459,9 @@ Q
 BT
 1 1 1 rg
 /F3 16 Tf
-1 0 0 1 60 ${order.shippingAddress ? (yStart - (order.items?.length || 0) * rowHeight - 10) : (yStart - (order.items?.length || 0) * rowHeight - 10)} Tm (TOTAL:) Tj
+1 0 0 1 ${colQtyX} ${order.shippingAddress ? (yStart - (order.items?.length || 0) * rowHeight - 10) : (yStart - (order.items?.length || 0) * rowHeight - 10)} Tm (TOTAL:) Tj
 /F3 16 Tf
-1 0 0 1 510 ${order.shippingAddress ? (yStart - (order.items?.length || 0) * rowHeight - 10) : (yStart - (order.items?.length || 0) * rowHeight - 10)} Tm (${(order.total?.toFixed(2) || '0.00') + ' EUR'}) Tj
+1 0 0 1 ${colTotalX} ${order.shippingAddress ? (yStart - (order.items?.length || 0) * rowHeight - 10) : (yStart - (order.items?.length || 0) * rowHeight - 10)} Tm (${(order.total?.toFixed(2) || '0.00') + ' EUR'}) Tj
 0.5 0.5 0.5 rg
 /F1 8 Tf
 60 50 Td
