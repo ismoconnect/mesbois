@@ -662,6 +662,24 @@ const OrderDetail = () => {
         updatedAt: new Date()
       });
       setOrder(o => ({ ...o, status }));
+      try {
+        const ci = order.customerInfo || {};
+        const payload = {
+          orderId: id,
+          status,
+          customer: {
+            firstName: ci.firstName || '',
+            lastName: ci.lastName || '',
+            email: ci.email || ''
+          }
+        };
+        fetch('/api/order-status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+          keepalive: true
+        }).catch(()=>{});
+      } catch(_) { /* ignore */ }
     } catch (error) {
       
     } finally {

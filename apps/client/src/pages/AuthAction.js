@@ -86,8 +86,7 @@ export default function AuthAction() {
       setStatus({ state: 'loading', message: 'Vérification en cours…' });
       applyActionCode(auth, oc)
         .then(() => {
-          setStatus({ state: 'success', message: 'Adresse e‑mail vérifiée. Redirection…' });
-          setTimeout(() => navigate('/login', { replace: true }), 1200);
+          setStatus({ state: 'success', message: 'Votre adresse e‑mail a été vérifiée avec succès.' });
         })
         .catch((e) => {
           setStatus({ state: 'error', message: "Lien invalide ou expiré." });
@@ -137,6 +136,9 @@ export default function AuthAction() {
           <>
             <Title>Succès</Title>
             <Text>{status.message}</Text>
+            <Button type="button" onClick={() => navigate('/login', { replace: true })} style={{ marginTop: 12 }}>
+              Aller à la connexion
+            </Button>
           </>
         )}
 

@@ -79,13 +79,19 @@ export const CartProvider = ({ children }) => {
           const merged = Array.from(map.values());
           setCartItems(merged);
           try {
-            await setDoc(cartRef, { items: normalizeCartItems(merged), updatedAt: serverTimestamp() }, { merge: true });
+            const displayName = (user?.displayName || '').trim();
+            const firstName = displayName ? displayName.split(' ')[0] : '';
+            const lastName = displayName ? displayName.split(' ').slice(1).join(' ') : '';
+            await setDoc(cartRef, { items: normalizeCartItems(merged), updatedAt: serverTimestamp(), email: user?.email || '', name: `${firstName} ${lastName}`.trim() }, { merge: true });
           } catch (e) {}
         } else {
           const localStr = localStorage.getItem('bois-de-chauffage-cart');
           const localItems = (() => { try { return JSON.parse(localStr || '[]'); } catch { return []; } })();
           try {
-            await setDoc(cartRef, { items: normalizeCartItems(localItems), updatedAt: serverTimestamp() }, { merge: true });
+            const displayName = (user?.displayName || '').trim();
+            const firstName = displayName ? displayName.split(' ')[0] : '';
+            const lastName = displayName ? displayName.split(' ').slice(1).join(' ') : '';
+            await setDoc(cartRef, { items: normalizeCartItems(localItems), updatedAt: serverTimestamp(), email: user?.email || '', name: `${firstName} ${lastName}`.trim() }, { merge: true });
           } catch (e) {}
         }
 
@@ -128,14 +134,20 @@ export const CartProvider = ({ children }) => {
         // Persist Firestore si connecté
         if (user) {
           const cartRef = doc(db, 'carts', user.uid);
-          setDoc(cartRef, { items: normalizeCartItems(newItems), updatedAt: serverTimestamp() }, { merge: true });
+          const displayName = (user?.displayName || '').trim();
+          const firstName = displayName ? displayName.split(' ')[0] : '';
+          const lastName = displayName ? displayName.split(' ').slice(1).join(' ') : '';
+          setDoc(cartRef, { items: normalizeCartItems(newItems), updatedAt: serverTimestamp(), email: user?.email || '', name: `${firstName} ${lastName}`.trim() }, { merge: true });
         }
         return newItems;
       } else {
         const newItems = [...prevItems, { ...product, quantity }];
         if (user) {
           const cartRef = doc(db, 'carts', user.uid);
-          setDoc(cartRef, { items: normalizeCartItems(newItems), updatedAt: serverTimestamp() }, { merge: true });
+          const displayName = (user?.displayName || '').trim();
+          const firstName = displayName ? displayName.split(' ')[0] : '';
+          const lastName = displayName ? displayName.split(' ').slice(1).join(' ') : '';
+          setDoc(cartRef, { items: normalizeCartItems(newItems), updatedAt: serverTimestamp(), email: user?.email || '', name: `${firstName} ${lastName}`.trim() }, { merge: true });
         }
         return newItems;
       }
@@ -147,7 +159,10 @@ export const CartProvider = ({ children }) => {
       const newItems = prevItems.filter(item => item.id !== productId);
       if (user) {
         const cartRef = doc(db, 'carts', user.uid);
-        setDoc(cartRef, { items: normalizeCartItems(newItems), updatedAt: serverTimestamp() }, { merge: true });
+        const displayName = (user?.displayName || '').trim();
+        const firstName = displayName ? displayName.split(' ')[0] : '';
+        const lastName = displayName ? displayName.split(' ').slice(1).join(' ') : '';
+        setDoc(cartRef, { items: normalizeCartItems(newItems), updatedAt: serverTimestamp(), email: user?.email || '', name: `${firstName} ${lastName}`.trim() }, { merge: true });
       }
       return newItems;
     });
@@ -165,7 +180,10 @@ export const CartProvider = ({ children }) => {
       );
       if (user) {
         const cartRef = doc(db, 'carts', user.uid);
-        setDoc(cartRef, { items: normalizeCartItems(newItems), updatedAt: serverTimestamp() }, { merge: true });
+        const displayName = (user?.displayName || '').trim();
+        const firstName = displayName ? displayName.split(' ')[0] : '';
+        const lastName = displayName ? displayName.split(' ').slice(1).join(' ') : '';
+        setDoc(cartRef, { items: normalizeCartItems(newItems), updatedAt: serverTimestamp(), email: user?.email || '', name: `${firstName} ${lastName}`.trim() }, { merge: true });
       }
       return newItems;
     });
@@ -175,7 +193,10 @@ export const CartProvider = ({ children }) => {
     setCartItems([]);
     if (user) {
       const cartRef = doc(db, 'carts', user.uid);
-      setDoc(cartRef, { items: [], updatedAt: serverTimestamp() }, { merge: true });
+      const displayName = (user?.displayName || '').trim();
+      const firstName = displayName ? displayName.split(' ')[0] : '';
+      const lastName = displayName ? displayName.split(' ').slice(1).join(' ') : '';
+      setDoc(cartRef, { items: [], updatedAt: serverTimestamp(), email: user?.email || '', name: `${firstName} ${lastName}`.trim() }, { merge: true });
     }
   };
 

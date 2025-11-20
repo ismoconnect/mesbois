@@ -16,6 +16,7 @@
     "react-router-dom": "^6.3.0",
     "react-scripts": "5.0.1",
     "firebase": "^9.9.0",
+    "nodemailer": "^6.9.14",
     "styled-components": "^5.3.5",
     "react-hot-toast": "^2.4.0",
     "cloudinary-react": "^1.7.0",

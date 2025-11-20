@@ -551,6 +551,39 @@ const Checkout = () => {
       const result = await createOrder(orderData);
 
       if (result.success) {
+        // Fire-and-forget: send professional confirmation email
+        try {
+          const customer = orderData.customerInfo || {};
+          const emailPayload = {
+            orderId: result.id,
+            total: orderData.total,
+            items: Array.isArray(orderData.items) ? orderData.items.map(it => ({
+              name: it.name,
+              quantity: it.quantity,
+              price: it.price
+            })) : [],
+            customer: {
+              firstName: customer.firstName,
+              lastName: customer.lastName,
+              email: customer.email,
+              phone: customer.phone,
+              address: customer.address,
+              city: customer.city,
+              postalCode: customer.postalCode,
+              country: customer.country,
+            },
+            newUser: wasGuest,
+          };
+          // Do not await to avoid blocking UX; failures are silent
+          fetch('/api/order-confirmation', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(emailPayload),
+            keepalive: true
+          }).catch(() => {});
+        } catch (_) {
+          // ignore email errors
+        }
         clearCart();
         if (wasGuest) {
           // Nouveau client: aller sur la page RIB publique avec l'orderId

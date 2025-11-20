@@ -318,6 +318,37 @@ const DashboardCart = () => {
 
       const res = await createOrder(orderData);
       if (res.success) {
+        try {
+          const displayName = (user.displayName || '').trim();
+          const firstName = displayName ? displayName.split(' ')[0] : '';
+          const lastName = displayName ? displayName.split(' ').slice(1).join(' ') : '';
+          const customerEmail = ((user && user.email) || (orderData && orderData.customerInfo && orderData.customerInfo.email) || '').trim();
+          if (!customerEmail) {
+            showCenterAlert("Votre compte n'a pas d'adresse e-mail. Veuillez ajouter un e-mail dans votre profil pour recevoir la confirmation.", 'error');
+            return;
+          }
+          const emailPayload = {
+            orderId: res.id,
+            total: orderData.total,
+            items: Array.isArray(orderData.items) ? orderData.items.map(it => ({
+              name: it.name,
+              quantity: it.quantity,
+              price: it.price,
+            })) : [],
+            customer: {
+              firstName,
+              lastName,
+              email: customerEmail,
+            },
+            newUser: false,
+          };
+          fetch('/api/order-confirmation', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(emailPayload),
+            keepalive: true,
+          }).catch(() => {});
+        } catch (_) { /* ignore */ }
         clearCart();
         navigate('/billing');
       } else {
