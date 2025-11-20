@@ -66,3 +66,6 @@ Exemples:
 - 2025-11-19
   - Client déployé en prod → https://mesbois-client-pcv8yhput-mummys-projects-67592474.vercel.app
   - Admin déployé en prod → https://mesbois-admin-r5elmtaxu-mummys-projects-67592474.vercel.app
+- 2025-11-20
+  - Client déployé en prod → https://mesbois-client-qamoue95e-mummys-projects-67592474.vercel.app
+  - Admin déployé en prod → https://mesbois-admin-mummys-projects-67592474.vercel.app

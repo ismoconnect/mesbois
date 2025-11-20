@@ -872,7 +872,7 @@ const OrderDetail = () => {
     try {
       setLoading(true);
       const result = await getOrderById(id);
-      
+
       if (result.success) {
         setOrder(result.data);
       } else {
@@ -897,12 +897,21 @@ const OrderDetail = () => {
     setShowConfirm(true);
   };
 
+  const handlePayment = () => {
+    const method = order.payment?.method || 'bank';
+    if (method === 'paypal') {
+      navigate(`/payment/paypal?orderId=${order.id}`);
+    } else {
+      navigate(`/payment/bank?orderId=${order.id}`);
+    }
+  };
+
   const confirmCancelOrder = async () => {
     setShowConfirm(false);
     setCancelling(true);
-    
+
     const result = await cancelOrder(id, 'Annulation client');
-    
+
     if (result.success) {
       setAlert({
         type: 'success',
@@ -994,12 +1003,12 @@ const OrderDetail = () => {
             <FiArrowLeft size={20} />
             Retour aux commandes
           </BackButton>
-          
+
           <OrderTitle>
             <FiPackage size={28} />
             Commande #{order.id.slice(-8)}
           </OrderTitle>
-          
+
           <OrderInfo>
             <InfoItem>
               <h4>Date de commande</h4>
@@ -1013,12 +1022,12 @@ const OrderDetail = () => {
                 })}
               </p>
             </InfoItem>
-            
+
             <InfoItem>
               <h4>Numéro de commande</h4>
               <p>{order.id}</p>
             </InfoItem>
-            
+
             <InfoItem>
               <h4>Mode de livraison</h4>
               <p>
@@ -1026,7 +1035,7 @@ const OrderDetail = () => {
               </p>
             </InfoItem>
           </OrderInfo>
-          
+
           <OrderStatus status={order.status}>
             {getStatusIcon(order.status)}
             {getStatusText(order.status)}
@@ -1048,8 +1057,8 @@ const OrderDetail = () => {
                 <MobileOrderItem key={index}>
                   <MobileItemImage>
                     {item.image ? (
-                      <img 
-                        src={item.image} 
+                      <img
+                        src={item.image}
                         alt={item.name}
                         onError={(e) => {
                           e.target.src = '/placeholder-wood.jpg';
@@ -1191,12 +1200,22 @@ const OrderDetail = () => {
 
           {/* Action Button - Mobile */}
           {(order.status === 'pending' || order.status === 'processing') && (
-            <MobileActionButton 
+            <MobileActionButton
               className="danger"
               onClick={handleCancelOrder}
               disabled={cancelling}
             >
               {cancelling ? 'Annulation...' : 'Annuler la commande'}
+            </MobileActionButton>
+          )}
+
+          {(order.status === 'pending') && (
+            <MobileActionButton
+              className="primary"
+              onClick={handlePayment}
+              style={{ marginTop: 0 }}
+            >
+              Payer la commande
             </MobileActionButton>
           )}
         </MobileContent>
@@ -1209,11 +1228,11 @@ const OrderDetail = () => {
                 <FiPackage size={20} />
                 Articles commandés
               </SectionTitle>
-              
+
               {order.items.map((item, index) => (
                 <OrderItem key={index}>
-                  <ItemImage 
-                    src={item.image || '/placeholder-wood.jpg'} 
+                  <ItemImage
+                    src={item.image || '/placeholder-wood.jpg'}
                     alt={item.name}
                     onError={(e) => {
                       e.target.src = '/placeholder-wood.jpg';
@@ -1231,13 +1250,13 @@ const OrderDetail = () => {
                 </OrderItem>
               ))}
             </OrderItems>
-            
+
             <DeliveryInfo>
               <SectionTitle>
                 <FiMapPin size={20} />
                 Informations de livraison
               </SectionTitle>
-              
+
               <DeliveryAddress>
                 <FiMapPin size={20} />
                 <div>
@@ -1250,7 +1269,7 @@ const OrderDetail = () => {
                   </p>
                 </div>
               </DeliveryAddress>
-              
+
               <PaymentInfo>
                 <FiCreditCard size={20} />
                 <div>
@@ -1262,25 +1281,25 @@ const OrderDetail = () => {
               </PaymentInfo>
             </DeliveryInfo>
           </div>
-          
+
           <OrderSummary>
             <SectionTitle>Résumé</SectionTitle>
-            
+
             <SummaryRow>
               <span>Sous-total</span>
               <span>{(order.total - (order.delivery?.cost || 0)).toFixed(2)}€</span>
             </SummaryRow>
-            
+
             <SummaryRow>
               <span>Livraison</span>
               <span>{(order.delivery?.cost || 0).toFixed(2)}€</span>
             </SummaryRow>
-            
+
             <SummaryRow className="total">
               <span>Total</span>
               <span>{order.total.toFixed(2)}€</span>
             </SummaryRow>
-            
+
             {order.notes && (
               <div style={{ marginTop: '20px', padding: '15px', background: '#f8f9fa', borderRadius: '8px' }}>
                 <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#2c5530', marginBottom: '5px' }}>
@@ -1289,19 +1308,42 @@ const OrderDetail = () => {
                 <p style={{ color: '#666', fontSize: '14px' }}>{order.notes}</p>
               </div>
             )}
-            
+
             {(order.status === 'pending' || order.status === 'processing') && (
-              <CancelButton 
+              <CancelButton
                 onClick={handleCancelOrder}
                 disabled={cancelling}
               >
                 {cancelling ? 'Annulation...' : 'Annuler la commande'}
               </CancelButton>
             )}
+
+            {(order.status === 'pending') && (
+              <button
+                onClick={handlePayment}
+                style={{
+                  width: '100%',
+                  padding: '15px',
+                  borderRadius: '8px',
+                  fontWeight: '600',
+                  fontSize: '14px',
+                  marginTop: '10px',
+                  background: '#2c5530',
+                  color: 'white',
+                  border: 'none',
+                  cursor: 'pointer',
+                  transition: 'background 0.3s ease'
+                }}
+                onMouseOver={(e) => e.target.style.background = '#1e3a22'}
+                onMouseOut={(e) => e.target.style.background = '#2c5530'}
+              >
+                Payer la commande
+              </button>
+            )}
           </OrderSummary>
         </DesktopContent>
       </OrderDetailContainer>
-      
+
       {/* Confirmation d'annulation */}
       {showConfirm && (
         <AlertOverlay>
@@ -1309,14 +1351,14 @@ const OrderDetail = () => {
             <h3>Confirmer l'annulation</h3>
             <p>Êtes-vous sûr de vouloir annuler cette commande ?</p>
             <div className="button-group">
-              <button 
+              <button
                 className="confirm"
                 onClick={confirmCancelOrder}
                 disabled={cancelling}
               >
                 {cancelling ? 'Annulation...' : 'OK'}
               </button>
-              <button 
+              <button
                 className="cancel"
                 onClick={() => setShowConfirm(false)}
                 disabled={cancelling}
@@ -1334,7 +1376,7 @@ const OrderDetail = () => {
           <AlertBox>
             <h3 className={alert.type}>{alert.title}</h3>
             <p>{alert.message}</p>
-            <button 
+            <button
               className={alert.type}
               onClick={() => setAlert(null)}
             >

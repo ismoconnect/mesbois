@@ -506,7 +506,7 @@ const Checkout = () => {
           return toast.error(regRes.error || 'Impossible de créer le compte');
         }
         currentUser = regRes.user;
-        try { await sendEmailVerification(currentUser); } catch {}
+        try { await sendEmailVerification(currentUser); } catch { }
       }
 
       const orderData = {
@@ -580,7 +580,7 @@ const Checkout = () => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(emailPayload),
             keepalive: true
-          }).catch(() => {});
+          }).catch(() => { });
         } catch (_) {
           // ignore email errors
         }
@@ -775,8 +775,7 @@ const Checkout = () => {
       </CheckoutHeader>
 
       <CheckoutContent>
-        {(!user || showCoupon) && (
-          <CheckoutForm id="checkoutForm" onSubmit={handleSubmit}>
+        <CheckoutForm id="checkoutForm" onSubmit={handleSubmit}>
           {!user && authMode === 'login' && (
             <div style={{
               marginBottom: 24,
@@ -870,7 +869,7 @@ const Checkout = () => {
             </div>
           )}
 
-          {!user && authMode === 'register' && (
+          {(user || authMode === 'register') && (
             <>
               <SectionTitle>
                 <FiUser size={20} />
@@ -1017,23 +1016,23 @@ const Checkout = () => {
               </SectionTitle>
               <div style={{ marginBottom: 16 }}>
                 <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                  <label style={{ display:'flex', alignItems:'center', gap:8, border:'2px solid #e0e0e0', borderRadius:8, padding:'10px 12px', cursor:'pointer' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, border: '2px solid #e0e0e0', borderRadius: 8, padding: '10px 12px', cursor: 'pointer' }}>
                     <input
                       type="radio"
                       name="paymentMethod"
                       value="bank"
                       checked={formData.paymentMethod === 'bank'}
-                      onChange={(e)=> setFormData({ ...formData, paymentMethod: e.target.value })}
+                      onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
                     />
                     Virement bancaire
                   </label>
-                  <label style={{ display:'flex', alignItems:'center', gap:8, border:'2px solid #e0e0e0', borderRadius:8, padding:'10px 12px', cursor:'pointer' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, border: '2px solid #e0e0e0', borderRadius: 8, padding: '10px 12px', cursor: 'pointer' }}>
                     <input
                       type="radio"
                       name="paymentMethod"
                       value="paypal"
                       checked={formData.paymentMethod === 'paypal'}
-                      onChange={(e)=> setFormData({ ...formData, paymentMethod: e.target.value })}
+                      onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
                     />
                     PayPal (paiement manuel)
                   </label>
@@ -1057,7 +1056,7 @@ const Checkout = () => {
               {!user && authMode === 'register' && (
                 <div style={{ marginTop: 12 }}>
                   <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <input type="checkbox" name="createAccount" required checked={acceptCreate} onChange={(e)=> setAcceptCreate(e.target.checked)} />
+                    <input type="checkbox" name="createAccount" required checked={acceptCreate} onChange={(e) => setAcceptCreate(e.target.checked)} />
                     Créer un compte ?
                   </label>
                   {acceptCreate && (
@@ -1068,7 +1067,7 @@ const Checkout = () => {
                           name="accountPassword"
                           placeholder="Mot de passe *"
                           value={accountPassword}
-                          onChange={(e)=> setAccountPassword(e.target.value)}
+                          onChange={(e) => setAccountPassword(e.target.value)}
                           required
                           $withRightIcon
                         />
@@ -1084,7 +1083,6 @@ const Checkout = () => {
             </>
           )}
         </CheckoutForm>
-        )}
 
         <OrderSummary>
           <SectionTitle>Résumé de la commande</SectionTitle>

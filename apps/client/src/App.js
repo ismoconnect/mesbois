@@ -72,7 +72,7 @@ function RootLayout() {
     path === '/suivi' ||
     path.startsWith('/suivi/')
   );
-  const isMinimalArea = isDashboardArea || path.startsWith('/payment/bank');
+  const isMinimalArea = isDashboardArea || path.startsWith('/payment/bank') || path.startsWith('/payment/paypal');
   return (
     <AppContainer className="App">
       {!isMinimalArea && <Header />}
