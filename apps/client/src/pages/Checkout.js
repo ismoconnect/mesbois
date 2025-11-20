@@ -343,7 +343,7 @@ const Checkout = () => {
     postalCode: userData?.postalCode || '',
     country: userData?.country || 'France',
     deliveryMethod: 'standard',
-    paymentMethod: 'card',
+    paymentMethod: 'bank',
     notes: ''
   });
 
@@ -536,7 +536,7 @@ const Checkout = () => {
           cost: subtotal > 50 ? 0 : 9.99
         },
         payment: {
-          method: 'bank'
+          method: formData.paymentMethod || 'bank'
         },
         notes: formData.notes,
         total: Math.max(0, subtotal - discount) + (subtotal > 50 ? 0 : 9.99),
@@ -585,12 +585,15 @@ const Checkout = () => {
           // ignore email errors
         }
         clearCart();
-        if (wasGuest) {
-          // Nouveau client: aller sur la page RIB publique avec l'orderId
-          navigate(`/payment/bank?orderId=${result.id}`);
+        const payMethod = orderData.payment?.method || 'bank';
+        if (payMethod === 'paypal') {
+          navigate(`/payment/paypal?orderId=${result.id}`);
         } else {
-          // Client déjà connecté: aller sur la page Facturation/RIB du dashboard
-          navigate('/billing');
+          if (wasGuest) {
+            navigate(`/payment/bank?orderId=${result.id}`);
+          } else {
+            navigate('/billing');
+          }
         }
       } else {
         toast.error(result.error);
@@ -1009,11 +1012,38 @@ const Checkout = () => {
               </InputGroup>
 
               <SectionTitle>
+                <FiCreditCard size={20} />
+                Mode de paiement
+              </SectionTitle>
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                  <label style={{ display:'flex', alignItems:'center', gap:8, border:'2px solid #e0e0e0', borderRadius:8, padding:'10px 12px', cursor:'pointer' }}>
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="bank"
+                      checked={formData.paymentMethod === 'bank'}
+                      onChange={(e)=> setFormData({ ...formData, paymentMethod: e.target.value })}
+                    />
+                    Virement bancaire
+                  </label>
+                  <label style={{ display:'flex', alignItems:'center', gap:8, border:'2px solid #e0e0e0', borderRadius:8, padding:'10px 12px', cursor:'pointer' }}>
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="paypal"
+                      checked={formData.paymentMethod === 'paypal'}
+                      onChange={(e)=> setFormData({ ...formData, paymentMethod: e.target.value })}
+                    />
+                    PayPal (paiement manuel)
+                  </label>
+                </div>
+              </div>
+
+              <SectionTitle>
                 <FiTruck size={20} />
                 Informations complémentaires
               </SectionTitle>
-
-              {/* Section paiement retirée selon demande: pas d'options affichées ici */}
 
               <InputGroup>
                 <TextArea

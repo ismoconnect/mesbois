@@ -307,6 +307,14 @@ const AdminLayout = ({ children }) => {
             <FiSettings size={18} />
             Paramètres du site
           </NavItem>
+          <NavItem 
+            to="/settings/payments" 
+            $active={isActive('/settings/payments')}
+            onClick={() => setSidebarOpen(false)}
+          >
+            <FiSettings size={18} />
+            Moyens de paiement
+          </NavItem>
         </NavSection>
       </Sidebar>
       

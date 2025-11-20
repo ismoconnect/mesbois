@@ -10,6 +10,7 @@ import OrderDetail from './pages/OrderDetail';
 import Carts from './pages/Carts';
 import CartDetail from './pages/CartDetail';
 import SiteSettings from './pages/SiteSettings';
+import PaymentSettings from './pages/PaymentSettings';
 import FirestoreDebug from './pages/FirestoreDebug';
 import AdminRoute from './components/Auth/AdminRoute';
 import AdminLayout from './layout/AdminLayout';
@@ -115,6 +116,16 @@ const App = () => {
           <AdminRoute>
             <AdminLayout>
               <SiteSettings />
+            </AdminLayout>
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/settings/payments"
+        element={
+          <AdminRoute>
+            <AdminLayout>
+              <PaymentSettings />
             </AdminLayout>
           </AdminRoute>
         }

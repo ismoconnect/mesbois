@@ -22,6 +22,7 @@ import Profile from './pages/Profile';
 import Orders from './pages/Orders';
 import OrderDetail from './pages/OrderDetail';
 import BankTransfer from './pages/BankTransfer';
+import PayPalPayment from './pages/PayPalPayment';
 import OrderReview from './pages/OrderReview';
 import About from './pages/About';
 import Contact from './pages/Contact';
@@ -132,6 +133,7 @@ const router = createBrowserRouter(
       <Route path="orders" element={<PrivateRoute><Orders /></PrivateRoute>} />
       <Route path="orders/:id" element={<PrivateRoute><OrderDetail /></PrivateRoute>} />
       <Route path="payment/bank" element={<BankTransfer />} />
+      <Route path="payment/paypal" element={<PayPalPayment />} />
       <Route path="orders/:id/review" element={<PrivateRoute><OrderReview /></PrivateRoute>} />
       <Route path="auth/action" element={<AuthAction />} />
       <Route path="settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
