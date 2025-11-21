@@ -211,7 +211,7 @@ const QuantityInput = styled.input`
   }
 `;
 
- 
+
 
 const RemoveIconButton = styled.button`
   background: #fff5f5;
@@ -355,7 +355,7 @@ const CheckoutButton = styled.button`
   }
 `;
 
- 
+
 
 const LoginPrompt = styled.div`
   background: #fff3cd;
@@ -419,7 +419,7 @@ const Cart = () => {
             Mon Panier
           </CartTitle>
         </CartHeader>
-        
+
         <EmptyCart>
           <FiShoppingBag size={64} />
           <h3>Votre panier est vide</h3>
@@ -442,7 +442,7 @@ const Cart = () => {
           Mon Panier ({cartItems.length} article{cartItems.length > 1 ? 's' : ''})
         </CartTitle>
       </CartHeader>
-      
+
       <CartContent>
         <CartItems>
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
@@ -455,8 +455,8 @@ const Cart = () => {
               <RemoveIconButton onClick={() => removeFromCart(item.id)} aria-label="Supprimer l'article">
                 <FiTrash2 size={16} />
               </RemoveIconButton>
-              <ItemImage 
-                src={item.image || 'https://picsum.photos/seed/fallback/96/96'} 
+              <ItemImage
+                src={item.image || 'https://picsum.photos/seed/fallback/96/96'}
                 alt={item.name}
                 onError={(e) => {
                   e.target.src = 'https://picsum.photos/seed/fallback/96/96';
@@ -466,7 +466,7 @@ const Cart = () => {
                 <ItemName>{item.name}</ItemName>
                 <ItemDescription>{item.description}</ItemDescription>
                 <ItemPrice>{(Number(item.price) || 0)}€ / unité</ItemPrice>
-                
+
                 <QuantityControls>
                   <QuantityButton
                     onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
@@ -487,7 +487,7 @@ const Cart = () => {
                   </QuantityButton>
                 </QuantityControls>
               </ItemInfo>
-              
+
               <div style={{ textAlign: 'right' }}>
                 <div style={{ fontSize: '18px', fontWeight: '600', color: '#2c5530', marginBottom: '10px' }}>
                   {((Number(item.price) || 0) * (Number(item.quantity) || 0)).toFixed(2)}€
@@ -496,46 +496,52 @@ const Cart = () => {
             </CartItem>
           ))}
         </CartItems>
-        
+
         <CartSummary>
           <SummaryTitle>Résumé de la commande</SummaryTitle>
           {/* Résumé simplifié: uniquement les totaux, sans liste des articles */}
-          
+
           {!user && (
             <LoginPrompt>
               <p>Vous pouvez créer votre compte à l'étape suivante</p>
               <Link to="/checkout">Poursuivre mon paiement</Link>
             </LoginPrompt>
           )}
-          
+
           <SummaryRow>
             <span>Sous-total</span>
             <span>{subtotal.toFixed(2)}€</span>
           </SummaryRow>
-          
+
           <SummaryRow>
             <span>Livraison</span>
             <span>{shipping === 0 ? 'Gratuite' : `${shipping.toFixed(2)}€`}</span>
           </SummaryRow>
-          
+
           {shipping > 0 && (
             <div style={{ fontSize: '12px', color: '#666', marginBottom: '15px' }}>
               Livraison gratuite à partir de 50€
             </div>
           )}
-          
+
           <SummaryRow className="total">
             <span>Total</span>
             <span>{total.toFixed(2)}€</span>
           </SummaryRow>
-          
+
+          <CheckoutButton
+            onClick={() => navigate('/products')}
+            style={{ background: 'white', color: '#2c5530', border: '1px solid #2c5530', marginBottom: '10px', marginTop: '0' }}
+          >
+            Continuer mes achats
+          </CheckoutButton>
           <CheckoutButton onClick={handleCheckout}>
             {user ? 'Finaliser la commande' : 'Poursuivre mon paiement'}
           </CheckoutButton>
         </CartSummary>
       </CartContent>
 
-      
+
     </CartContainer>
   );
 };

@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import DashboardLayout from '../components/Layout/DashboardLayout';
 import { getUserOrders } from '../firebase/orders';
 import { getRIB } from '../firebase/rib';
+import { getPaypalInfo } from '../firebase/paypal';
 import { auth } from '../firebase/config';
 import { signInAnonymously } from 'firebase/auth';
 import toast from 'react-hot-toast';
@@ -84,6 +85,7 @@ const Billing = () => {
   const [loading, setLoading] = useState(true);
   const [orders, setOrders] = useState([]);
   const [rib, setRib] = useState({ holder: '', iban: '', bic: '', bank: '' });
+  const [paypalInfo, setPaypalInfo] = useState({ email: '', instructions: '' });
 
   const showCenterAlert = (message) => {
     toast.dismiss('billing-alert');
@@ -148,7 +150,7 @@ const Billing = () => {
   };
 
   const copy = async (text) => {
-    try { await navigator.clipboard.writeText(text || ''); } catch {}
+    try { await navigator.clipboard.writeText(text || ''); } catch { }
   };
 
   useEffect(() => {
@@ -160,25 +162,37 @@ const Billing = () => {
         if (!auth.currentUser) {
           await signInAnonymously(auth);
         }
-      } catch {}
+      } catch { }
 
-      const [ordersRes, ribRes] = await Promise.all([
+      const [ordersRes, ribRes, paypalRes] = await Promise.all([
         getUserOrders(user.uid),
-        getRIB()
+        getRIB(),
+        getPaypalInfo()
       ]);
       if (ordersRes.success) {
-        const pendingBank = ordersRes.data.filter(o => (o.payment?.method === 'bank') && (o.status !== 'paid' && o.status !== 'delivered'));
-        setOrders(pendingBank);
+        const pending = ordersRes.data.filter(o =>
+          (o.payment?.method === 'bank' || o.payment?.method === 'paypal') &&
+          (o.status !== 'paid' && o.status !== 'delivered' && o.status !== 'cancelled')
+        );
+        setOrders(pending);
       }
       if (ribRes.success) {
         setRib(ribRes.data);
       } else {
-        showCenterAlert(ribRes.error || 'Impossible de charger le RIB');
+        // Fallback RIB
         setRib({
           holder: process.env.REACT_APP_RIB_HOLDER || '',
           iban: process.env.REACT_APP_RIB_IBAN || '',
           bic: process.env.REACT_APP_RIB_BIC || '',
           bank: process.env.REACT_APP_RIB_BANK || ''
+        });
+      }
+      if (paypalRes.success) {
+        setPaypalInfo(paypalRes.data);
+      } else {
+        setPaypalInfo({
+          email: process.env.REACT_APP_PAYPAL_EMAIL || '',
+          instructions: process.env.REACT_APP_PAYPAL_INSTRUCTIONS || ''
         });
       }
       setLoading(false);
@@ -188,18 +202,20 @@ const Billing = () => {
 
   if (!user) return null;
 
+  const hasBankOrders = orders.some(o => o.payment?.method === 'bank');
+  const hasPaypalOrders = orders.some(o => o.payment?.method === 'paypal');
+
   return (
     <DashboardLayout>
       <Container>
-        <Title>Facturation</Title>
+        <Title>Facturation & Paiement</Title>
 
         <AlertBanner>
-          Pour un traitement plus rapide de votre commande, privilégiez un <strong>virement instantané</strong>.
-          Les virements bancaires instantanés sont crédités en quelques minutes, alors qu'un virement SEPA classique
-          peut mettre jusqu'à 24 à 72 heures ouvrées avant d'être pris en compte.
+          Pour un traitement rapide, effectuez le règlement dès que possible.
+          Votre commande sera validée et expédiée dès réception de votre paiement.
         </AlertBanner>
 
-        <Info>Effectuez le virement sur le RIB ci-dessous en indiquant la référence. À réception, votre commande passe en préparation puis en livraison vers votre adresse.</Info>
+        <Info>Retrouvez ci-dessous les informations nécessaires pour régler vos commandes en attente.</Info>
 
         <Card>
           <div style={{
@@ -220,31 +236,28 @@ const Billing = () => {
           </div>
           <ol style={{ paddingLeft: 18, margin: 0, color: '#111827', fontSize: 14, lineHeight: 1.7 }}>
             <li style={{ marginBottom: 6 }}>
-              Effectuez un virement bancaire en utilisant les coordonnées ci-dessous (titulaire, banque, IBAN, BIC).
+              Effectuez le paiement en utilisant les coordonnées affichées ci-dessous (Virement ou PayPal).
             </li>
             <li style={{ marginBottom: 6 }}>
-              Indiquez <strong>la référence du virement</strong> fournie pour votre commande afin que nous puissions l’identifier rapidement.
+              Indiquez <strong>la référence de commande</strong> fournie afin que nous puissions l’identifier rapidement.
             </li>
             <li style={{ marginBottom: 6 }}>
-              Dès réception du virement, votre commande est validée et passe en <strong>préparation</strong> dans notre entrepôt.
-            </li>
-            <li style={{ marginBottom: 6 }}>
-              Une fois préparée, votre commande est <strong>expédiée à l’adresse de livraison</strong> indiquée lors de votre achat.
+              Dès réception du paiement, votre commande est validée et passe en <strong>préparation</strong>.
             </li>
             <li>
-              Vous pouvez suivre l’avancement (en attente de virement, préparée, expédiée, livrée) depuis la page <strong>Suivi</strong> de votre espace client.
+              Vous pouvez suivre l’avancement depuis la page <strong>Suivi</strong> de votre espace client.
             </li>
           </ol>
         </Card>
 
         <Card>
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:10, flexWrap:'wrap' }}>
-            <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-              <span style={{ color:'#6b7280', fontWeight:600 }}>
-                Votre commande sera traitée dès que vous effectuerez le virement sur le RIB ci-dessous. Le traitement se fera dans un bref délai et la livraison suivra. Vous pouvez suivre vos commandes depuis la page Suivi.
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ color: '#6b7280', fontWeight: 600 }}>
+                Votre commande sera traitée dès réception du paiement. Le traitement se fera dans un bref délai et la livraison suivra.
               </span>
             </div>
-            <Link to="/suivi" style={{ textDecoration:'none', background:'#2c5530', color:'#fff', padding:'8px 12px', borderRadius:8, fontWeight:800 }}>
+            <Link to="/suivi" style={{ textDecoration: 'none', background: '#2c5530', color: '#fff', padding: '8px 12px', borderRadius: 8, fontWeight: 800 }}>
               Suivre ma commande
             </Link>
           </div>
@@ -253,62 +266,89 @@ const Billing = () => {
         {loading && <Card>Chargement…</Card>}
 
         {!loading && orders.length === 0 && (
-          <Card>Aucune facture en attente de virement.</Card>
-        )}
-
-        {!loading && orders.length > 0 && (
-          <Card>
-            <div style={{ fontWeight: 800, marginBottom: 8 }}>Coordonnées bancaires</div>
-            <RIBGrid>
-              <RIBField>
-                <strong>Titulaire du compte</strong>
-                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', gap:8 }}>
-                  <span>{rib.holder}</span>
-                  <button onClick={() => copy(rib.holder)} style={{ border:'1px solid #e0e0e0', background:'#f9fafb', borderRadius:8, padding:'6px 8px', cursor:'pointer' }}>Copier</button>
-                </div>
-              </RIBField>
-              <RIBField>
-                <strong>Banque</strong>
-                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', gap:8 }}>
-                  <span>{rib.bank}</span>
-                  <button onClick={() => copy(rib.bank)} style={{ border:'1px solid #e0e0e0', background:'#f9fafb', borderRadius:8, padding:'6px 8px', cursor:'pointer' }}>Copier</button>
-                </div>
-              </RIBField>
-              <RIBField>
-                <strong>IBAN</strong>
-                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', gap:8 }}>
-                  <span>{rib.iban}</span>
-                  <button onClick={() => copy(rib.iban)} style={{ border:'1px solid #e0e0e0', background:'#f9fafb', borderRadius:8, padding:'6px 8px', cursor:'pointer' }}>Copier</button>
-                </div>
-              </RIBField>
-              <RIBField>
-                <strong>BIC</strong>
-                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', gap:8 }}>
-                  <span>{rib.bic}</span>
-                  <button onClick={() => copy(rib.bic)} style={{ border:'1px solid #e0e0e0', background:'#f9fafb', borderRadius:8, padding:'6px 8px', cursor:'pointer' }}>Copier</button>
-                </div>
-              </RIBField>
-            </RIBGrid>
-          </Card>
+          <Card>Aucune commande en attente de paiement.</Card>
         )}
 
         {orders.map((order) => {
           const ref = formatTransferRef(order.id);
+          const isPaypal = order.payment?.method === 'paypal';
+          const statusText = isPaypal ? 'En attente de paiement PayPal' : 'En attente de virement';
+
           return (
             <Card key={order.id}>
-              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', gap: 10, flexWrap:'wrap' }}>
-                <div style={{ fontWeight: 800 }}>Commande #{order.id.slice(-8)}</div>
-                <Badge>En attente de virement</Badge>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 16 }}>
+                <div style={{ fontWeight: 800, fontSize: 18 }}>Commande #{order.id.slice(-8)}</div>
+                <Badge>{statusText}</Badge>
               </div>
-              <RIBGrid>
-                <RIBField style={{ gridColumn: '1 / -1' }}>
-                  <strong>Référence du virement</strong>
-                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', gap:8 }}>
-                    <span>{ref}</span>
-                    <button onClick={() => copy(ref)} style={{ border:'1px solid #e0e0e0', background:'#f9fafb', borderRadius:8, padding:'6px 8px', cursor:'pointer' }}>Copier</button>
-                  </div>
-                </RIBField>
-              </RIBGrid>
+
+              {isPaypal ? (
+                <>
+                  <div style={{ fontWeight: 700, marginBottom: 8, color: '#2c5530' }}>Coordonnées PayPal à utiliser :</div>
+                  <RIBGrid>
+                    <RIBField>
+                      <strong>Email PayPal</strong>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+                        <span>{paypalInfo.email}</span>
+                        <button onClick={() => copy(paypalInfo.email)} style={{ border: '1px solid #e0e0e0', background: '#f9fafb', borderRadius: 8, padding: '6px 8px', cursor: 'pointer' }}>Copier</button>
+                      </div>
+                    </RIBField>
+                    {paypalInfo.instructions && (
+                      <RIBField style={{ gridColumn: '1 / -1' }}>
+                        <strong>Instructions</strong>
+                        <div style={{ whiteSpace: 'pre-wrap' }}>{paypalInfo.instructions}</div>
+                      </RIBField>
+                    )}
+                    <RIBField style={{ gridColumn: '1 / -1' }}>
+                      <strong>Référence à indiquer</strong>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+                        <span>{ref}</span>
+                        <button onClick={() => copy(ref)} style={{ border: '1px solid #e0e0e0', background: '#f9fafb', borderRadius: 8, padding: '6px 8px', cursor: 'pointer' }}>Copier</button>
+                      </div>
+                    </RIBField>
+                  </RIBGrid>
+                </>
+              ) : (
+                <>
+                  <div style={{ fontWeight: 700, marginBottom: 8, color: '#2c5530' }}>Coordonnées bancaires à utiliser :</div>
+                  <RIBGrid>
+                    <RIBField>
+                      <strong>Titulaire</strong>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+                        <span>{rib.holder}</span>
+                        <button onClick={() => copy(rib.holder)} style={{ border: '1px solid #e0e0e0', background: '#f9fafb', borderRadius: 8, padding: '6px 8px', cursor: 'pointer' }}>Copier</button>
+                      </div>
+                    </RIBField>
+                    <RIBField>
+                      <strong>Banque</strong>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+                        <span>{rib.bank}</span>
+                        <button onClick={() => copy(rib.bank)} style={{ border: '1px solid #e0e0e0', background: '#f9fafb', borderRadius: 8, padding: '6px 8px', cursor: 'pointer' }}>Copier</button>
+                      </div>
+                    </RIBField>
+                    <RIBField>
+                      <strong>IBAN</strong>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+                        <span>{rib.iban}</span>
+                        <button onClick={() => copy(rib.iban)} style={{ border: '1px solid #e0e0e0', background: '#f9fafb', borderRadius: 8, padding: '6px 8px', cursor: 'pointer' }}>Copier</button>
+                      </div>
+                    </RIBField>
+                    <RIBField>
+                      <strong>BIC</strong>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+                        <span>{rib.bic}</span>
+                        <button onClick={() => copy(rib.bic)} style={{ border: '1px solid #e0e0e0', background: '#f9fafb', borderRadius: 8, padding: '6px 8px', cursor: 'pointer' }}>Copier</button>
+                      </div>
+                    </RIBField>
+                    <RIBField style={{ gridColumn: '1 / -1' }}>
+                      <strong>Référence à indiquer</strong>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+                        <span>{ref}</span>
+                        <button onClick={() => copy(ref)} style={{ border: '1px solid #e0e0e0', background: '#f9fafb', borderRadius: 8, padding: '6px 8px', cursor: 'pointer' }}>Copier</button>
+                      </div>
+                    </RIBField>
+                  </RIBGrid>
+                </>
+              )}
             </Card>
           );
         })}

@@ -388,14 +388,18 @@ const Checkout = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    e.stopPropagation();
     if (!authFields.email || !authFields.password) {
-      return toast.error('Veuillez renseigner votre email et votre mot de passe');
+      toast.error('Veuillez renseigner votre email et votre mot de passe');
+      return;
     }
     try {
       setAuthLoading(true);
       const res = await signInUser(authFields.email, authFields.password);
       if (!res.success) {
-        return toast.error(res.error || 'Impossible de vous connecter');
+        toast.error(res.error || 'Impossible de vous connecter');
+        setAuthLoading(false);
+        return;
       }
       toast.dismiss('login-success');
       toast.custom((t) => (
@@ -451,12 +455,12 @@ const Checkout = () => {
         duration: 1000,
         position: 'top-center'
       });
-      setAuthMode('register');
-      setAcceptCreate(false);
+      // Don't switch to register mode - user is now logged in
       setShowCoupon(false);
+      setAuthLoading(false);
     } catch (err) {
+      console.error('Login error:', err);
       toast.error('Erreur lors de la connexion');
-    } finally {
       setAuthLoading(false);
     }
   };
@@ -468,6 +472,12 @@ const Checkout = () => {
     if (!acceptTerms) {
       return toast.error('Veuillez lire et accepter les conditions générales avant de confirmer la commande.');
     }
+
+    // Ensure payment method is selected if user is logged in or in register mode
+    if ((user || authMode === 'register') && !formData.paymentMethod) {
+      return toast.error('Veuillez sélectionner un mode de paiement.');
+    }
+
     setLoading(true);
 
     try {
@@ -586,14 +596,14 @@ const Checkout = () => {
         }
         clearCart();
         const payMethod = orderData.payment?.method || 'bank';
-        if (payMethod === 'paypal') {
-          navigate(`/payment/paypal?orderId=${result.id}`);
-        } else {
-          if (wasGuest) {
-            navigate(`/payment/bank?orderId=${result.id}`);
+        if (wasGuest) {
+          if (formData.paymentMethod === 'paypal') {
+            navigate(`/payment/paypal?orderId=${result.id}`);
           } else {
-            navigate('/billing');
+            navigate(`/payment/bank?orderId=${result.id}`);
           }
+        } else {
+          navigate('/billing');
         }
       } else {
         toast.error(result.error);
@@ -788,58 +798,203 @@ const Checkout = () => {
                 <FiLock size={20} />
                 Connexion à votre compte
               </SectionTitle>
-              <InputGroup>
-                <Input
-                  type="email"
-                  name="email"
-                  placeholder="Email"
-                  value={authFields.email}
-                  onChange={handleAuthFieldChange}
-                  required
-                />
-              </InputGroup>
-              <InputGroup>
-                <Input
-                  type="password"
-                  name="password"
-                  placeholder="Mot de passe"
-                  value={authFields.password}
-                  onChange={handleAuthFieldChange}
-                  required
-                />
-              </InputGroup>
-              <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
-                <button
-                  type="button"
-                  onClick={handleLogin}
-                  disabled={authLoading}
-                  style={{
-                    padding: '10px 16px',
+              <div onKeyDown={(e) => e.key === 'Enter' && handleLogin(e)}>
+                <InputGroup>
+                  <Input
+                    type="email"
+                    name="email"
+                    placeholder="Email"
+                    value={authFields.email}
+                    onChange={handleAuthFieldChange}
+                    required
+                  />
+                </InputGroup>
+                <InputGroup>
+                  <Input
+                    type="password"
+                    name="password"
+                    placeholder="Mot de passe"
+                    value={authFields.password}
+                    onChange={handleAuthFieldChange}
+                    required
+                  />
+                </InputGroup>
+                <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
+                  <button
+                    type="button"
+                    onClick={handleLogin}
+                    disabled={authLoading}
+                    style={{
+                      padding: '10px 16px',
+                      borderRadius: 8,
+                      background: '#2c5530',
+                      color: '#fff',
+                      border: 'none',
+                      fontWeight: 700,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {authLoading ? 'Connexion…' : 'Se connecter'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAuthMode('register')}
+                    style={{
+                      padding: '10px 16px',
+                      borderRadius: 8,
+                      background: '#fff',
+                      color: '#2c5530',
+                      border: '1px solid #e0e0e0',
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Continuer sans connexion
+                  </button>
+                </div>
+              </div>
+
+              {/* Payment options for quick selection */}
+              <div style={{ marginTop: 20, borderTop: '1px solid #eee', paddingTop: 16 }}>
+                <p style={{ marginBottom: 10, fontSize: 14, fontWeight: 600, color: '#2c5530' }}>
+                  Choisissez votre moyen de paiement :
+                </p>
+                <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                  <label style={{
+                    flex: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    border: '2px solid #e0e0e0',
                     borderRadius: 8,
-                    background: '#2c5530',
-                    color: '#fff',
-                    border: 'none',
-                    fontWeight: 700,
-                    cursor: 'pointer'
-                  }}
-                >
-                  {authLoading ? 'Connexion…' : 'Se connecter'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setAuthMode('register')}
-                  style={{
-                    padding: '10px 16px',
+                    padding: '10px 12px',
+                    cursor: 'pointer',
+                    background: formData.paymentMethod === 'bank' ? '#f0fdf4' : 'white',
+                    borderColor: formData.paymentMethod === 'bank' ? '#2c5530' : '#e0e0e0'
+                  }}>
+                    <input
+                      type="radio"
+                      name="paymentMethodQuick"
+                      value="bank"
+                      checked={formData.paymentMethod === 'bank'}
+                      onChange={(e) => {
+                        setFormData({ ...formData, paymentMethod: e.target.value });
+                      }}
+                    />
+                    Virement bancaire
+                  </label>
+                  <label style={{
+                    flex: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    border: '2px solid #e0e0e0',
                     borderRadius: 8,
-                    background: '#fff',
-                    color: '#2c5530',
-                    border: '1px solid #e0e0e0',
-                    fontWeight: 600,
-                    cursor: 'pointer'
-                  }}
-                >
-                  Continuer sans connexion
-                </button>
+                    padding: '10px 12px',
+                    cursor: 'pointer',
+                    background: formData.paymentMethod === 'paypal' ? '#f0fdf4' : 'white',
+                    borderColor: formData.paymentMethod === 'paypal' ? '#2c5530' : '#e0e0e0'
+                  }}>
+                    <input
+                      type="radio"
+                      name="paymentMethodQuick"
+                      value="paypal"
+                      checked={formData.paymentMethod === 'paypal'}
+                      onChange={(e) => {
+                        setFormData({ ...formData, paymentMethod: e.target.value });
+                      }}
+                    />
+                    PayPal
+                  </label>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {user && authMode === 'login' && (
+            <div style={{
+              marginBottom: 24,
+              padding: 20,
+              borderRadius: 8,
+              border: '2px solid #27ae60',
+              background: '#f0fdf4'
+            }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                marginBottom: 16,
+                color: '#27ae60',
+                fontSize: 18,
+                fontWeight: 700
+              }}>
+                <FiLock size={24} />
+                Connexion réussie !
+              </div>
+              <p style={{
+                color: '#2c5530',
+                marginBottom: 20,
+                fontSize: 15,
+                lineHeight: 1.5
+              }}>
+                Choisissez un mode de paiement pour confirmer votre achat.
+              </p>
+
+              {/* Payment options */}
+              <div>
+                <p style={{ marginBottom: 10, fontSize: 14, fontWeight: 600, color: '#2c5530' }}>
+                  Mode de paiement :
+                </p>
+                <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                  <label style={{
+                    flex: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    border: '2px solid #e0e0e0',
+                    borderRadius: 8,
+                    padding: '12px 14px',
+                    cursor: 'pointer',
+                    background: formData.paymentMethod === 'bank' ? '#fff' : 'white',
+                    borderColor: formData.paymentMethod === 'bank' ? '#2c5530' : '#e0e0e0',
+                    fontWeight: formData.paymentMethod === 'bank' ? 600 : 400
+                  }}>
+                    <input
+                      type="radio"
+                      name="paymentMethodLoggedIn"
+                      value="bank"
+                      checked={formData.paymentMethod === 'bank'}
+                      onChange={(e) => {
+                        setFormData({ ...formData, paymentMethod: e.target.value });
+                      }}
+                    />
+                    Virement bancaire
+                  </label>
+                  <label style={{
+                    flex: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    border: '2px solid #e0e0e0',
+                    borderRadius: 8,
+                    padding: '12px 14px',
+                    cursor: 'pointer',
+                    background: formData.paymentMethod === 'paypal' ? '#fff' : 'white',
+                    borderColor: formData.paymentMethod === 'paypal' ? '#2c5530' : '#e0e0e0',
+                    fontWeight: formData.paymentMethod === 'paypal' ? 600 : 400
+                  }}>
+                    <input
+                      type="radio"
+                      name="paymentMethodLoggedIn"
+                      value="paypal"
+                      checked={formData.paymentMethod === 'paypal'}
+                      onChange={(e) => {
+                        setFormData({ ...formData, paymentMethod: e.target.value });
+                      }}
+                    />
+                    PayPal
+                  </label>
+                </div>
               </div>
             </div>
           )}
@@ -869,7 +1024,7 @@ const Checkout = () => {
             </div>
           )}
 
-          {(user || authMode === 'register') && (
+          {((user && authMode !== 'login') || (!user && authMode === 'register')) && (
             <>
               <SectionTitle>
                 <FiUser size={20} />

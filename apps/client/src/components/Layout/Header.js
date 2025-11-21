@@ -1001,124 +1001,124 @@ const Header = () => {
       </TopBar>
 
       <HeaderContainer ref={headerRef}>
-      <HeaderContent>
-        <Logo to="/" onClick={(e) => handleLinkClick(e, '/') }>
-          <LogoIcon>🌲</LogoIcon>
-          <LogoText>{headerSiteNameDisplay}</LogoText>
-        </Logo>
-        
-        <SearchBar>
-          <form onSubmit={handleSearch}>
-            <SearchInput
+        <HeaderContent>
+          <Logo to="/" onClick={(e) => handleLinkClick(e, '/')}>
+            <LogoIcon>🌲</LogoIcon>
+            <LogoText>{headerSiteNameDisplay}</LogoText>
+          </Logo>
+
+          <SearchBar>
+            <form onSubmit={handleSearch}>
+              <SearchInput
+                type="text"
+                placeholder="Rechercher des produits..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <SearchIcon />
+            </form>
+          </SearchBar>
+
+          <Nav>
+            <NavLink to="/" onClick={(e) => handleLinkClick(e, '/')}>Accueil</NavLink>
+            <NavLink to="/products" onClick={(e) => handleLinkClick(e, '/products')}>Produits</NavLink>
+            <NavLink to="/about" onClick={(e) => handleLinkClick(e, '/about')}>À propos</NavLink>
+            <NavLink to="/contact" onClick={(e) => handleLinkClick(e, '/contact')}>Contact</NavLink>
+          </Nav>
+
+          <RightActions>
+            {/* Mobile search toggle */}
+            <MobileSearchButton onClick={toggleMobileSearch} aria-label="Recherche">
+              <ResponsiveIcon>
+                <FiSearch />
+              </ResponsiveIcon>
+            </MobileSearchButton>
+
+            <UserActions>
+              {user ? (
+                <Dropdown>
+                  <UserButton onClick={handleUserToggle}>
+                    <HeaderAvatar>{profileInitial}</HeaderAvatar>
+                  </UserButton>
+                  <DropdownContent isOpen={isUserDropdownOpen}>
+                    <DropdownItem to="/dashboard" onClick={() => setIsUserDropdownOpen(false)}>Mon espace client</DropdownItem>
+                    <DropdownItem to="/orders" onClick={() => setIsUserDropdownOpen(false)}>Mes Commandes</DropdownItem>
+                    <DropdownItem to="/profile" onClick={() => setIsUserDropdownOpen(false)}>Mon Profil</DropdownItem>
+                    <DropdownItem
+                      as="button"
+                      onClick={handleLogout}
+                      style={{ color: '#b91c1c', fontWeight: 600 }}
+                    >
+                      Déconnexion
+                    </DropdownItem>
+                  </DropdownContent>
+                </Dropdown>
+              ) : (
+                <Dropdown>
+                  <UserButton onClick={handleUserToggle}>
+                    <ResponsiveIcon>
+                      <FiUser />
+                    </ResponsiveIcon>
+                  </UserButton>
+                  <DropdownContent isOpen={isUserDropdownOpen}>
+                    <DropdownItem to="/login" onClick={() => setIsUserDropdownOpen(false)}>Connexion</DropdownItem>
+                    <DropdownItem to="/register" onClick={() => setIsUserDropdownOpen(false)}>Inscription</DropdownItem>
+                  </DropdownContent>
+                </Dropdown>
+              )}
+
+              {/* Cart visible here only on mobile; on desktop it's in TopBar */}
+              <MobileOnly>
+                <CartButton onClick={handleGoToCart}>
+                  <ResponsiveIcon>
+                    <FiShoppingCart />
+                  </ResponsiveIcon>
+                  {cartItemsCount > 0 && (
+                    <CartBadge>{cartItemsCount}</CartBadge>
+                  )}
+                </CartButton>
+              </MobileOnly>
+            </UserActions>
+
+            <MobileMenuButton onClick={toggleMobileMenu} aria-label="Menu">
+              <ResponsiveIcon>
+                {isMobileMenuOpen ? <FiX /> : <FiMenu />}
+              </ResponsiveIcon>
+            </MobileMenuButton>
+          </RightActions>
+        </HeaderContent>
+
+        {/* Mobile Search Panel */}
+        <MobileSearchPanel isOpen={isMobileSearchOpen}>
+          <form onSubmit={(e) => { handleSearch(e); setIsMobileSearchOpen(false); }}>
+            <MobileSearchInput
               type="text"
               placeholder="Rechercher des produits..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-            <SearchIcon />
           </form>
-        </SearchBar>
-        
-        <Nav>
-          <NavLink to="/" onClick={(e) => handleLinkClick(e, '/')}>Accueil</NavLink>
-          <NavLink to="/products" onClick={(e) => handleLinkClick(e, '/products')}>Produits</NavLink>
-          <NavLink to="/about" onClick={(e) => handleLinkClick(e, '/about')}>À propos</NavLink>
-          <NavLink to="/contact" onClick={(e) => handleLinkClick(e, '/contact')}>Contact</NavLink>
-        </Nav>
+        </MobileSearchPanel>
 
-        <RightActions>
-          {/* Mobile search toggle */}
-          <MobileSearchButton onClick={toggleMobileSearch} aria-label="Recherche">
-            <ResponsiveIcon>
-              <FiSearch />
-            </ResponsiveIcon>
-          </MobileSearchButton>
-
-          <UserActions>
-            {user ? (
-              <Dropdown>
-                <UserButton onClick={handleUserToggle}>
-                  <HeaderAvatar>{profileInitial}</HeaderAvatar>
-                </UserButton>
-                <DropdownContent isOpen={isUserDropdownOpen}>
-                  <DropdownItem to="/dashboard" onClick={() => setIsUserDropdownOpen(false)}>Mon espace client</DropdownItem>
-                  <DropdownItem to="/orders" onClick={() => setIsUserDropdownOpen(false)}>Mes Commandes</DropdownItem>
-                  <DropdownItem to="/profile" onClick={() => setIsUserDropdownOpen(false)}>Mon Profil</DropdownItem>
-                  <DropdownItem
-                    as="button"
-                    onClick={handleLogout}
-                    style={{ color: '#b91c1c', fontWeight: 600 }}
-                  >
-                    Déconnexion
-                  </DropdownItem>
-                </DropdownContent>
-              </Dropdown>
-            ) : (
-              <Dropdown>
-                <UserButton onClick={handleUserToggle}>
-                  <ResponsiveIcon>
-                    <FiUser />
-                  </ResponsiveIcon>
-                </UserButton>
-                <DropdownContent isOpen={isUserDropdownOpen}>
-                  <DropdownItem to="/login" onClick={() => setIsUserDropdownOpen(false)}>Connexion</DropdownItem>
-                  <DropdownItem to="/register" onClick={() => setIsUserDropdownOpen(false)}>Inscription</DropdownItem>
-                </DropdownContent>
-              </Dropdown>
-            )}
-
-            {/* Cart visible here only on mobile; on desktop it's in TopBar */}
-            <MobileOnly>
-              <CartButton onClick={handleGoToCart}>
-                <ResponsiveIcon>
-                  <FiShoppingCart />
-                </ResponsiveIcon>
-                {cartItemsCount > 0 && (
-                  <CartBadge>{cartItemsCount}</CartBadge>
-                )}
-              </CartButton>
-            </MobileOnly>
-          </UserActions>
-
-          <MobileMenuButton onClick={toggleMobileMenu} aria-label="Menu">
-            <ResponsiveIcon>
-              {isMobileMenuOpen ? <FiX /> : <FiMenu />}
-            </ResponsiveIcon>
-          </MobileMenuButton>
-        </RightActions>
-      </HeaderContent>
-
-      {/* Mobile Search Panel */}
-      <MobileSearchPanel isOpen={isMobileSearchOpen}>
-        <form onSubmit={(e) => { handleSearch(e); setIsMobileSearchOpen(false); }}>
-          <MobileSearchInput
-            type="text"
-            placeholder="Rechercher des produits..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </form>
-      </MobileSearchPanel>
-
-      <MobileMenu isOpen={isMobileMenuOpen}>
-        <MobileNavLink to="/" onClick={(e) => handleLinkClick(e, '/') }>
-          Accueil
-        </MobileNavLink>
-        <MobileNavLink to="/products" onClick={(e) => handleLinkClick(e, '/products') }>
-          Produits
-        </MobileNavLink>
-        <MobileNavLink to="/about" onClick={(e) => handleLinkClick(e, '/about') }>
-          À propos
-        </MobileNavLink>
-        <MobileNavLink to="/contact" onClick={(e) => handleLinkClick(e, '/contact') }>
-          Contact
-        </MobileNavLink>
-        {!user && (
-          <MobileNavLink to="/login" onClick={(e) => handleLinkClick(e, '/login') }>
-            Connexion
+        <MobileMenu isOpen={isMobileMenuOpen}>
+          <MobileNavLink to="/" onClick={(e) => handleLinkClick(e, '/')}>
+            Accueil
           </MobileNavLink>
-        )}
-      </MobileMenu>
+          <MobileNavLink to="/products" onClick={(e) => handleLinkClick(e, '/products')}>
+            Produits
+          </MobileNavLink>
+          <MobileNavLink to="/about" onClick={(e) => handleLinkClick(e, '/about')}>
+            À propos
+          </MobileNavLink>
+          <MobileNavLink to="/contact" onClick={(e) => handleLinkClick(e, '/contact')}>
+            Contact
+          </MobileNavLink>
+          {!user && (
+            <MobileNavLink to="/login" onClick={(e) => handleLinkClick(e, '/login')}>
+              Connexion
+            </MobileNavLink>
+          )}
+        </MobileMenu>
       </HeaderContainer>
 
       {/* Cart drawer (public pages) */}
@@ -1183,6 +1183,16 @@ const Header = () => {
                   Vider le panier
                 </CartRemoveButton>
               )}
+              <CartDrawerSecondary
+                type="button"
+                onClick={() => {
+                  setIsCartDrawerOpen(false);
+                  navigate('/products');
+                }}
+                style={{ marginBottom: 8 }}
+              >
+                Continuer mes achats
+              </CartDrawerSecondary>
               <CartDrawerSecondary
                 type="button"
                 onClick={() => {

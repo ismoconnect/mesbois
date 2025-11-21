@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { useParams, Link } from 'react-router-dom';
 import { FiArrowLeft, FiPackage, FiTruck, FiCheckCircle, FiClock, FiMapPin, FiCreditCard, FiXCircle, FiDownload } from 'react-icons/fi';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { useAuth } from '../contexts/AuthContext';
 import DashboardLayout from '../components/Layout/DashboardLayout';
 import { getOrderById } from '../firebase/orders';
@@ -260,7 +262,7 @@ function getTimelineSteps(order) {
       active: true,
       isLast: true,
     });
-    
+
     // Marquer toutes les étapes précédentes comme actives jusqu'au point d'annulation
     return steps.map((step, index) => ({
       ...step,
@@ -282,213 +284,79 @@ const SuiviItinerary = () => {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const generatePDF = async () => {
+  const generatePDF = () => {
     if (!order) return;
-    
-    const getStatusDescription = (status) => {
-      switch (status) {
-        case 'pending': return 'Votre commande a été reçue et est en cours de traitement.';
-        case 'awaiting_payment': return 'En attente de la validation de votre paiement.';
-        case 'processing': return 'Votre commande est en cours de préparation.';
-        case 'shipped': return 'Votre commande a été expédiée et est en cours de livraison.';
-        case 'delivered': return 'Votre commande a été livrée avec succès.';
-        case 'cancelled': return 'Votre commande a été annulée.';
-        default: return 'Statut de la commande.';
+
+    const doc = new jsPDF();
+
+    // En-tête
+    doc.setFontSize(20);
+    doc.setTextColor(44, 85, 48); // #2c5530
+    doc.text('MES BOIS', 14, 22);
+
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Commande #${order.id.slice(-8)}`, 14, 30);
+    doc.text(`Date: ${new Date(order.createdAt.seconds * 1000).toLocaleDateString('fr-FR')}`, 14, 35);
+    doc.text(`Statut: ${getStatusText(order.status)}`, 14, 40);
+
+    // Adresse de livraison
+    let startY = 55;
+    if (order.shippingAddress) {
+      doc.setFontSize(12);
+      doc.setTextColor(0);
+      doc.text('Adresse de livraison:', 14, startY);
+      doc.setFontSize(10);
+      doc.setTextColor(60);
+      doc.text(order.shippingAddress.fullName || '', 14, startY + 6);
+      doc.text(order.shippingAddress.address || '', 14, startY + 11);
+      doc.text(`${order.shippingAddress.postalCode || ''} ${order.shippingAddress.city || ''}`, 14, startY + 16);
+      if (order.shippingAddress.phone) {
+        doc.text(`Tél: ${order.shippingAddress.phone}`, 14, startY + 21);
       }
-    };
+      startY += 30;
+    }
 
-    const getDocumentTitle = (status) => {
-      switch (status) {
-        case 'pending': return 'Accusé_de_réception_de_commande';
-        case 'awaiting_payment': return 'Confirmation_de_commande';
-        case 'processing': return 'Bon_de_préparation';
-        case 'shipped': return 'Bon_d_expédition';
-        case 'delivered': return 'Reçu_de_livraison';
-        case 'cancelled': return 'Avis_d_annulation';
-        default: return 'Document_de_commande';
-      }
-    };
-    
-    // Quelques utilitaires pour la mise en page
-    const sanitize = (s) => (s || '')
-      .toString()
-      .replace(/[\n\r\t]/g, ' ')
-      .replace(/[()]/g, '')
-      .replace(/[àáâãäå]/g, 'a')
-      .replace(/[èéêë]/g, 'e')
-      .replace(/[ìíîï]/g, 'i')
-      .replace(/[òóôõö]/g, 'o')
-      .replace(/[ùúûü]/g, 'u')
-      .replace(/[ç]/g, 'c')
-      .replace(/[ñ]/g, 'n');
+    // Tableau des articles
+    const tableRows = (order.items || []).map(item => [
+      item.name,
+      item.quantity,
+      `${item.price.toFixed(2)} €`,
+      `${(item.price * item.quantity).toFixed(2)} €`
+    ]);
 
-    const yStart = order.shippingAddress ? 330 : 400; // top Y for table rows
-    const rowHeight = 18;
-    const colNameX = 70;
-    const colQtyX = 400;
-    const colUnitX = 470;
-    const colTotalX = 520;
-    const rows = (order.items || []).map((item, i) => {
-      const y = yStart - (i * rowHeight);
-      const rectY = y - 6; // background stripe Y
-      const name = sanitize((item.name || '').substring(0, 60));
-      const qty = `${item.quantity || 0}`;
-      const unit = (item.price != null ? item.price.toFixed(2) : '0.00') + ' EUR';
-      const total = (((item.price || 0) * (item.quantity || 0)).toFixed(2)) + ' EUR';
-      return [
-        // zebra striping on odd rows
-        ...(i % 2 === 1 ? [
-          'q',
-          '0.97 0.97 0.97 rg',
-          `60 ${rectY} 492 16 re`,
-          'f',
-          'Q'
-        ] : []),
-        `1 0 0 1 ${colNameX} ${y} Tm (${name}) Tj`,
-        `1 0 0 1 ${colQtyX} ${y} Tm (${qty}) Tj`,
-        `1 0 0 1 ${colUnitX} ${y} Tm (${unit}) Tj`,
-        `1 0 0 1 ${colTotalX} ${y} Tm (${total}) Tj`
-      ].join('\n');
-    }).join('\n');
+    autoTable(doc, {
+      startY: startY,
+      head: [['Article', 'Qté', 'Prix Unit.', 'Total']],
+      body: tableRows,
+      theme: 'grid',
+      headStyles: { fillColor: [44, 85, 48], textColor: 255 },
+      styles: { fontSize: 10 },
+    });
 
-    // Construire le corps du flux PDF (stream) avec positions absolues
-    const streamBody = `
-q
-0.17 0.33 0.19 rg
-50 720 512 60 re
-f
-Q
+    // Totaux
+    const finalY = doc.lastAutoTable.finalY + 10;
+    doc.setFontSize(10);
+    doc.setTextColor(0);
 
-BT
-1 1 1 rg
-/F3 20 Tf
-60 750 Td
-(${sanitize(getDocumentTitle(order.status).replace(/_/g, ' ').toUpperCase())}) Tj
-/F2 14 Tf
-0 -25 Td
-(Commande #${order.id.slice(-8)}) Tj
-/F1 10 Tf
-0 -15 Td
-(Genere le ${new Date().toLocaleDateString('fr-FR')} a ${new Date().toLocaleTimeString('fr-FR')}) Tj
-ET
+    const subTotal = order.total - (order.delivery?.cost || 0);
+    const deliveryCost = order.delivery?.cost || 0;
 
-q
-0.17 0.33 0.19 RG
-2 w
-60 680 492 0 l
-S
-Q
+    doc.text(`Sous-total: ${subTotal.toFixed(2)} €`, 140, finalY);
+    doc.text(`Livraison: ${deliveryCost.toFixed(2)} €`, 140, finalY + 5);
 
-q
-0.96 0.98 0.96 rg
-60 580 492 60 re
-f
-0.17 0.33 0.19 RG
-1 w
-60 580 492 60 re
-S
-Q
+    doc.setFontSize(12);
+    doc.setFont(undefined, 'bold');
+    doc.text(`Total: ${order.total.toFixed(2)} €`, 140, finalY + 12);
 
-BT
-0 0 0 rg
-/F2 16 Tf
-60 650 Td
-(INFORMATIONS DE LA COMMANDE) Tj
-/F1 12 Tf
-70 620 Td
-(Date de commande: ${order.createdAt ? sanitize(new Date(order.createdAt.seconds * 1000).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })) : 'N/A'}) Tj
-0 -18 Td
-(Statut actuel: ${sanitize(getStatusText(order.status))}) Tj
-/F2 12 Tf
-0 -18 Td
-(Montant total: ${order.total?.toFixed(2) || '0.00'} EUR) Tj
-ET
+    // Pied de page
+    doc.setFontSize(8);
+    doc.setFont(undefined, 'normal');
+    doc.setTextColor(150);
+    doc.text('Merci de votre confiance.', 14, finalY + 30);
+    doc.text('Document généré automatiquement par MesBois.', 14, finalY + 35);
 
-q
-0.91 0.96 0.91 rg
-60 480 492 50 re
-f
-0.17 0.33 0.19 RG
-3 w
-60 480 5 50 re
-f
-Q
-
-BT
-0 0 0 rg
-/F2 14 Tf
-70 510 Td
-(ETAT DE LA COMMANDE) Tj
-/F1 11 Tf
-0 -20 Td
-(${sanitize(getStatusDescription(order.status))}) Tj
-ET
-
-${order.shippingAddress ? `q\n0.98 0.98 1 rg\n60 360 492 60 re\nf\n0.17 0.33 0.19 RG\n1 w\n60 360 492 60 re\nS\nQ\n\nBT\n0 0 0 rg\n/F2 14 Tf\n60 430 Td\n(ADRESSE DE LIVRAISON) Tj\n/F2 11 Tf\n70 400 Td\n(${sanitize(order.shippingAddress.fullName)}) Tj\n/F1 10 Tf\n0 -15 Td\n(${sanitize(order.shippingAddress.address)}) Tj\n0 -15 Td\n(${order.shippingAddress.postalCode} ${sanitize(order.shippingAddress.city)}) Tj\n${order.shippingAddress.phone ? `0 -15 Td\n(Telephone: ${order.shippingAddress.phone}) Tj\n` : ''}ET\n` : ''}
-
-q
-0.92 0.95 0.92 rg
-60 ${order.shippingAddress ? '300' : '380'} 492 28 re
-f
-Q
-
-BT
-0 0 0 rg
-/F2 16 Tf
-60 ${order.shippingAddress ? '340' : '420'} Td
-(ARTICLES COMMANDES) Tj
-/F2 10 Tf
-1 0 0 1 ${colNameX} ${order.shippingAddress ? '308' : '388'} Tm (ARTICLE) Tj
-1 0 0 1 ${colQtyX} ${order.shippingAddress ? '308' : '388'} Tm (QTE) Tj
-1 0 0 1 ${colUnitX} ${order.shippingAddress ? '308' : '388'} Tm (PRIX UNIT.) Tj
-1 0 0 1 ${colTotalX} ${order.shippingAddress ? '308' : '388'} Tm (TOTAL) Tj
-0.75 0.75 0.75 RG
-1 w
-60 ${order.shippingAddress ? '304' : '384'} 492 0 l
-S
-/F1 10 Tf
-${rows}
-ET
-
-q
-0.17 0.33 0.19 rg
-60 ${order.shippingAddress ? (yStart - (order.items?.length || 0) * rowHeight - 30) : (yStart - (order.items?.length || 0) * rowHeight - 30)} 492 40 re
-f
-Q
-
-BT
-1 1 1 rg
-/F3 16 Tf
-1 0 0 1 ${colQtyX} ${order.shippingAddress ? (yStart - (order.items?.length || 0) * rowHeight - 10) : (yStart - (order.items?.length || 0) * rowHeight - 10)} Tm (TOTAL:) Tj
-/F3 16 Tf
-1 0 0 1 ${colTotalX} ${order.shippingAddress ? (yStart - (order.items?.length || 0) * rowHeight - 10) : (yStart - (order.items?.length || 0) * rowHeight - 10)} Tm (${(order.total?.toFixed(2) || '0.00') + ' EUR'}) Tj
-0.5 0.5 0.5 rg
-/F1 8 Tf
-60 50 Td
-(Document genere automatiquement par le systeme de commande) Tj
-0 -12 Td
-(Pour toute question, contactez notre service client) Tj
-0 -12 Td
-(Copyright ${new Date().getFullYear()} - Tous droits reserves) Tj
-ET`;
-
-    const encoder = new TextEncoder();
-    const streamBytes = encoder.encode(streamBody);
-    const streamLength = streamBytes.length;
-
-    const pdfContent = `%PDF-1.4\n1 0 obj\n<<\n/Type /Catalog\n/Pages 2 0 R\n>>\nendobj\n\n2 0 obj\n<<\n/Type /Pages\n/Kids [3 0 R]\n/Count 1\n>>\nendobj\n\n3 0 obj\n<<\n/Type /Page\n/Parent 2 0 R\n/MediaBox [0 0 612 792]\n/Contents 4 0 R\n/Resources <<\n/Font <<\n/F1 5 0 R\n/F2 6 0 R\n/F3 7 0 R\n>>\n>>\n>>\nendobj\n\n4 0 obj\n<<\n/Length ${streamLength}\n>>\nstream\n${streamBody}\nendstream\nendobj\n\n5 0 obj\n<<\n/Type /Font\n/Subtype /Type1\n/BaseFont /Helvetica\n>>\nendobj\n\n6 0 obj\n<<\n/Type /Font\n/Subtype /Type1\n/BaseFont /Helvetica-Bold\n>>\nendobj\n\n7 0 obj\n<<\n/Type /Font\n/Subtype /Type1\n/BaseFont /Helvetica-BoldOblique\n>>\nendobj\n\nxref\n0 8\n0000000000 65535 f \n0000000010 00000 n \n0000000079 00000 n \n0000000173 00000 n \n0000000301 00000 n \n0000000000 00000 n \n0000000000 00000 n \n0000000000 00000 n \ntrailer\n<<\n/Size 8\n/Root 1 0 R\n>>\nstartxref\n0\n%%EOF`;
-
-    // Créer un blob PDF et le télécharger automatiquement
-    const blob = new Blob([pdfContent], { type: 'application/pdf' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${getDocumentTitle(order.status)}_${order.id.slice(-8)}.pdf`;
-    link.style.display = 'none';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    doc.save(`facture_${order.id.slice(-8)}.pdf`);
   };
 
   useEffect(() => {
@@ -514,7 +382,7 @@ ET`;
         <BackLink to="/suivi">
           <FiArrowLeft /> Retour au suivi
         </BackLink>
-        
+
         <Title>Détails de suivi</Title>
         <Subtitle>Suivez en temps réel l'évolution de votre commande</Subtitle>
 
@@ -535,12 +403,12 @@ ET`;
                 <InfoRow>
                   <Label>Date de commande</Label>
                   <Value>
-                    {order.createdAt 
+                    {order.createdAt
                       ? new Date(order.createdAt.seconds * 1000).toLocaleDateString('fr-FR', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric'
-                        })
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })
                       : 'N/A'}
                   </Value>
                 </InfoRow>
@@ -591,7 +459,7 @@ ET`;
                   </TimelineItem>
                 ))}
               </Timeline>
-              
+
               <DownloadButton onClick={generatePDF}>
                 <FiDownload /> Télécharger le PDF
               </DownloadButton>

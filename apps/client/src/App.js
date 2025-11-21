@@ -84,7 +84,7 @@ function RootLayout() {
         </Layout>
       )}
       <CookieBanner />
-      <Toaster 
+      <Toaster
         position="top-right"
         toastOptions={{
           duration: 4000,
@@ -118,7 +118,7 @@ const router = createBrowserRouter(
       <Route index element={<Home />} />
       <Route path="products" element={<Products />} />
       <Route path="product/:id" element={<ProductDetail />} />
-      
+
       <Route path="cart" element={<Cart />} />
       <Route path="checkout" element={<Checkout />} />
       <Route path="login" element={<Login />} />
@@ -155,7 +155,7 @@ function App() {
     <AuthProvider>
       <CartProvider>
         <SiteSettingsProvider>
-          <RouterProvider 
+          <RouterProvider
             router={router}
             future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
           />

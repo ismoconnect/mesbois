@@ -218,8 +218,9 @@ const DesktopContent = styled.div`
   
   @media (min-width: 768px) {
     display: grid;
-    grid-template-columns: 1fr 400px;
-    gap: 30px;
+    grid-template-columns: 1fr 350px;
+    gap: 40px;
+    align-items: start;
   }
 `;
 
@@ -437,8 +438,8 @@ const MobileActionButton = styled.button`
 const OrderItems = styled.div`
   background: white;
   border-radius: 16px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
-  padding: 40px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  padding: 32px;
   
   @media (min-width: 1200px) {
     padding: 50px;
@@ -464,18 +465,19 @@ const SectionTitle = styled.h3`
 
 const OrderItem = styled.div`
   display: flex;
-  align-items: center;
-  gap: 20px;
-  padding: 25px 0;
+  align-items: flex-start;
+  gap: 24px;
+  padding: 24px 0;
   border-bottom: 1px solid #f0f0f0;
   
   &:last-child {
     border-bottom: none;
+    padding-bottom: 0;
   }
   
   @media (min-width: 1200px) {
-    gap: 25px;
-    padding: 30px 0;
+    gap: 32px;
+    padding: 32px 0;
   }
 `;
 
@@ -484,72 +486,71 @@ const ItemImage = styled.img`
   height: 100px;
   object-fit: cover;
   border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
   
   @media (min-width: 1200px) {
     width: 120px;
     height: 120px;
-    border-radius: 16px;
   }
 `;
 
 const ItemInfo = styled.div`
   flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   
   h4 {
     font-size: 18px;
-    font-weight: 600;
+    font-weight: 700;
     color: #2c5530;
-    margin-bottom: 8px;
+    margin: 0;
+    line-height: 1.4;
     
     @media (min-width: 1200px) {
       font-size: 20px;
-      margin-bottom: 10px;
     }
   }
   
   .item-description {
     color: #666;
-    font-size: 15px;
-    margin-bottom: 12px;
-    line-height: 1.5;
-    
-    @media (min-width: 1200px) {
-      font-size: 16px;
-      margin-bottom: 15px;
-    }
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 0;
   }
   
   .item-quantity {
-    color: #666;
-    font-size: 15px;
-    
-    @media (min-width: 1200px) {
-      font-size: 16px;
-    }
+    color: #4a5568;
+    font-size: 14px;
+    font-weight: 500;
+    margin-top: 4px;
+    background: #f8f9fa;
+    padding: 4px 12px;
+    border-radius: 20px;
+    width: fit-content;
   }
 `;
 
 const ItemPrice = styled.div`
   text-align: right;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-shrink: 0;
   
   .unit-price {
-    color: #666;
-    font-size: 15px;
-    margin-bottom: 8px;
-    
-    @media (min-width: 1200px) {
-      font-size: 16px;
-      margin-bottom: 10px;
-    }
+    color: #888;
+    font-size: 14px;
   }
   
   .total-price {
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 700;
     color: #2c5530;
     
     @media (min-width: 1200px) {
-      font-size: 24px;
+      font-size: 22px;
     }
   }
 `;
@@ -557,13 +558,14 @@ const ItemPrice = styled.div`
 const OrderSummary = styled.div`
   background: white;
   border-radius: 16px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
-  padding: 40px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  padding: 32px;
   height: fit-content;
+  position: sticky;
+  top: 40px;
   
   @media (min-width: 1200px) {
-    padding: 50px;
-    border-radius: 20px;
+    padding: 40px;
   }
 `;
 
@@ -598,65 +600,16 @@ const SummaryRow = styled.div`
 const DeliveryInfo = styled.div`
   background: white;
   border-radius: 16px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
-  padding: 40px;
-  margin-bottom: 40px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  padding: 32px;
+  margin-top: 30px;
   
   @media (min-width: 1200px) {
-    padding: 50px;
-    border-radius: 20px;
-    margin-bottom: 50px;
+    padding: 40px;
   }
 `;
 
-const DeliveryAddress = styled.div`
-  display: flex;
-  align-items: flex-start;
-  gap: 15px;
-  margin-bottom: 20px;
-  
-  svg {
-    color: #2c5530;
-    margin-top: 5px;
-  }
-  
-  div {
-    h4 {
-      font-size: 16px;
-      font-weight: 600;
-      color: #2c5530;
-      margin-bottom: 5px;
-    }
-    
-    p {
-      color: #666;
-      line-height: 1.5;
-    }
-  }
-`;
 
-const PaymentInfo = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  
-  svg {
-    color: #2c5530;
-  }
-  
-  div {
-    h4 {
-      font-size: 16px;
-      font-weight: 600;
-      color: #2c5530;
-      margin-bottom: 5px;
-    }
-    
-    p {
-      color: #666;
-    }
-  }
-`;
 
 const LoadingSpinner = styled.div`
   text-align: center;
@@ -835,6 +788,62 @@ const CancelButton = styled.button`
   }
 `;
 
+const PayButton = styled.button`
+  width: 100%;
+  padding: 16px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 16px;
+  margin-top: 16px;
+  background: #2c5530;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(44, 85, 48, 0.2);
+  
+  &:hover {
+    background: #1e3a22;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(44, 85, 48, 0.3);
+  }
+`;
+
+const InfoGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+  margin-top: 24px;
+`;
+
+const InfoCard = styled.div`
+  background: #f8f9fa;
+  padding: 24px;
+  border-radius: 12px;
+  border: 1px solid #e9ecef;
+  
+  h4 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #2c5530;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    
+    svg {
+      color: #2c5530;
+    }
+  }
+  
+  p {
+    color: #4a5568;
+    line-height: 1.6;
+    font-size: 15px;
+    margin: 0;
+  }
+`;
+
 const getStatusIcon = (status) => {
   switch (status) {
     case 'pending': return <FiClock size={20} />;
@@ -898,12 +907,7 @@ const OrderDetail = () => {
   };
 
   const handlePayment = () => {
-    const method = order.payment?.method || 'bank';
-    if (method === 'paypal') {
-      navigate(`/payment/paypal?orderId=${order.id}`);
-    } else {
-      navigate(`/payment/bank?orderId=${order.id}`);
-    }
+    navigate('/billing');
   };
 
   const confirmCancelOrder = async () => {
@@ -1257,28 +1261,30 @@ const OrderDetail = () => {
                 Informations de livraison
               </SectionTitle>
 
-              <DeliveryAddress>
-                <FiMapPin size={20} />
-                <div>
-                  <h4>Adresse de livraison</h4>
+              <InfoGrid>
+                <InfoCard>
+                  <h4>
+                    <FiMapPin size={18} />
+                    Adresse de livraison
+                  </h4>
                   <p>
                     {order.customerInfo?.firstName} {order.customerInfo?.lastName}<br />
                     {order.customerInfo?.address}<br />
                     {order.customerInfo?.postalCode} {order.customerInfo?.city}<br />
                     {order.customerInfo?.country}
                   </p>
-                </div>
-              </DeliveryAddress>
+                </InfoCard>
 
-              <PaymentInfo>
-                <FiCreditCard size={20} />
-                <div>
-                  <h4>Mode de paiement</h4>
+                <InfoCard>
+                  <h4>
+                    <FiCreditCard size={18} />
+                    Mode de paiement
+                  </h4>
                   <p>
                     {order.payment?.method === 'card' ? 'Carte bancaire' : 'PayPal'}
                   </p>
-                </div>
-              </PaymentInfo>
+                </InfoCard>
+              </InfoGrid>
             </DeliveryInfo>
           </div>
 
@@ -1319,26 +1325,9 @@ const OrderDetail = () => {
             )}
 
             {(order.status === 'pending') && (
-              <button
-                onClick={handlePayment}
-                style={{
-                  width: '100%',
-                  padding: '15px',
-                  borderRadius: '8px',
-                  fontWeight: '600',
-                  fontSize: '14px',
-                  marginTop: '10px',
-                  background: '#2c5530',
-                  color: 'white',
-                  border: 'none',
-                  cursor: 'pointer',
-                  transition: 'background 0.3s ease'
-                }}
-                onMouseOver={(e) => e.target.style.background = '#1e3a22'}
-                onMouseOut={(e) => e.target.style.background = '#2c5530'}
-              >
+              <PayButton onClick={handlePayment}>
                 Payer la commande
-              </button>
+              </PayButton>
             )}
           </OrderSummary>
         </DesktopContent>
