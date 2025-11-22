@@ -13,7 +13,7 @@ const CartContainer = styled.div`
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 16px 16px;
-  @media (max-width: 768px) { padding: 0 12px 12px; }
+  @media (max-width: 768px) { padding: 0 8px 12px; }
 `;
 
 const CartHeader = styled.div`
@@ -221,6 +221,7 @@ const DashboardCart = () => {
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [discount, setDiscount] = useState(0);
   const [applyingCoupon, setApplyingCoupon] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState('bank'); // 'bank' ou 'paypal'
 
   const showCenterAlert = (message, type = 'error') => {
     toast.dismiss('dashboard-alert');
@@ -306,7 +307,7 @@ const DashboardCart = () => {
         userId: user.uid,
         items: cartItems,
         delivery: { method: 'standard', cost: shipping },
-        payment: { method: 'bank' },
+        payment: { method: paymentMethod },
         total,
         coupon: appliedCoupon ? {
           code: appliedCoupon.code,
@@ -347,7 +348,7 @@ const DashboardCart = () => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(emailPayload),
             keepalive: true,
-          }).catch(() => {});
+          }).catch(() => { });
         } catch (_) { /* ignore */ }
         clearCart();
         navigate('/billing');
@@ -564,6 +565,64 @@ const DashboardCart = () => {
                 <span>Total</span>
                 <span>{total.toFixed(2)}€</span>
               </SummaryRow>
+
+              {/* Payment Method Selection */}
+              <div style={{ marginTop: 16, marginBottom: 12 }}>
+                <div style={{ fontSize: 14, fontWeight: 600, color: '#2c5530', marginBottom: 10 }}>
+                  Mode de paiement :
+                </div>
+                <div style={{ display: 'flex', gap: 10, flexDirection: 'column' }}>
+                  <label style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    border: '2px solid',
+                    borderColor: paymentMethod === 'bank' ? '#2c5530' : '#e0e0e0',
+                    borderRadius: 8,
+                    padding: '10px 12px',
+                    cursor: 'pointer',
+                    background: paymentMethod === 'bank' ? '#f0fdf4' : 'white',
+                    transition: 'all 0.2s ease'
+                  }}>
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="bank"
+                      checked={paymentMethod === 'bank'}
+                      onChange={(e) => setPaymentMethod(e.target.value)}
+                      style={{ cursor: 'pointer' }}
+                    />
+                    <span style={{ fontWeight: paymentMethod === 'bank' ? 600 : 400, fontSize: 14 }}>
+                      Virement bancaire
+                    </span>
+                  </label>
+                  <label style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    border: '2px solid',
+                    borderColor: paymentMethod === 'paypal' ? '#2c5530' : '#e0e0e0',
+                    borderRadius: 8,
+                    padding: '10px 12px',
+                    cursor: 'pointer',
+                    background: paymentMethod === 'paypal' ? '#f0fdf4' : 'white',
+                    transition: 'all 0.2s ease'
+                  }}>
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="paypal"
+                      checked={paymentMethod === 'paypal'}
+                      onChange={(e) => setPaymentMethod(e.target.value)}
+                      style={{ cursor: 'pointer' }}
+                    />
+                    <span style={{ fontWeight: paymentMethod === 'paypal' ? 600 : 400, fontSize: 14 }}>
+                      PayPal
+                    </span>
+                  </label>
+                </div>
+              </div>
+
               <CheckoutButton onClick={handleCheckout} disabled={cartItems.length === 0}>
                 {user ? 'Finaliser la commande' : 'Se connecter pour commander'}
               </CheckoutButton>

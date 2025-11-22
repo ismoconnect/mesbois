@@ -911,7 +911,7 @@ const Checkout = () => {
             </div>
           )}
 
-          {user && authMode === 'login' && (
+          {user && (
             <div style={{
               marginBottom: 24,
               padding: 20,
@@ -929,7 +929,7 @@ const Checkout = () => {
                 fontWeight: 700
               }}>
                 <FiLock size={24} />
-                Connexion réussie !
+                Vous êtes connecté !
               </div>
               <p style={{
                 color: '#2c5530',
@@ -1024,7 +1024,7 @@ const Checkout = () => {
             </div>
           )}
 
-          {((user && authMode !== 'login') || (!user && authMode === 'register')) && (
+          {!user && authMode === 'register' && (
             <>
               <SectionTitle>
                 <FiUser size={20} />

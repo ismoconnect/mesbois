@@ -14,8 +14,9 @@ const Shell = styled.div`
   box-sizing: border-box;
 
   @media (max-width: 900px) {
-    padding: 88px 12px 24px 12px;
+    padding: 88px 8px 24px 8px;
     overflow-x: hidden;
+    max-width: 100%;
   }
 `;
 
@@ -226,7 +227,7 @@ const DashboardLayout = ({ children }) => {
   return (
     <>
       <Sidebar $open={open}>
-        <UserCard to="/dashboard" onClick={() => setOpen(false)}>
+        <UserCard to="/" onClick={() => setOpen(false)}>
           <Avatar>🌲</Avatar>
           <UserInfo>
             <strong>{appName}</strong>
@@ -265,13 +266,13 @@ const DashboardLayout = ({ children }) => {
           </NavItem>
         </Nav>
 
-        <LogoutButton onClick={async () => { 
-          try { 
-            await logout(); 
-          } finally { 
-            try { navigate('/', { replace: true }); } catch {}
-            try { window.location.replace('/'); } catch {}
-          } 
+        <LogoutButton onClick={async () => {
+          try {
+            await logout();
+          } finally {
+            try { navigate('/', { replace: true }); } catch { }
+            try { window.location.replace('/'); } catch { }
+          }
         }}>
           <FiLogOut /> Se déconnecter
         </LogoutButton>
