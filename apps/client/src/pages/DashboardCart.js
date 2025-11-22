@@ -13,6 +13,8 @@ const CartContainer = styled.div`
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 16px 16px;
+  word-break: break-word;
+  overflow-wrap: break-word;
   @media (max-width: 768px) { padding: 0 8px 12px; }
 `;
 
@@ -50,8 +52,14 @@ const CartContent = styled.div`
   display: grid;
   grid-template-columns: 1fr 360px;
   gap: 20px;
+  width: 100%;
+  min-width: 0;
   @media (max-width: 1024px) { grid-template-columns: 1fr 320px; gap: 18px; }
-  @media (max-width: 768px) { grid-template-columns: 1fr; gap: 12px; }
+  @media (max-width: 768px) { 
+    grid-template-columns: 1fr; 
+    gap: 12px;
+    min-width: 0;
+  }
 `;
 
 const CartItems = styled.div`
@@ -59,7 +67,12 @@ const CartItems = styled.div`
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   padding: 16px;
-  @media (max-width: 768px) { padding: 12px; }
+  min-width: 0;
+  overflow: hidden;
+  @media (max-width: 768px) { 
+    padding: 12px;
+    min-width: 0;
+  }
 `;
 
 const ClearCartButton = styled.button`
@@ -149,8 +162,21 @@ const ShopButton = styled(Link)`
 `;
 
 const CartSummary = styled.div`
-  background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); padding: 16px; height: fit-content; position: sticky; top: 16px;
-  @media (max-width: 768px) { position: static; top: auto; padding: 12px; }
+  background: white; 
+  border-radius: 12px; 
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
+  padding: 16px; 
+  height: fit-content; 
+  position: sticky; 
+  top: 16px;
+  min-width: 0;
+  overflow: hidden;
+  @media (max-width: 768px) { 
+    position: static; 
+    top: auto; 
+    padding: 12px;
+    min-width: 0;
+  }
 `;
 
 const SummaryTitle = styled.h3`
