@@ -15,6 +15,8 @@ const Container = styled.div`
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 0 24px 0;
+  word-break: break-word;
+  overflow-wrap: break-word;
   @media (max-width: 600px) { padding: 0 12px 16px 12px; }
 `;
 
@@ -34,7 +36,12 @@ const Card = styled.div`
   box-shadow: 0 8px 24px rgba(0,0,0,0.08);
   padding: 20px;
   margin-bottom: 16px;
-  @media (max-width: 600px) { padding: 14px; }
+  min-width: 0;
+  overflow: hidden;
+  @media (max-width: 600px) { 
+    padding: 14px;
+    min-width: 0;
+  }
 `;
 
 const AlertBanner = styled.div`

@@ -11,6 +11,8 @@ const ProfileContainer = styled.div`
   max-width: 800px;
   margin: 0 auto;
   padding: 40px 20px;
+  word-break: break-word;
+  overflow-wrap: break-word;
   @media (max-width: 600px) {
     padding: 20px 12px 28px;
   }
@@ -22,9 +24,12 @@ const ProfileHeader = styled.div`
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   padding: 30px;
   margin-bottom: 30px;
+  min-width: 0;
+  overflow: hidden;
   @media (max-width: 600px) {
     padding: 18px 14px;
     margin-bottom: 20px;
+    min-width: 0;
   }
 `;
 
@@ -95,9 +100,12 @@ const EditForm = styled.form`
   border-radius: 12px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   padding: 30px;
+  min-width: 0;
+  overflow: hidden;
   @media (max-width: 600px) {
     padding: 18px 14px;
     margin-top: 10px;
+    min-width: 0;
   }
 `;
 
@@ -317,142 +325,142 @@ const Profile = () => {
   return (
     <DashboardLayout>
       <ProfileContainer>
-      <ProfileHeader>
-        <ProfileTitle>
-          <FiUser size={28} />
-          Mon Profil
-        </ProfileTitle>
-        
-        <ProfileInfo>
-          <InfoItem>
-            <FiUser size={20} />
-            <span>{userData?.displayName || 'Non renseigné'}</span>
-          </InfoItem>
-          <InfoItem>
-            <FiMail size={20} />
-            <span>{user.email}</span>
-          </InfoItem>
-          <InfoItem>
-            <FiPhone size={20} />
-            <span>{userData?.phone || 'Non renseigné'}</span>
-          </InfoItem>
-          <InfoItem>
-            <FiMapPin size={20} />
-            <span>
-              {userData?.address && userData?.city 
-                ? `${userData.address}, ${userData.city}` 
-                : 'Adresse non renseignée'
-              }
-            </span>
-          </InfoItem>
-        </ProfileInfo>
-        
-        <EditButton onClick={() => setIsEditing(true)}>
-          <FiEdit3 size={16} />
-          Modifier le profil
-        </EditButton>
-      </ProfileHeader>
+        <ProfileHeader>
+          <ProfileTitle>
+            <FiUser size={28} />
+            Mon Profil
+          </ProfileTitle>
 
-      {isEditing && (
-        <EditForm onSubmit={handleSave}>
-          <FormTitle>
-            <FiEdit3 size={24} />
-            Modifier mes informations
-          </FormTitle>
-          
-          <FormGrid>
-            <InputGroup>
-              <InputIcon>
-                <FiUser size={20} />
-              </InputIcon>
-              <Input
-                type="text"
-                name="displayName"
-                placeholder="Nom complet"
-                value={formData.displayName}
-                onChange={handleChange}
-                required
-              />
-            </InputGroup>
-            
-            <InputGroup>
-              <InputIcon>
-                <FiPhone size={20} />
-              </InputIcon>
-              <Input
-                type="tel"
-                name="phone"
-                placeholder="Téléphone"
-                value={formData.phone}
-                onChange={handleChange}
-              />
-            </InputGroup>
-          </FormGrid>
-          
-          <InputGroup>
-            <InputIcon>
+          <ProfileInfo>
+            <InfoItem>
+              <FiUser size={20} />
+              <span>{userData?.displayName || 'Non renseigné'}</span>
+            </InfoItem>
+            <InfoItem>
+              <FiMail size={20} />
+              <span>{user.email}</span>
+            </InfoItem>
+            <InfoItem>
+              <FiPhone size={20} />
+              <span>{userData?.phone || 'Non renseigné'}</span>
+            </InfoItem>
+            <InfoItem>
               <FiMapPin size={20} />
-            </InputIcon>
-            <Input
-              type="text"
-              name="address"
-              placeholder="Adresse"
-              value={formData.address}
-              onChange={handleChange}
-            />
-          </InputGroup>
-          
-          <FormGrid>
-            <InputGroup>
-              <Input
-                type="text"
-                name="city"
-                placeholder="Ville"
-                value={formData.city}
-                onChange={handleChange}
-              />
-            </InputGroup>
-            
-            <InputGroup>
-              <Input
-                type="text"
-                name="postalCode"
-                placeholder="Code postal"
-                value={formData.postalCode}
-                onChange={handleChange}
-              />
-            </InputGroup>
-          </FormGrid>
-          
-          <InputGroup>
-            <Select
-              name="country"
-              value={formData.country}
-              onChange={handleChange}
-            >
-              <option value="France">France</option>
-              <option value="Belgique">Belgique</option>
-              <option value="Suisse">Suisse</option>
-              <option value="Luxembourg">Luxembourg</option>
-            </Select>
-          </InputGroup>
-          
-          <ButtonGroup>
-            <CancelButton type="button" onClick={() => setIsEditing(false)}>
-              <FiX size={16} />
-              Annuler
-            </CancelButton>
-            <SaveButton type="submit" disabled={loading}>
-              <FiSave size={16} />
-              {loading ? 'Sauvegarde...' : 'Sauvegarder'}
-            </SaveButton>
-          </ButtonGroup>
-        </EditForm>
-      )}
+              <span>
+                {userData?.address && userData?.city
+                  ? `${userData.address}, ${userData.city}`
+                  : 'Adresse non renseignée'
+                }
+              </span>
+            </InfoItem>
+          </ProfileInfo>
 
-      <LogoutButton onClick={handleLogout}>
-        Se déconnecter
-      </LogoutButton>
+          <EditButton onClick={() => setIsEditing(true)}>
+            <FiEdit3 size={16} />
+            Modifier le profil
+          </EditButton>
+        </ProfileHeader>
+
+        {isEditing && (
+          <EditForm onSubmit={handleSave}>
+            <FormTitle>
+              <FiEdit3 size={24} />
+              Modifier mes informations
+            </FormTitle>
+
+            <FormGrid>
+              <InputGroup>
+                <InputIcon>
+                  <FiUser size={20} />
+                </InputIcon>
+                <Input
+                  type="text"
+                  name="displayName"
+                  placeholder="Nom complet"
+                  value={formData.displayName}
+                  onChange={handleChange}
+                  required
+                />
+              </InputGroup>
+
+              <InputGroup>
+                <InputIcon>
+                  <FiPhone size={20} />
+                </InputIcon>
+                <Input
+                  type="tel"
+                  name="phone"
+                  placeholder="Téléphone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                />
+              </InputGroup>
+            </FormGrid>
+
+            <InputGroup>
+              <InputIcon>
+                <FiMapPin size={20} />
+              </InputIcon>
+              <Input
+                type="text"
+                name="address"
+                placeholder="Adresse"
+                value={formData.address}
+                onChange={handleChange}
+              />
+            </InputGroup>
+
+            <FormGrid>
+              <InputGroup>
+                <Input
+                  type="text"
+                  name="city"
+                  placeholder="Ville"
+                  value={formData.city}
+                  onChange={handleChange}
+                />
+              </InputGroup>
+
+              <InputGroup>
+                <Input
+                  type="text"
+                  name="postalCode"
+                  placeholder="Code postal"
+                  value={formData.postalCode}
+                  onChange={handleChange}
+                />
+              </InputGroup>
+            </FormGrid>
+
+            <InputGroup>
+              <Select
+                name="country"
+                value={formData.country}
+                onChange={handleChange}
+              >
+                <option value="France">France</option>
+                <option value="Belgique">Belgique</option>
+                <option value="Suisse">Suisse</option>
+                <option value="Luxembourg">Luxembourg</option>
+              </Select>
+            </InputGroup>
+
+            <ButtonGroup>
+              <CancelButton type="button" onClick={() => setIsEditing(false)}>
+                <FiX size={16} />
+                Annuler
+              </CancelButton>
+              <SaveButton type="submit" disabled={loading}>
+                <FiSave size={16} />
+                {loading ? 'Sauvegarde...' : 'Sauvegarder'}
+              </SaveButton>
+            </ButtonGroup>
+          </EditForm>
+        )}
+
+        <LogoutButton onClick={handleLogout}>
+          Se déconnecter
+        </LogoutButton>
       </ProfileContainer>
     </DashboardLayout>
   );

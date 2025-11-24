@@ -11,6 +11,8 @@ const OrdersContainer = styled.div`
   max-width: 1200px;
   margin: 0 auto;
   padding: 40px 20px;
+  word-break: break-word;
+  overflow-wrap: break-word;
   @media (max-width: 600px) { padding: 20px 12px; }
 `;
 
@@ -37,6 +39,7 @@ const OrdersList = styled.div`
   display: flex;
   flex-direction: column;
   gap: 20px;
+  min-width: 0;
 `;
 
 const OrderCard = styled.div`
@@ -45,6 +48,8 @@ const OrderCard = styled.div`
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   padding: 30px;
   transition: transform 0.3s ease;
+  min-width: 0;
+  overflow: hidden;
   
   &:hover {
     transform: translateY(-2px);
@@ -52,6 +57,7 @@ const OrderCard = styled.div`
   
   @media (max-width: 600px) {
     padding: 18px;
+    min-width: 0;
   }
 `;
 
@@ -414,7 +420,7 @@ const Orders = () => {
     try {
       setLoading(true);
       const result = await getUserOrders(user.uid);
-      
+
       if (result.success) {
         setOrders(result.data);
       } else {
@@ -435,7 +441,7 @@ const Orders = () => {
   const handleCancelOrder = async (orderId) => {
     setCancellingId(orderId);
     const result = await cancelOrder(orderId, 'Annulation client');
-    
+
     if (result.success) {
       showCenterAlert('Commande annulée avec succès');
       // Recharger les commandes
@@ -484,7 +490,7 @@ const Orders = () => {
             </OrdersTitle>
             <OrdersSubtitle>Historique de vos commandes</OrdersSubtitle>
           </OrdersHeader>
-          
+
           <EmptyOrders>
             <FiPackage size={64} />
             <h3>Aucune commande</h3>
@@ -506,7 +512,7 @@ const Orders = () => {
           </OrdersTitle>
           <OrdersSubtitle>Historique de vos commandes</OrdersSubtitle>
         </OrdersHeader>
-        
+
         <OrdersList>
           {orders.map(order => (
             <OrderCard key={order.id}>
@@ -523,7 +529,7 @@ const Orders = () => {
                     })}
                   </div>
                 </OrderInfo>
-                
+
                 <OrderStatus status={order.status}>
                   {getStatusIcon(order.status)}
                   {getStatusText(order.status)}
@@ -531,18 +537,18 @@ const Orders = () => {
               </OrderHeader>
               {(order?.payment?.method === 'bank') && (order.status !== 'paid' && order.status !== 'delivered') && (
                 <PayNotice>
-                  <span style={{ display:'inline-flex', alignItems:'center', gap:8 }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                     <FiCreditCard /> Payez par virement: retrouvez le RIB dans Facturation pour valider votre commande.
                   </span>
                   <PayNoticeButton to="/billing">Aller au RIB</PayNoticeButton>
                 </PayNotice>
               )}
-              
+
               <OrderItems>
                 {order.items.map((item, index) => (
                   <OrderItem key={index}>
-                    <ItemImage 
-                      src={item.image || 'https://picsum.photos/seed/fallback/60/60'} 
+                    <ItemImage
+                      src={item.image || 'https://picsum.photos/seed/fallback/60/60'}
                       alt={item.name}
                       onError={(e) => {
                         e.target.src = 'https://picsum.photos/seed/fallback/60/60';
@@ -556,12 +562,12 @@ const Orders = () => {
                   </OrderItem>
                 ))}
               </OrderItems>
-              
+
               <OrderTotal>
                 <span>Total</span>
                 <span>{order.total.toFixed(2)}€</span>
               </OrderTotal>
-              
+
               <OrderActions>
                 <ActionButton to={`/orders/${order.id}`} className="primary">
                   Voir les détails
@@ -572,7 +578,7 @@ const Orders = () => {
                   </ActionButton>
                 )}
                 {(order.status === 'pending' || order.status === 'processing') && (
-                  <CancelButton 
+                  <CancelButton
                     onClick={() => setConfirmId(order.id)}
                     disabled={cancellingId === order.id}
                   >
