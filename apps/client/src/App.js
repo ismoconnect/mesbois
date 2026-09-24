@@ -1,5 +1,7 @@
 import React from 'react';
-import { createBrowserRouter, createRoutesFromElements, RouterProvider, Route, Outlet, useLocation } from 'react-router-dom';
+import { createBrowserRouter, createRoutesFromElements, RouterProvider, Route, Outlet, useLocation, Navigate } from 'react-router-dom';
+import routeMapping from './utils/routeMapping.json';
+import i18n from './i18n';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
@@ -112,41 +114,70 @@ function RootLayout() {
   );
 }
 
+// Composant pour rediriger la racine / vers la bonne langue
+function LanguageRedirector() {
+  const lang = i18n.language || 'fr';
+  return <Navigate to={`/${lang}`} replace />;
+}
+
+// Fonction pour générer les routes dynamiques
+function getLocalizedRoutes() {
+  const languages = ['fr', 'de'];
+  const routes = [];
+  
+  languages.forEach(lang => {
+    routes.push(
+      <Route key={lang} path={lang} element={<RootLayout />}>
+        <Route index element={<Home />} />
+        <Route path={routeMapping.products[lang]} element={<Products />} />
+        <Route path={`${routeMapping.productDetail[lang]}/:id`} element={<ProductDetail />} />
+
+        <Route path={routeMapping.cart[lang]} element={<Cart />} />
+        <Route path={routeMapping.checkout[lang]} element={<Checkout />} />
+        <Route path={routeMapping.login[lang]} element={<Login />} />
+        <Route path={routeMapping.register[lang]} element={<Register />} />
+        
+        <Route path={routeMapping.dashboard[lang]} element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+        <Route path={routeMapping.dashboardCart[lang]} element={<PrivateRoute><DashboardCart /></PrivateRoute>} />
+        <Route path={routeMapping.dashboardProducts[lang]} element={<PrivateRoute><DashboardProducts /></PrivateRoute>} />
+        <Route path={`${routeMapping.dashboardProductDetail[lang]}/:id`} element={<PrivateRoute><DashboardProductDetail /></PrivateRoute>} />
+        <Route path={routeMapping.dashboardCheckout[lang]} element={<PrivateRoute><DashboardCheckout /></PrivateRoute>} />
+        
+        <Route path={routeMapping.billing[lang]} element={<PrivateRoute><Billing /></PrivateRoute>} />
+        <Route path={routeMapping.profile[lang]} element={<PrivateRoute><Profile /></PrivateRoute>} />
+        <Route path={routeMapping.orders[lang]} element={<PrivateRoute><Orders /></PrivateRoute>} />
+        <Route path={`${routeMapping.orderDetail[lang]}/:id`} element={<PrivateRoute><OrderDetail /></PrivateRoute>} />
+        <Route path={`${routeMapping.orderReview[lang]}/:id/review`} element={<PrivateRoute><OrderReview /></PrivateRoute>} />
+        
+        <Route path={routeMapping.bankTransfer[lang]} element={<BankTransfer />} />
+        <Route path={routeMapping.paypalPayment[lang]} element={<PayPalPayment />} />
+        <Route path={routeMapping.authAction[lang]} element={<AuthAction />} />
+        <Route path={routeMapping.settings[lang]} element={<PrivateRoute><Settings /></PrivateRoute>} />
+        
+        <Route path={routeMapping.suivi[lang]} element={<PrivateRoute><Suivi /></PrivateRoute>} />
+        <Route path={`${routeMapping.suiviItinerary[lang]}/:id`} element={<PrivateRoute><SuiviItinerary /></PrivateRoute>} />
+        
+        <Route path={routeMapping.about[lang]} element={<About />} />
+        <Route path={routeMapping.contact[lang]} element={<Contact />} />
+        <Route path={routeMapping.legal[lang]} element={<Legal />} />
+        <Route path={routeMapping.delivery[lang]} element={<Delivery />} />
+        <Route path={routeMapping.returns[lang]} element={<Returns />} />
+        <Route path={routeMapping.privacy[lang]} element={<Privacy />} />
+        <Route path={routeMapping.terms[lang]} element={<Terms />} />
+      </Route>
+    );
+  });
+  return routes;
+}
+
 const router = createBrowserRouter(
   createRoutesFromElements(
-    <Route path="/" element={<RootLayout />}>
-      <Route index element={<Home />} />
-      <Route path="products" element={<Products />} />
-      <Route path="product/:id" element={<ProductDetail />} />
-
-      <Route path="cart" element={<Cart />} />
-      <Route path="checkout" element={<Checkout />} />
-      <Route path="login" element={<Login />} />
-      <Route path="register" element={<Register />} />
-      <Route path="dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-      <Route path="dashboard/cart" element={<PrivateRoute><DashboardCart /></PrivateRoute>} />
-      <Route path="dashboard/products" element={<PrivateRoute><DashboardProducts /></PrivateRoute>} />
-      <Route path="dashboard/product/:id" element={<PrivateRoute><DashboardProductDetail /></PrivateRoute>} />
-      <Route path="dashboard/checkout" element={<PrivateRoute><DashboardCheckout /></PrivateRoute>} />
-      <Route path="billing" element={<PrivateRoute><Billing /></PrivateRoute>} />
-      <Route path="profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
-      <Route path="orders" element={<PrivateRoute><Orders /></PrivateRoute>} />
-      <Route path="orders/:id" element={<PrivateRoute><OrderDetail /></PrivateRoute>} />
-      <Route path="payment/bank" element={<BankTransfer />} />
-      <Route path="payment/paypal" element={<PayPalPayment />} />
-      <Route path="orders/:id/review" element={<PrivateRoute><OrderReview /></PrivateRoute>} />
-      <Route path="auth/action" element={<AuthAction />} />
-      <Route path="settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
-      <Route path="suivi" element={<PrivateRoute><Suivi /></PrivateRoute>} />
-      <Route path="suivi/:id" element={<PrivateRoute><SuiviItinerary /></PrivateRoute>} />
-      <Route path="about" element={<About />} />
-      <Route path="contact" element={<Contact />} />
-      <Route path="legal" element={<Legal />} />
-      <Route path="delivery" element={<Delivery />} />
-      <Route path="returns" element={<Returns />} />
-      <Route path="privacy" element={<Privacy />} />
-      <Route path="terms" element={<Terms />} />
-    </Route>
+    <>
+      <Route path="/" element={<LanguageRedirector />} />
+      {getLocalizedRoutes()}
+      {/* Fallback pour les anciennes routes (404) */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </>
   )
 );
 

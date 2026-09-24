@@ -1,1083 +1,1132 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { Link } from 'react-router-dom';
-import { doc, getDoc } from 'firebase/firestore';
+import { 
+  FiTruck, 
+  FiShield, 
+  FiStar, 
+  FiCheckCircle, 
+  FiShoppingCart, 
+  FiArrowRight, 
+  FiCheck 
+} from 'react-icons/fi';
+import { FaFire } from 'react-icons/fa';
+import { useTranslation } from 'react-i18next';
+import toast from 'react-hot-toast';
+import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase/config';
-import { FiTruck, FiShield, FiStar, FiHeart } from 'react-icons/fi';
- 
+import { useCart } from '../contexts/CartContext';
+import LocalizedLink from '../components/LocalizedLink/LocalizedLink';
+import { products as localCatalogue } from '../data/catalogue';
+
+/* ================= STYLES ================= */
 
 const HomeContainer = styled.div`
-  max-width: 1200px;
+  max-width: 1240px;
   margin: 0 auto;
   padding: 0 20px;
-  animation: fadeIn 0.8s ease-in-out;
-  
+  animation: fadeIn 0.6s ease-in-out;
+
   @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 768px) {
+    padding: 0 16px;
   }
 `;
 
-const CategoriesNav = styled.div`
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 12px;
-  margin-top: 6px;
-  order: 2;
-
-  @media (max-width: 900px) {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  @media (max-width: 600px) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-`;
-
-const CategoryCard = styled(Link)`
+/* HERO SECTION */
+const HeroSection = styled.section`
   position: relative;
-  display: block;
-  height: 140px;
-  border-radius: 12px;
+  border-radius: 20px;
   overflow: hidden;
-  background: #eef3ee;
-  text-decoration: none;
-  border: 2px solid #e0e0e0;
-  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+  margin-top: 16px;
+  margin-bottom: 36px;
+  background: linear-gradient(135deg, rgba(17, 34, 21, 0.94) 0%, rgba(27, 51, 32, 0.90) 50%, rgba(15, 23, 42, 0.85) 100%), 
+              url('https://images.unsplash.com/photo-1542273917363-3b1817f69a2d?q=80&w=2000&auto=format&fit=crop') center/cover no-repeat;
+  color: #ffffff;
+  padding: 64px 36px 48px;
+  box-shadow: 0 20px 40px -15px rgba(20, 38, 24, 0.25);
 
-  &:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,.08); border-color: #2c5530; }
+  @media (max-width: 768px) {
+    padding: 36px 20px 30px;
+    margin-top: 8px;
+    margin-bottom: 24px;
+    border-radius: 14px;
+  }
+`;
+
+const HeroBadge = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(217, 119, 6, 0.2);
+  border: 1px solid rgba(217, 119, 6, 0.4);
+  color: #fde68a;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 18px;
+  backdrop-filter: blur(4px);
+
+  @media (max-width: 768px) {
+    font-size: 11.5px;
+    padding: 5px 10px;
+    margin-bottom: 14px;
+  }
+`;
+
+const HeroTitle = styled.h1`
+  font-size: 42px;
+  font-weight: 800;
+  line-height: 1.15;
+  margin-bottom: 16px;
+  color: #ffffff;
+  letter-spacing: -0.5px;
+  max-width: 850px;
+
+  @media (max-width: 768px) {
+    font-size: 26px;
+    margin-bottom: 12px;
+  }
+`;
+
+const HeroSubtitle = styled.p`
+  font-size: 17px;
+  line-height: 1.6;
+  color: #e2ece4;
+  max-width: 680px;
+  margin-bottom: 28px;
+
+  @media (max-width: 768px) {
+    font-size: 14px;
+    margin-bottom: 22px;
+  }
+`;
+
+const HeroButtons = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 36px;
+
+  @media (max-width: 576px) {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    margin-bottom: 26px;
+  }
+`;
+
+const PrimaryBtn = styled(LocalizedLink)`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: #d97706;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 16px;
+  padding: 14px 28px;
+  border-radius: 10px;
+  text-decoration: none;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 15px rgba(217, 119, 6, 0.4);
+
+  &:hover {
+    background: #b45309;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(217, 119, 6, 0.5);
+    color: #ffffff;
+  }
+
+  @media (max-width: 768px) {
+    padding: 12px 20px;
+    font-size: 15px;
+  }
+`;
+
+const SecondaryBtn = styled(LocalizedLink)`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 16px;
+  padding: 14px 24px;
+  border-radius: 10px;
+  text-decoration: none;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(4px);
+  transition: all 0.25s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.22);
+    transform: translateY(-2px);
+    color: #ffffff;
+  }
+
+  @media (max-width: 768px) {
+    padding: 12px 18px;
+    font-size: 14.5px;
+  }
+`;
+
+const KeyPointsRibbon = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+
+  @media (max-width: 768px) {
+    gap: 12px;
+    padding-top: 18px;
+  }
+`;
+
+const KeyPointItem = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #e2ece4;
+
+  svg {
+    color: #fbbf24;
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 768px) {
+    font-size: 12px;
+  }
+`;
+
+/* TRUST BAR / REASSURANCE */
+const TrustBarSection = styled.section`
+  margin-bottom: 48px;
+
+  @media (max-width: 768px) {
+    margin-bottom: 32px;
+  }
+`;
+
+const TrustGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+
+  @media (max-width: 992px) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+
+  @media (max-width: 576px) {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+`;
+
+const TrustCard = styled.div`
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 22px 18px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+
+  &:hover {
+    border-color: #2c5530;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(44, 85, 48, 0.08);
+  }
+`;
+
+const TrustIconBox = styled.div`
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: #eef5f0;
+  color: #2c5530;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 20px;
+`;
+
+const TrustInfo = styled.div`
+  h4 {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 4px;
+  }
+
+  p {
+    font-size: 13px;
+    line-height: 1.5;
+    color: #64748b;
+    margin: 0;
+  }
+`;
+
+/* SECTION COMMONS */
+const SectionHeader = styled.div`
+  text-align: center;
+  margin-bottom: 28px;
+
+  h2 {
+    font-size: 28px;
+    font-weight: 800;
+    color: #1b3b22;
+    margin: 0 0 8px;
+    letter-spacing: -0.3px;
+  }
+
+  p {
+    font-size: 15px;
+    color: #64748b;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  @media (max-width: 768px) {
+    margin-bottom: 20px;
+
+    h2 { font-size: 22px; }
+    p { font-size: 13.5px; }
+  }
+`;
+
+/* CATEGORIES */
+const CategoriesSection = styled.section`
+  margin-bottom: 56px;
+
+  @media (max-width: 768px) {
+    margin-bottom: 36px;
+  }
+`;
+
+const CategoriesGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  @media (max-width: 640px) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+`;
+
+const CategoryCard = styled(LocalizedLink)`
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  height: 220px;
+  border-radius: 14px;
+  overflow: hidden;
+  text-decoration: none;
+  padding: 16px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
 
   &::before {
     content: '';
     position: absolute;
     inset: 0;
-    background-image: linear-gradient(to bottom, rgba(0,0,0,0) 40%, rgba(0,0,0,.45)), var(--bg-img);
+    background-image: linear-gradient(to top, rgba(15, 23, 42, 0.9) 0%, rgba(15, 23, 42, 0.3) 60%, rgba(15, 23, 42, 0) 100%), var(--bg-img);
     background-size: cover;
     background-position: center;
-  }
-
-  span {
-    position: absolute;
-    left: 12px;
-    bottom: 12px;
-    color: #fff;
-    font-weight: 800;
-    letter-spacing: .2px;
-    text-shadow: 0 2px 6px rgba(0,0,0,.4);
-  }
-`;
-
-const HeroSection = styled.section`
-  background: linear-gradient(135deg, #58ad71 0%, #3a7a4b 100%);
-  color: #ffffff;
-  padding: 56px 0;
-  text-align: center;
-  margin-bottom: 24px;
-  position: relative;
-  overflow: hidden;
-  
-  @media (max-width: 768px) {
-    padding: 0 0 48px;
-    margin-top: 0;
-    margin-bottom: 24px;
-  }
-  
-  @media (max-width: 480px) {
-    padding: 0 0 40px;
-    margin-top: 0;
-    margin-bottom: 20px;
-  }
-  
-  @media (max-width: 375px) {
-    padding: 0 0 36px;
-    margin-top: 0;
-    margin-bottom: 16px;
-  }
-`;
-
-const HeroTitle = styled.h1`
-  font-size: 44px;
-  font-weight: 800;
-  margin-bottom: 12px;
-  color: #ffffff;
-  letter-spacing: -0.5px;
-  
-  @media (max-width: 768px) {
-    font-size: 32px;
-  }
-`;
-
-const HeroSubtitle = styled.p`
-  font-size: 18px;
-  margin-bottom: 28px;
-  margin-top: 8px;
-  opacity: 0.95;
-  line-height: 1.6;
-  max-width: 720px;
-  margin-left: auto;
-  margin-right: auto;
-  color: #eef5f0;
-  
-  @media (max-width: 768px) {
-    font-size: 16px;
-    margin-bottom: 24px;
-  }
-`;
-
-const HeroButton = styled(Link)`
-  display: inline-block;
-  background: #2c5530;
-  color: white;
-  padding: 14px 28px;
-  border-radius: 10px;
-  text-decoration: none;
-  font-weight: 700;
-  font-size: 16px;
-  transition: background-color 0.25s ease, transform 0.15s ease;
-  position: relative;
-  z-index: 1;
-  animation: buttonSlideIn 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55) 0.9s both;
-  overflow: hidden;
-  margin: 0 10px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2), 0 0 0 0 rgba(255, 255, 255, 0.5);
-  
-  @media (max-width: 768px) {
-    padding: 14px 32px;
-    font-size: 16px;
-  }
-  
-  @media (max-width: 480px) {
-    padding: 12px 28px;
-    font-size: 15px;
-    margin: 0 5px;
-  }
-  
-  @media (max-width: 375px) {
-    padding: 10px 24px;
-    font-size: 14px;
-  }
-  
-  &::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #27ae60, #2c5530);
-    transform: translate(-50%, -50%);
-    transition: width 0.6s ease, height 0.6s ease;
-  }
-  
-  &::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(44, 85, 48, 0.3), transparent);
-    transition: left 0.7s ease;
-  }
-  
-  span {
-    position: relative;
+    transition: transform 0.4s ease;
     z-index: 1;
   }
-  
+
   &:hover {
-    transform: translateY(-5px) scale(1.05);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 0 0 20px rgba(255, 255, 255, 0.8);
-    color: white;
-    
+    transform: translateY(-4px);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.16);
+
     &::before {
-      width: 400px;
-      height: 400px;
-    }
-    
-    &::after {
-      left: 100%;
+      transform: scale(1.06);
     }
   }
-  
-  &:active {
-    transform: translateY(-2px) scale(1.02);
-  }
-  
-  @keyframes buttonSlideIn {
-    from {
-      opacity: 0;
-      transform: translateY(30px) scale(0.8);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-    }
-  }
-`;
 
-const HeroDecoration = styled.div`
-  display: none;
-`;
-
-const FloatingParticle = styled.div`
-  position: absolute;
-  width: ${props => props.size || '4px'};
-  height: ${props => props.size || '4px'};
-  background: rgba(255, 255, 255, 0.6);
-  border-radius: 50%;
-  top: ${props => props.top || '50%'};
-  left: ${props => props.left || '50%'};
-  animation: floatParticle ${props => props.duration || '8s'} ease-in-out infinite;
-  animation-delay: ${props => props.delay || '0s'};
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-  
-  @keyframes floatParticle {
-    0%, 100% {
-      transform: translate(0, 0) scale(1);
-      opacity: 0;
-    }
-    10% {
-      opacity: 1;
-    }
-    50% {
-      transform: translate(${props => props.moveX || '30px'}, ${props => props.moveY || '-50px'}) scale(1.2);
-      opacity: 0.8;
-    }
-    90% {
-      opacity: 1;
-    }
-    100% {
-      transform: translate(0, 0) scale(1);
-      opacity: 0;
-    }
-  }
-`;
-
-const FloatingIcon = styled.div`
-  position: absolute;
-  top: ${props => props.top || '50%'};
-  left: ${props => props.left || '50%'};
-  font-size: ${props => props.size || '30px'};
-  animation: floatIcon ${props => props.duration || '20s'} linear infinite;
-  animation-delay: ${props => props.delay || '0s'};
-  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.8)) brightness(1.1);
-  pointer-events: none;
-  
-  &::before {
-    content: '${props => props.icon || '🌳'}';
-    display: block;
-  }
-  
-  @keyframes floatIcon {
-    0% {
-      transform: translate(0, 0) rotate(0deg);
-      opacity: 0.6;
-    }
-    25% {
-      opacity: 0.9;
-    }
-    50% {
-      transform: translate(${props => props.moveX || '50px'}, ${props => props.moveY || '50px'}) rotate(${props => props.rotate || '180deg'});
-      opacity: 0.8;
-    }
-    75% {
-      opacity: 0.9;
-    }
-    100% {
-      transform: translate(0, 0) rotate(${props => props.rotateEnd || '360deg'});
-      opacity: 0.6;
-    }
-  }
-`;
-
-const HeroWave = styled.div`
-  display: none;
-`;
-
-const FeaturesSection = styled.section`
-  padding: 36px 0;
-  background: white;
-  
   @media (max-width: 768px) {
-    padding: 28px 0;
-  }
-  
-  @media (max-width: 480px) {
-    padding: 24px 0;
-  }
-  
-  @media (max-width: 375px) {
-    padding: 20px 0;
+    height: 170px;
+    padding: 12px;
   }
 `;
 
-const SectionTitle = styled.h2`
-  text-align: center;
-  font-size: 42px;
-  font-weight: 800;
-  margin-bottom: 24px;
-  color: #2c5530;
+const CategoryMeta = styled.div`
   position: relative;
-  padding-bottom: 20px;
-  white-space: nowrap;
-  
-  &::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 80px;
-    height: 5px;
-    background: linear-gradient(90deg, #2c5530 0%, #27ae60 50%, #2c5530 100%);
-    border-radius: 3px;
-    animation: lineExpand 1.5s ease-out both;
-  }
-  
-  @keyframes lineExpand {
-    from {
-      width: 0;
-      opacity: 0;
-    }
-    to {
-      width: 80px;
-      opacity: 1;
-    }
-  }
-  
+  z-index: 2;
+  color: #ffffff;
+`;
+
+const CategoryPriceTag = styled.span`
+  display: inline-block;
+  background: #d97706;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+`;
+
+const CategoryName = styled.h3`
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 2px;
+  color: #ffffff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+
   @media (max-width: 768px) {
-    font-size: 24px;
-    margin-bottom: 30px;
-    padding-bottom: 12px;
-    white-space: normal;
-    
-    &::after {
-      width: 50px;
-      height: 3px;
-    }
-  }
-  
-  @media (max-width: 480px) {
-    font-size: 20px;
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    
-    &::after {
-      width: 40px;
-      height: 2px;
-    }
-  }
-  
-  @media (max-width: 375px) {
-    font-size: 18px;
-    margin-bottom: 15px;
-    padding-bottom: 8px;
-    
-    &::after {
-      width: 30px;
-      height: 2px;
-    }
+    font-size: 14px;
   }
 `;
 
-const FeaturesGrid = styled.div`
+const CategoryDesc = styled.span`
+  font-size: 12px;
+  color: #cbd5e1;
+  display: block;
+  opacity: 0.9;
+  line-height: 1.3;
+
+  @media (max-width: 768px) {
+    display: none;
+  }
+`;
+
+/* BESTSELLERS SECTION */
+const BestsellersSection = styled.section`
+  margin-bottom: 56px;
+
+  @media (max-width: 768px) {
+    margin-bottom: 36px;
+  }
+`;
+
+const ProductsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 40px;
-  margin-bottom: 32px;
-  
-  @media (max-width: 768px) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 14px;
-    margin-bottom: 24px;
-  }
-  
-  @media (max-width: 480px) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
-    margin-bottom: 20px;
-  }
-  
-  @media (max-width: 375px) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
-    margin-bottom: 18px;
-  }
-`;
-
-const FeatureCard = styled.div`
-  text-align: center;
-  padding: 40px 25px;
-  border-radius: 16px;
-  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-  position: relative;
-  overflow: hidden;
-  
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 4px;
-    background: linear-gradient(90deg, #2c5530, #4a7c59, #27ae60);
-  }
-  
-  @media (max-width: 768px) {
-    padding: 18px 14px;
-    border-radius: 12px;
-  }
-  
-  @media (max-width: 480px) {
-    padding: 16px 12px;
-  }
-`;
-
-const CTAContent = styled.div`
-  max-width: 600px;
-  margin: 0 auto;
-`;
-
-const CTAButtons = styled.div`
-  display: flex;
+  grid-template-columns: repeat(4, 1fr);
   gap: 20px;
-  justify-content: center;
-  margin-top: 30px;
-  
-  @media (max-width: 600px) {
-    flex-direction: column;
-    align-items: center;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  @media (max-width: 576px) {
+    grid-template-columns: 1fr;
+    gap: 14px;
   }
 `;
 
-const PrimaryButton = styled(Link)`
-  background: #2c5530;
-  color: white;
-  padding: 15px 30px;
-  border-radius: 8px;
-  text-decoration: none;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  
-  &:hover {
-    background: #1e3a22;
-    transform: translateY(-2px);
-  }
-`;
-
-const SecondaryButton = styled(Link)`
-  background: transparent;
-  color: #2c5530;
-  padding: 15px 30px;
-  border: 2px solid #2c5530;
-  border-radius: 8px;
-  text-decoration: none;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  
-  &:hover {
-    background: #2c5530;
-    color: white;
-  }
-`;
-
-/* Minimal placeholders for sections and cards used below */
-const ProductsSection = styled.section`
-  padding: 24px 0;
+const ProductCard = styled.div`
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  
-  @media (max-width: 768px) {
-    padding-top: 8px;
-  }
-  
-  @media (max-width: 480px) {
-    padding-top: 6px;
-  }
-  
-  @media (max-width: 375px) {
-    padding-top: 4px;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+
+  &:hover {
+    border-color: #2c5530;
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
   }
 `;
 
-const ProductsHeader = styled.div`
-  text-align: center;
-  margin-bottom: 6px;
-  order: 1;
-  
-  h2 {
-    margin-bottom: 6px;
+const ProductImageWrap = styled.div`
+  position: relative;
+  height: 190px;
+  overflow: hidden;
+  background: #f1f5f9;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
   }
-  
-  @media (max-width: 768px) {
-    order: 1;
+
+  ${ProductCard}:hover & img {
+    transform: scale(1.05);
   }
 `;
 
-const ProductsSubtitle = styled.p`
-  color: #666;
-  max-width: 720px;
-  margin: 6px auto 0;
+const StockBadge = styled.span`
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: #16a34a;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 `;
 
- 
-
-const StatsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
-  
-  @media (max-width: 768px) {
-    display: flex;
-    flex-wrap: nowrap;
-    overflow: hidden;
-    gap: 6px;
-    padding-bottom: 0;
-    justify-content: space-between;
-    align-items: center;
-  }
-`;
-
- 
-
- 
-
-const StatsSection = styled.section`
-  padding: 28px 0;
-  
-  /* Override StatsGrid layout inside this section for mobile */
-  @media (max-width: 768px) {
-    ${StatsGrid} {
-      display: grid !important;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
-    }
-  }
-  
-  @media (max-width: 480px) {
-    ${StatsGrid} {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px;
-    }
-  }
-`;
-
-const StatCard = styled.div`
-  text-align: center;
-  padding: 20px;
-  background: #f8f9fa;
-  border-radius: 10px;
-  
-  @media (max-width: 768px) {
-    padding: 12px;
-  }
-  
-  @media (max-width: 480px) {
-    padding: 10px;
-  }
-`;
-
-const StatNumber = styled.div`
-  font-size: 28px;
-  font-weight: 800;
-  color: #2c5530;
-  
-  @media (max-width: 768px) {
-    font-size: 22px;
-  }
-  
-  @media (max-width: 480px) {
-    font-size: 20px;
-  }
-`;
-
-const StatLabel = styled.div`
-  color: #55625a;
-  
-  @media (max-width: 768px) {
-    font-size: 12px;
-  }
-  
-  @media (max-width: 480px) {
-    font-size: 11px;
-  }
-`;
-
-const FeatureIcon = styled.div`
-  margin-bottom: 10px;
-  
-  @media (max-width: 768px) {
-    margin-bottom: 8px;
-    svg { width: 22px; height: 22px; }
-  }
-  
-  @media (max-width: 480px) {
-    svg { width: 20px; height: 20px; }
-  }
-`;
-
-const FeatureTitle = styled.h4`
-  margin: 0 0 8px;
-  color: #1e3a22;
-  
-  @media (max-width: 768px) {
-    font-size: 15px;
-    margin-bottom: 6px;
-  }
-  
-  @media (max-width: 480px) {
-    font-size: 14px;
-  }
-`;
-
-const FeatureDescription = styled.p`
-  color: #55625a;
-  
-  @media (max-width: 768px) {
-    font-size: 13px;
-  }
-  
-  @media (max-width: 480px) {
-    font-size: 12.5px;
-  }
-`;
-
-const TestimonialsSection = styled.section`
-  padding: 28px 0;
-`;
-
-const TestimonialsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 20px;
-  
-  @media (max-width: 768px) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
-  }
-  
-  @media (max-width: 480px) {
-    grid-template-columns: 1fr;
-    gap: 10px;
-  }
-`;
-
-const TestimonialCard = styled.div`
-  background: #fff;
-  border: 1px solid #e6eae7;
-  border-radius: 12px;
+const ProductBody = styled.div`
   padding: 16px;
-  
-  @media (max-width: 768px) {
-    padding: 14px;
-  }
-  
-  @media (max-width: 480px) {
-    padding: 12px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+`;
+
+const ProductRating = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #d97706;
+  font-weight: 700;
+  margin-bottom: 6px;
+`;
+
+const ProductTitle = styled.h4`
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 6px;
+  line-height: 1.4;
+  height: 40px;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+`;
+
+const ProductPriceRow = styled.div`
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: auto;
+  margin-bottom: 12px;
+`;
+
+const CurrentPrice = styled.span`
+  font-size: 20px;
+  font-weight: 800;
+  color: #1b3b22;
+`;
+
+const RegularPrice = styled.span`
+  font-size: 13px;
+  color: #94a3b8;
+  text-decoration: line-through;
+`;
+
+const ProductActionBtn = styled.button`
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #2c5530;
+  color: #ffffff;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #1e3a22;
   }
 `;
 
-const TestimonialText = styled.p`
-  color: #33453a;
-  
+/* REVIEWS & SOCIAL PROOF */
+const ReviewsSection = styled.section`
+  margin-bottom: 56px;
+  padding: 40px 24px;
+  background: #f8fafc;
+  border-radius: 18px;
+  border: 1px solid #e2e8f0;
+
   @media (max-width: 768px) {
-    font-size: 14px;
-    line-height: 1.45;
-  }
-  
-  @media (max-width: 480px) {
-    font-size: 13.5px;
-    line-height: 1.45;
+    padding: 24px 16px;
+    margin-bottom: 36px;
+    border-radius: 12px;
   }
 `;
 
-const TestimonialAuthor = styled.div`
+const ReviewsBadge = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 12px;
+`;
+
+const ReviewsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-top: 24px;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+`;
+
+const ReviewCard = styled.div`
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+`;
+
+const ReviewStars = styled.div`
+  display: flex;
+  gap: 2px;
+  color: #f59e0b;
+  margin-bottom: 10px;
+`;
+
+const VerifiedPill = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #16a34a;
+  background: #dcfce7;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-bottom: 12px;
+  width: fit-content;
+`;
+
+const ReviewText = styled.p`
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: #334155;
+  margin: 0 0 16px;
+  flex: 1;
+`;
+
+const ReviewAuthor = styled.div`
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #f1f5f9;
 `;
 
-const AuthorAvatar = styled.div`
+const Avatar = styled.div`
   width: 36px;
   height: 36px;
   border-radius: 50%;
   background: #2c5530;
-  color: #fff;
+  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 13px;
   font-weight: 700;
-  
-  @media (max-width: 768px) {
-    width: 32px;
-    height: 32px;
-    font-size: 12px;
-  }
-  
-  @media (max-width: 480px) {
-    width: 30px;
-    height: 30px;
-  }
 `;
 
-const AuthorInfo = styled.div`
-  color: #55625a;
-  
-  @media (max-width: 768px) {
+const AuthorDetails = styled.div`
+  h5 {
+    margin: 0;
     font-size: 13px;
+    font-weight: 700;
+    color: #1e293b;
   }
-  
-  @media (max-width: 480px) {
-    font-size: 12.5px;
+
+  span {
+    font-size: 11.5px;
+    color: #64748b;
   }
 `;
 
+/* NEWSLETTER */
 const NewsletterSection = styled.section`
-  background: #2c5530;
-  color: #fff;
-  padding: 28px 20px;
-  border-radius: 12px;
-  margin: 24px 0;
-`;
-
-const NewsletterContent = styled.div`
+  margin-bottom: 48px;
+  background: linear-gradient(135deg, #1b3b22 0%, #2c5530 100%);
+  border-radius: 18px;
+  padding: 44px 32px;
+  color: #ffffff;
   text-align: center;
+  box-shadow: 0 16px 36px -10px rgba(27, 59, 34, 0.3);
+
+  @media (max-width: 768px) {
+    padding: 30px 18px;
+    margin-bottom: 32px;
+    border-radius: 12px;
+  }
 `;
 
 const NewsletterForm = styled.form`
   display: flex;
-  gap: 10px;
+  align-items: center;
   justify-content: center;
-  margin-top: 10px;
-  flex-wrap: wrap;
+  gap: 10px;
+  max-width: 520px;
+  margin: 22px auto 0;
+
+  @media (max-width: 576px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
 `;
 
 const NewsletterInput = styled.input`
-  padding: 10px 12px;
+  flex: 1;
+  padding: 13px 18px;
   border-radius: 8px;
-  border: none;
-  min-width: 260px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: #ffffff;
+  font-size: 14.5px;
+  outline: none;
+
+  &:focus {
+    border-color: #d97706;
+  }
 `;
 
-const NewsletterButton = styled.button`
-  background: #fff;
-  color: #2c5530;
+const NewsletterSubmit = styled.button`
+  background: #d97706;
+  color: #ffffff;
   border: none;
-  padding: 10px 14px;
+  padding: 13px 24px;
   border-radius: 8px;
+  font-size: 15px;
+  font-weight: 700;
   cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+
+  &:hover {
+    background: #b45309;
+  }
 `;
 
-const CTASection = styled.section`
-  padding: 36px 0;
+/* FINAL CTA */
+const FinalCTASection = styled.section`
+  margin-bottom: 24px;
+  padding: 40px 24px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  text-align: center;
+
+  @media (max-width: 768px) {
+    padding: 28px 16px;
+  }
 `;
+
+/* ================= COMPOSANT ================= */
 
 const Home = () => {
-  const [email, setEmail] = useState('');
+  const { t } = useTranslation();
+  const { addToCart } = useCart();
+  const [newsletterEmail, setNewsletterEmail] = useState('');
+  const [featuredProducts, setFeaturedProducts] = useState([]);
+
+  // Images par défaut pour les catégories
   const [categoryImages, setCategoryImages] = useState({
-    bois: "https://images.unsplash.com/photo-1527061011665-3652c757a4d7?q=80&w=1600&auto=format&fit=crop",
-    accessoires: "https://images.unsplash.com/photo-1527061011665-3652c757a4d7?q=80&w=1600&auto=format&fit=crop",
-    buches_densifiees: "https://images.unsplash.com/photo-1527061011665-3652c757a4d7?q=80&w=1600&auto=format&fit=crop",
-    pellets: "https://images.unsplash.com/photo-1615485737594-3b42cfaa6a8a?q=80&w=1600&auto=format&fit=crop",
-    poeles: "https://images.unsplash.com/photo-1556911261-6bd341186b66?q=80&w=1600&auto=format&fit=crop"
+    bois: "https://images.unsplash.com/photo-1520114878144-6123749968dd?q=80&w=1200&auto=format&fit=crop",
+    pellets: "https://images.unsplash.com/photo-1615485737594-3b42cfaa6a8a?q=80&w=1200&auto=format&fit=crop",
+    buches_densifiees: "https://images.unsplash.com/photo-1527061011665-3652c757a4d7?q=80&w=1200&auto=format&fit=crop",
+    accessoires: "https://images.unsplash.com/photo-1543674892-7d64d45df18b?q=80&w=1200&auto=format&fit=crop",
+    poeles: "https://images.unsplash.com/photo-1556911261-6bd341186b66?q=80&w=1200&auto=format&fit=crop"
   });
-  
-  React.useEffect(() => {
+
+  // Charger les images configurées et les produits phares
+  useEffect(() => {
     let mounted = true;
-    const run = async () => {
+
+    const loadData = async () => {
+      // 1. Settings d'accueil
       try {
-        const ref = doc(db, 'settings', 'home');
-        const snap = await getDoc(ref);
-        if (mounted && snap.exists()) {
-          const data = snap.data() || {};
+        const homeDoc = await getDoc(doc(db, 'settings', 'home'));
+        if (mounted && homeDoc.exists()) {
+          const data = homeDoc.data() || {};
           const ci = data.categoryImages || {};
           setCategoryImages(prev => ({
             bois: ci.bois || prev.bois,
-            accessoires: ci.accessoires || prev.accessoires,
-            buches_densifiees: ci.buches_densifiees || prev.buches_densifiees,
             pellets: ci.pellets || prev.pellets,
+            buches_densifiees: ci.buches_densifiees || prev.buches_densifiees,
+            accessoires: ci.accessoires || prev.accessoires,
             poeles: ci.poeles || prev.poeles,
           }));
         }
-      } catch (e) {}
+      } catch (e) {
+        // silencieux
+      }
+
+      // 2. Produits phares
+      try {
+        const snap = await getDocs(collection(db, 'products'));
+        if (mounted && !snap.empty) {
+          const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+          setFeaturedProducts(list.slice(0, 4));
+          return;
+        }
+      } catch (e) {
+        // fallback catalogue local
+      }
+
+      // Fallback: 4 produits du catalogue local
+      if (mounted) {
+        setFeaturedProducts(localCatalogue.slice(0, 4).map((p, idx) => ({
+          id: p.id || `local-${idx}`,
+          name: p.name,
+          price: p.price,
+          regularPrice: p.regularPrice,
+          image: idx === 1 
+            ? 'https://images.unsplash.com/photo-1615485737594-3b42cfaa6a8a?q=80&w=600&auto=format&fit=crop'
+            : 'https://images.unsplash.com/photo-1520114878144-6123749968dd?q=80&w=600&auto=format&fit=crop',
+          rating: 4.8,
+          inStock: true
+        })));
+      }
     };
-    run();
+
+    loadData();
     return () => { mounted = false; };
   }, []);
-  
 
-  // Données de démonstration pour les produits phares
- 
+  const handleAddToCart = (product) => {
+    addToCart(product, 1);
+    toast.success(`${product.name || 'Produit'} ${t('cart.added_to_cart', 'ajouté au panier !')}`);
+  };
 
   const handleNewsletterSubmit = (e) => {
     e.preventDefault();
-    if (email.trim()) {
-      alert('Merci pour votre inscription à notre newsletter !');
-      setEmail('');
+    if (newsletterEmail.trim()) {
+      toast.success(t('home.newsletter_success', 'Merci pour votre inscription à notre newsletter !'));
+      setNewsletterEmail('');
     }
   };
 
-  
-
- 
-
-  
-
   return (
     <HomeContainer>
-      {/* Section Hero */}
+      {/* 1. HERO SECTION */}
       <HeroSection>
-        <HeroDecoration>
-          {/* Particules scintillantes */}
-          <FloatingParticle size="6px" top="20%" left="10%" duration="10s" delay="0s" moveX="40px" moveY="-80px" />
-          <FloatingParticle size="4px" top="30%" left="20%" duration="8s" delay="1s" moveX="-30px" moveY="-60px" />
-          <FloatingParticle size="5px" top="40%" left="80%" duration="12s" delay="0.5s" moveX="50px" moveY="-70px" />
-          <FloatingParticle size="3px" top="50%" left="90%" duration="9s" delay="2s" moveX="-40px" moveY="-50px" />
-          <FloatingParticle size="4px" top="60%" left="15%" duration="11s" delay="1.5s" moveX="35px" moveY="-65px" />
-          <FloatingParticle size="6px" top="70%" left="70%" duration="10s" delay="0.8s" moveX="-45px" moveY="-75px" />
-          <FloatingParticle size="5px" top="25%" left="50%" duration="13s" delay="2.5s" moveX="25px" moveY="-85px" />
-          <FloatingParticle size="4px" top="35%" left="60%" duration="9s" delay="1.2s" moveX="-35px" moveY="-55px" />
-          <FloatingParticle size="5px" top="45%" left="30%" duration="11s" delay="0.3s" moveX="45px" moveY="-70px" />
-          <FloatingParticle size="3px" top="55%" left="40%" duration="10s" delay="1.8s" moveX="-25px" moveY="-60px" />
-          
-          {/* Arbres de forêt en rotation */}
-          <FloatingIcon icon="🌳" size="35px" top="10%" left="15%" duration="25s" delay="0s" moveX="60px" moveY="80px" rotate="180deg" rotateEnd="360deg" />
-          <FloatingIcon icon="🌳" size="32px" top="20%" left="75%" duration="28s" delay="3s" moveX="-70px" moveY="90px" rotate="200deg" rotateEnd="360deg" />
-          <FloatingIcon icon="🌳" size="38px" top="50%" left="5%" duration="30s" delay="5s" moveX="80px" moveY="-60px" rotate="170deg" rotateEnd="360deg" />
-          <FloatingIcon icon="🌳" size="33px" top="70%" left="85%" duration="26s" delay="8s" moveX="-65px" moveY="-75px" rotate="190deg" rotateEnd="360deg" />
-          
-          {/* Camions de livraison */}
-          <FloatingIcon icon="🚚" size="36px" top="15%" left="50%" duration="32s" delay="2s" moveX="70px" moveY="70px" rotate="160deg" rotateEnd="360deg" />
-          <FloatingIcon icon="🚚" size="34px" top="45%" left="80%" duration="29s" delay="6s" moveX="-75px" moveY="85px" rotate="185deg" rotateEnd="360deg" />
-          <FloatingIcon icon="🚚" size="37px" top="65%" left="25%" duration="31s" delay="10s" moveX="65px" moveY="-70px" rotate="175deg" rotateEnd="360deg" />
-          
-          {/* Bûches de bois */}
-          <FloatingIcon icon="🪵" size="30px" top="8%" left="65%" duration="27s" delay="1s" moveX="-60px" moveY="75px" rotate="195deg" rotateEnd="360deg" />
-          <FloatingIcon icon="🪵" size="32px" top="35%" left="35%" duration="24s" delay="4s" moveX="55px" moveY="-80px" rotate="165deg" rotateEnd="360deg" />
-          <FloatingIcon icon="🪵" size="31px" top="55%" left="60%" duration="26s" delay="7s" moveX="-70px" moveY="65px" rotate="180deg" rotateEnd="360deg" />
-          <FloatingIcon icon="🪵" size="33px" top="75%" left="45%" duration="28s" delay="9s" moveX="60px" moveY="-85px" rotate="170deg" rotateEnd="360deg" />
-        </HeroDecoration>
+        <HeroBadge>
+          <FaFire /> {t('home.badge', 'Bois 100% sec & Granulés certifiés DINplus / PEFC')}
+        </HeroBadge>
         
-        <HeroTitle>Bois de Chauffage de Qualité</HeroTitle>
+        <HeroTitle>
+          {t('home.welcome_title', 'Bois de Chauffage & Granulés Premium Livrés Chez Vous')}
+        </HeroTitle>
+
         <HeroSubtitle>
-          Découvrez notre large gamme de bois de chauffage pour tous vos besoins. 
-          Livraison rapide et service client exceptionnel.
+          {t('home.welcome_subtitle', "Bûches fendues prêtes à l'emploi (humidité < 20%), pellets de haute performance et livraison soignée à domicile avec chariot tout-terrain.")}
         </HeroSubtitle>
-        <HeroButton to="/products">
-          <span>Découvrir nos produits</span>
-        </HeroButton>
-        
-        <HeroWave />
+
+        <HeroButtons>
+          <PrimaryBtn routeKey="products">
+            <span>{t('home.cta_wood', 'Commander mon bois')}</span>
+            <FiArrowRight />
+          </PrimaryBtn>
+          <SecondaryBtn routeKey="products" search="?main=pellets">
+            <span>{t('home.cta_pellets', 'Découvrir les pellets')}</span>
+          </SecondaryBtn>
+        </HeroButtons>
+
+        <KeyPointsRibbon>
+          <KeyPointItem>
+            <FiCheck /> {t('home.key_points.dry', "Taux d'humidité < 20% garanti")}
+          </KeyPointItem>
+          <KeyPointItem>
+            <FiTruck /> {t('home.key_points.delivery', "Livraison tout-terrain incluse")}
+          </KeyPointItem>
+          <KeyPointItem>
+            <FiShield /> {t('home.key_points.safe_pay', "Paiement sécurisé par virement")}
+          </KeyPointItem>
+        </KeyPointsRibbon>
       </HeroSection>
 
-      {/* Catégories uniquement */}
-      <ProductsSection>
-        <ProductsHeader>
-          <SectionTitle>Catégories</SectionTitle>
-          <ProductsSubtitle>
-            Choisissez une catégorie pour afficher les produits correspondants
-          </ProductsSubtitle>
-        </ProductsHeader>
-        <CategoriesNav>
-          <CategoryCard to="/products?main=bois" style={{ '--bg-img': `url('${categoryImages.bois}')` }}>
-            <span>Bois de chauffage</span>
+      {/* 2. TRUST BAR / ENGAGEMENTS */}
+      <TrustBarSection>
+        <TrustGrid>
+          <TrustCard>
+            <TrustIconBox><FiTruck /></TrustIconBox>
+            <TrustInfo>
+              <h4>{t('home.trust_bar.item1_title', 'Livraison Tout-Terrain')}</h4>
+              <p>{t('home.trust_bar.item1_desc', 'Camion avec hayon et transpalette tout-terrain pour déposer vos palettes sous votre abri.')}</p>
+            </TrustInfo>
+          </TrustCard>
+
+          <TrustCard>
+            <TrustIconBox><FaFire /></TrustIconBox>
+            <TrustInfo>
+              <h4>{t('home.trust_bar.item2_title', 'Humidité Garantie < 20%')}</h4>
+              <p>{t('home.trust_bar.item2_desc', 'Bois fendu, séché naturellement ou en séchoir pour un pouvoir calorifique maximal.')}</p>
+            </TrustInfo>
+          </TrustCard>
+
+          <TrustCard>
+            <TrustIconBox><FiShield /></TrustIconBox>
+            <TrustInfo>
+              <h4>{t('home.trust_bar.item3_title', 'Virement 100% Sécurisé')}</h4>
+              <p>{t('home.trust_bar.item3_desc', 'Virement bancaire européen (SEPA / Vorkasse) avec facture officielle et validation rapide.')}</p>
+            </TrustInfo>
+          </TrustCard>
+
+          <TrustCard>
+            <TrustIconBox><FiCheckCircle /></TrustIconBox>
+            <TrustInfo>
+              <h4>{t('home.trust_bar.item4_title', 'Forêts Durables Certifiées')}</h4>
+              <p>{t('home.trust_bar.item4_desc', '100% essences nobles (Chêne, Hêtre, Charme) issues de forêts gérées durablement.')}</p>
+            </TrustInfo>
+          </TrustCard>
+        </TrustGrid>
+      </TrustBarSection>
+
+      {/* 3. CATÉGORIES PRINCIPALES */}
+      <CategoriesSection>
+        <SectionHeader>
+          <h2>{t('home.categories_title', 'Nos Combustibles de Chauffage')}</h2>
+          <p>{t('home.categories_subtitle', 'Sélectionnez votre type de combustible pour un rendement énergétique optimal')}</p>
+        </SectionHeader>
+
+        <CategoriesGrid>
+          <CategoryCard routeKey="products" search="?main=bois" style={{ '--bg-img': `url('${categoryImages.bois}')` }}>
+            <CategoryMeta>
+              <CategoryPriceTag>{t('home.from_price', 'Dès')} 80.90€</CategoryPriceTag>
+              <CategoryName>{t('home.cat_wood', 'Bois de chauffage')}</CategoryName>
+              <CategoryDesc>{t('home.cat_wood_desc', 'Bûches 25, 33, 50cm')}</CategoryDesc>
+            </CategoryMeta>
           </CategoryCard>
-          <CategoryCard to="/products?main=accessoires" style={{ '--bg-img': `url('${categoryImages.accessoires}')` }}>
-            <span>Accessoires</span>
+
+          <CategoryCard routeKey="products" search="?main=pellets" style={{ '--bg-img': `url('${categoryImages.pellets}')` }}>
+            <CategoryMeta>
+              <CategoryPriceTag>{t('home.from_price', 'Dès')} 299€</CategoryPriceTag>
+              <CategoryName>{t('home.cat_pellets', 'Pellets & Granulés')}</CategoryName>
+              <CategoryDesc>{t('home.cat_pellets_desc', 'DINplus / ENplus A1')}</CategoryDesc>
+            </CategoryMeta>
           </CategoryCard>
-          <CategoryCard to="/products?main=buches-densifiees" style={{ '--bg-img': `url('${categoryImages.buches_densifiees}')` }}>
-            <span>Bûches densifiées</span>
+
+          <CategoryCard routeKey="products" search="?main=buches-densifiees" style={{ '--bg-img': `url('${categoryImages.buches_densifiees}')` }}>
+            <CategoryMeta>
+              <CategoryPriceTag>{t('home.from_price', 'Dès')} 119€</CategoryPriceTag>
+              <CategoryName>{t('home.cat_briquettes', 'Bûches densifiées')}</CategoryName>
+              <CategoryDesc>{t('home.cat_briquettes_desc', 'Haute chaleur jour & nuit')}</CategoryDesc>
+            </CategoryMeta>
           </CategoryCard>
-          <CategoryCard to="/products?main=pellets" style={{ '--bg-img': `url('${categoryImages.pellets}')` }}>
-            <span>Pellets de bois</span>
+
+          <CategoryCard routeKey="products" search="?main=accessoires" style={{ '--bg-img': `url('${categoryImages.accessoires}')` }}>
+            <CategoryMeta>
+              <CategoryPriceTag>{t('home.from_price', 'Dès')} 14.90€</CategoryPriceTag>
+              <CategoryName>{t('home.cat_accessories', 'Accessoires')}</CategoryName>
+              <CategoryDesc>{t('home.cat_accessories_desc', 'Allumage et petit bois')}</CategoryDesc>
+            </CategoryMeta>
           </CategoryCard>
-          <CategoryCard to="/products?main=poeles" style={{ '--bg-img': `url('${categoryImages.poeles}')` }}>
-            <span>Poêles</span>
+
+          <CategoryCard routeKey="products" search="?main=poeles" style={{ '--bg-img': `url('${categoryImages.poeles}')` }}>
+            <CategoryMeta>
+              <CategoryPriceTag>{t('home.from_price', 'Dès')} 450€</CategoryPriceTag>
+              <CategoryName>{t('home.cat_stoves', 'Poêles & Foyers')}</CategoryName>
+              <CategoryDesc>{t('home.cat_stoves_desc', 'Équipements performants')}</CategoryDesc>
+            </CategoryMeta>
           </CategoryCard>
-        </CategoriesNav>
-      </ProductsSection>
+        </CategoriesGrid>
+      </CategoriesSection>
 
-      
+      {/* 4. PRODUITS VEDETTES (BESTSELLERS) */}
+      {featuredProducts.length > 0 && (
+        <BestsellersSection>
+          <SectionHeader>
+            <h2>{t('home.bestsellers_title', 'Nos Meilleures Ventes')}</h2>
+            <p>{t('home.bestsellers_subtitle', 'Les combustibles les plus plébiscités par nos clients pour cet hiver')}</p>
+          </SectionHeader>
 
-      {/* Statistiques */}
-      <StatsSection>
-        <SectionTitle>Nos chiffres parlent d'eux-mêmes</SectionTitle>
-        <StatsGrid>
-          <StatCard delay="0.1s">
-            <StatNumber>5000+</StatNumber>
-            <StatLabel>Clients satisfaits</StatLabel>
-          </StatCard>
-          <StatCard delay="0.2s">
-            <StatNumber>10+</StatNumber>
-            <StatLabel>Années d'expérience</StatLabel>
-          </StatCard>
-          <StatCard delay="0.3s">
-            <StatNumber>50+</StatNumber>
-            <StatLabel>Produits disponibles</StatLabel>
-          </StatCard>
-          <StatCard delay="0.4s">
-            <StatNumber>24/7</StatNumber>
-            <StatLabel>Support client</StatLabel>
-          </StatCard>
-        </StatsGrid>
-      </StatsSection>
+          <ProductsGrid>
+            {featuredProducts.map((p) => (
+              <ProductCard key={p.id}>
+                <ProductImageWrap>
+                  <img 
+                    src={p.image || 'https://images.unsplash.com/photo-1520114878144-6123749968dd?q=80&w=600&auto=format&fit=crop'} 
+                    alt={p.name} 
+                    onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1520114878144-6123749968dd?q=80&w=600&auto=format&fit=crop'; }}
+                  />
+                  <StockBadge>
+                    <FiCheck size={12} /> {t('home.in_stock', 'En stock')}
+                  </StockBadge>
+                </ProductImageWrap>
 
-      {/* Pourquoi nous choisir */}
-      <FeaturesSection>
-        <SectionTitle>Pourquoi nous choisir ?</SectionTitle>
-        <FeaturesGrid>
-          <FeatureCard>
-            <FeatureIcon>
-              <FiTruck size={32} />
-            </FeatureIcon>
-            <FeatureTitle>Livraison rapide</FeatureTitle>
-            <FeatureDescription>
-              Livraison à domicile dans toute la France en 24-48h. 
-              Service express disponible.
-            </FeatureDescription>
-          </FeatureCard>
-          
-          <FeatureCard>
-            <FeatureIcon>
-              <FiShield size={32} />
-            </FeatureIcon>
-            <FeatureTitle>Qualité garantie</FeatureTitle>
-            <FeatureDescription>
-              Tous nos produits sont certifiés et de qualité premium. 
-              Garantie satisfaction.
-            </FeatureDescription>
-          </FeatureCard>
-          
-          <FeatureCard>
-            <FeatureIcon>
-              <FiStar size={32} />
-            </FeatureIcon>
-            <FeatureTitle>Service client</FeatureTitle>
-            <FeatureDescription>
-              Support client disponible 7j/7 pour vous accompagner 
-              dans vos choix.
-            </FeatureDescription>
-          </FeatureCard>
-          
-          <FeatureCard>
-            <FeatureIcon>
-              <FiHeart size={32} />
-            </FeatureIcon>
-            <FeatureTitle>Écologique</FeatureTitle>
-            <FeatureDescription>
-              Bois issu de forêts gérées durablement. 
-              Respect de l'environnement.
-            </FeatureDescription>
-          </FeatureCard>
-        </FeaturesGrid>
-      </FeaturesSection>
+                <ProductBody>
+                  <ProductRating>
+                    <FiStar fill="#d97706" size={13} />
+                    <span>4.9 / 5</span>
+                  </ProductRating>
 
-      {/* Témoignages */}
-      <TestimonialsSection>
-        <SectionTitle>Ce que disent nos clients</SectionTitle>
-        <TestimonialsGrid>
-          <TestimonialCard>
-            <TestimonialText>
-              Excellent service ! Le bois de chêne est de très bonne qualité 
-              et la livraison a été rapide. Je recommande vivement.
-            </TestimonialText>
-            <TestimonialAuthor>
-              <AuthorAvatar>MD</AuthorAvatar>
-              <AuthorInfo>
-                <h4>Marie Dubois</h4>
-                <p>Cliente depuis 2 ans</p>
-              </AuthorInfo>
-            </TestimonialAuthor>
-          </TestimonialCard>
+                  <ProductTitle title={p.name}>
+                    {p.name}
+                  </ProductTitle>
 
-          <TestimonialCard>
-            <TestimonialText>
-              Service client exceptionnel et produits de qualité. 
-              Le chauffage au bois n'a jamais été aussi facile !
-            </TestimonialText>
-            <TestimonialAuthor>
-              <AuthorAvatar>JM</AuthorAvatar>
-              <AuthorInfo>
-                <h4>Jean Martin</h4>
-                <p>Cliente depuis 1 an</p>
-              </AuthorInfo>
-            </TestimonialAuthor>
-          </TestimonialCard>
+                  <ProductPriceRow>
+                    <CurrentPrice>{Number(p.price || 0).toFixed(2)}€</CurrentPrice>
+                    {p.regularPrice && p.regularPrice > p.price && (
+                      <RegularPrice>{Number(p.regularPrice).toFixed(2)}€</RegularPrice>
+                    )}
+                  </ProductPriceRow>
 
-          <TestimonialCard>
-            <TestimonialText>
-              Livraison ponctuelle et bois parfaitement sec. 
-              Un service professionnel que je recommande.
-            </TestimonialText>
-            <TestimonialAuthor>
-              <AuthorAvatar>SL</AuthorAvatar>
-              <AuthorInfo>
-                <h4>Sophie Leroy</h4>
-                <p>Cliente depuis 3 ans</p>
-              </AuthorInfo>
-            </TestimonialAuthor>
-          </TestimonialCard>
-        </TestimonialsGrid>
-      </TestimonialsSection>
+                  <ProductActionBtn onClick={() => handleAddToCart(p)}>
+                    <FiShoppingCart size={15} />
+                    <span>{t('home.add_to_cart', 'Ajouter au panier')}</span>
+                  </ProductActionBtn>
+                </ProductBody>
+              </ProductCard>
+            ))}
+          </ProductsGrid>
+        </BestsellersSection>
+      )}
 
-      {/* Newsletter */}
+      {/* 5. AVIS CLIENTS & SOCIAL PROOF */}
+      <ReviewsSection>
+        <div style={{ textAlign: 'center' }}>
+          <ReviewsBadge>
+            <FiStar fill="#d97706" /> {t('home.reviews_badge', 'Note 4.9/5 basée sur plus de 1 850 avis clients vérifiés')}
+          </ReviewsBadge>
+          <SectionHeader style={{ marginBottom: 0 }}>
+            <h2>{t('home.reviews_title', 'Ce Que Disent Nos Clients')}</h2>
+            <p>{t('home.reviews_subtitle', 'Des retours authentiques sur notre qualité de bois et nos livraisons')}</p>
+          </SectionHeader>
+        </div>
+
+        <ReviewsGrid>
+          <ReviewCard>
+            <ReviewStars>
+              {[...Array(5)].map((_, i) => <FiStar key={i} fill="#f59e0b" size={16} />)}
+            </ReviewStars>
+            <VerifiedPill>
+              <FiCheck size={11} /> {t('home.verified_purchase', 'Achat vérifié')}
+            </VerifiedPill>
+            <ReviewText>
+              "{t('home.review1_text', "Qualité de chêne remarquable, les bûches sont parfaitement sèches et prêtes au feu. Le livreur a été formidable avec son chariot pour déposer la palette directement dans mon garage.")}"
+            </ReviewText>
+            <ReviewAuthor>
+              <Avatar>{t('home.review1_author', 'MD').slice(0, 2)}</Avatar>
+              <AuthorDetails>
+                <h5>{t('home.review1_author', 'Marc D.')} • {t('home.review1_location', 'Strasbourg')}</h5>
+                <span>{t('home.review1_product', 'Palette 2 stères Chêne 33cm')}</span>
+              </AuthorDetails>
+            </ReviewAuthor>
+          </ReviewCard>
+
+          <ReviewCard>
+            <ReviewStars>
+              {[...Array(5)].map((_, i) => <FiStar key={i} fill="#f59e0b" size={16} />)}
+            </ReviewStars>
+            <VerifiedPill>
+              <FiCheck size={11} /> {t('home.verified_purchase', 'Achat vérifié')}
+            </VerifiedPill>
+            <ReviewText>
+              "{t('home.review2_text', "Pellets Woodstock livrés rapidement. Très peu de poussière, combustion très propre dans mon poêle. Le virement bancaire a été validé très vite avec un suivi clair.")}"
+            </ReviewText>
+            <ReviewAuthor>
+              <Avatar>{t('home.review2_author', 'TB').slice(0, 2)}</Avatar>
+              <AuthorDetails>
+                <h5>{t('home.review2_author', 'Thomas B.')} • {t('home.review2_location', 'Metz')}</h5>
+                <span>{t('home.review2_product', 'Palette 66 sacs Pellets DINplus')}</span>
+              </AuthorDetails>
+            </ReviewAuthor>
+          </ReviewCard>
+
+          <ReviewCard>
+            <ReviewStars>
+              {[...Array(5)].map((_, i) => <FiStar key={i} fill="#f59e0b" size={16} />)}
+            </ReviewStars>
+            <VerifiedPill>
+              <FiCheck size={11} /> {t('home.verified_purchase', 'Achat vérifié')}
+            </VerifiedPill>
+            <ReviewText>
+              "{t('home.review3_text', "Client régulier depuis 3 ans. Rien à redire sur la qualité ni sur le service client qui est très réactif au téléphone. Bois fendu impeccable sans surprise.")}"
+            </ReviewText>
+            <ReviewAuthor>
+              <Avatar>{t('home.review3_author', 'HV').slice(0, 2)}</Avatar>
+              <AuthorDetails>
+                <h5>{t('home.review3_author', 'Hélène V.')} • {t('home.review3_location', 'Colmar')}</h5>
+                <span>{t('home.review3_product', 'Bûches densifiées Nuit & Jour')}</span>
+              </AuthorDetails>
+            </ReviewAuthor>
+          </ReviewCard>
+        </ReviewsGrid>
+      </ReviewsSection>
+
+      {/* 6. NEWSLETTER OFFRES SAISONNIÈRES */}
       <NewsletterSection>
-        <NewsletterContent>
-          <SectionTitle style={{ color: 'white', marginBottom: '20px' }}>
-            Restez informé de nos offres
-          </SectionTitle>
-          <p style={{ fontSize: '18px', opacity: '0.9', marginBottom: '20px' }}>
-            Inscrivez-vous à notre newsletter et recevez nos meilleures offres 
-            et nouveautés directement dans votre boîte mail.
-          </p>
-          <NewsletterForm onSubmit={handleNewsletterSubmit}>
-            <NewsletterInput
-              type="email"
-              placeholder="Votre adresse email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-            <NewsletterButton type="submit">
-              <span>S'abonner</span>
-            </NewsletterButton>
-          </NewsletterForm>
-        </NewsletterContent>
+        <h2 style={{ fontSize: '24px', fontWeight: 800, margin: '0 0 10px' }}>
+          {t('home.newsletter_title', 'Restez Informé de nos Offres Saisonnières')}
+        </h2>
+        <p style={{ fontSize: '15px', color: '#d1fae5', margin: 0, opacity: 0.95 }}>
+          {t('home.newsletter_desc', 'Inscrivez-vous pour recevoir nos alertes stocks et profiter des meilleurs tarifs avant la saison hivernale.')}
+        </p>
+        <NewsletterForm onSubmit={handleNewsletterSubmit}>
+          <NewsletterInput
+            type="email"
+            placeholder={t('home.newsletter_placeholder', 'Votre adresse email...')}
+            value={newsletterEmail}
+            onChange={(e) => setNewsletterEmail(e.target.value)}
+            required
+          />
+          <NewsletterSubmit type="submit">
+            {t('home.newsletter_btn', 'Recevoir les offres')}
+          </NewsletterSubmit>
+        </NewsletterForm>
       </NewsletterSection>
 
-      {/* Call to Action */}
-      <CTASection>
-        <CTAContent>
-          <SectionTitle>Prêt à commencer ?</SectionTitle>
-          <p style={{ fontSize: '18px', color: '#666', marginBottom: '20px' }}>
-            Découvrez notre catalogue complet et trouvez le bois de chauffage 
-            parfait pour vos besoins.
-          </p>
-          <CTAButtons>
-            <PrimaryButton to="/products">
-              Voir le catalogue
-            </PrimaryButton>
-            <SecondaryButton to="/contact">
-              Nous contacter
-            </SecondaryButton>
-          </CTAButtons>
-        </CTAContent>
-      </CTASection>
+      {/* 7. FINAL CALL TO ACTION */}
+      <FinalCTASection>
+        <h3 style={{ fontSize: '22px', fontWeight: 800, color: '#1b3b22', margin: '0 0 10px' }}>
+          {t('home.ready_title', 'Besoin de Conseils pour Votre Commande ?')}
+        </h3>
+        <p style={{ fontSize: '15px', color: '#64748b', maxWidth: '640px', margin: '0 auto 24px', lineHeight: 1.6 }}>
+          {t('home.ready_desc', 'Nos experts en bois de chauffage sont à votre disposition pour calculer le cubage nécessaire et répondre à vos questions.')}
+        </p>
+        <div style={{ display: 'flex', gap: '14px', justifyContent: 'center', flexWrap: 'wrap' }}>
+          <PrimaryBtn routeKey="products">
+            <span>{t('home.view_catalog', 'Consulter tout le catalogue')}</span>
+            <FiArrowRight />
+          </PrimaryBtn>
+          <SecondaryBtn routeKey="contact" style={{ background: '#f1f5f9', color: '#1e293b', borderColor: '#cbd5e1' }}>
+            <span>{t('home.contact_us', 'Nous contacter')}</span>
+          </SecondaryBtn>
+        </div>
+      </FinalCTASection>
     </HomeContainer>
   );
 };
 
 export default Home;
-
-

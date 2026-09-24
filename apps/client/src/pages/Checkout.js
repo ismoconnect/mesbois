@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useLocalizedNavigate } from '../hooks/useLocalizedNavigate';
 import styled from 'styled-components';
 import { FiCreditCard, FiTruck, FiUser, FiMapPin, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useTranslation } from 'react-i18next';
 import { createOrder } from '../firebase/orders';
 import { createUser, signInUser } from '../firebase/auth';
 import { sendEmailVerification } from 'firebase/auth';
@@ -329,9 +331,11 @@ const MobilePlaceOrderButton = styled.button`
 `;
 
 const Checkout = () => {
+  const { t } = useTranslation();
   const { cartItems, getCartTotal, clearCart } = useCart();
   const { user, userData } = useAuth();
   const navigate = useNavigate();
+  const localizedNavigate = useLocalizedNavigate();
 
   const [formData, setFormData] = useState({
     firstName: userData?.displayName?.split(' ')[0] || '',
@@ -598,12 +602,12 @@ const Checkout = () => {
         const payMethod = orderData.payment?.method || 'bank';
         if (wasGuest) {
           if (formData.paymentMethod === 'paypal') {
-            navigate(`/payment/paypal?orderId=${result.id}`);
+            localizedNavigate('paypalPayment', '', `?orderId=${result.id}`);
           } else {
-            navigate(`/payment/bank?orderId=${result.id}`);
+            localizedNavigate('bankTransfer', '', `?orderId=${result.id}`);
           }
         } else {
-          navigate('/billing');
+          localizedNavigate('billing');
         }
       } else {
         toast.error(result.error);
@@ -705,13 +709,13 @@ const Checkout = () => {
     return (
       <CheckoutContainer>
         <CheckoutHeader>
-          <CheckoutTitle>Votre panier est vide</CheckoutTitle>
+          <CheckoutTitle>{t("checkout.empty_cart_title")}</CheckoutTitle>
           <CheckoutSubtitle>
             Ajoutez des produits à votre panier avant de finaliser votre commande.
           </CheckoutSubtitle>
           <button
             type="button"
-            onClick={() => navigate('/products')}
+            onClick={() => localizedNavigate('products')}
             style={{
               marginTop: 20,
               padding: '10px 18px',
@@ -733,8 +737,8 @@ const Checkout = () => {
   return (
     <CheckoutContainer>
       <CheckoutHeader>
-        <CheckoutTitle>Finaliser la commande</CheckoutTitle>
-        <CheckoutSubtitle>Remplissez vos informations pour passer votre commande</CheckoutSubtitle>
+        <CheckoutTitle>{t("checkout.title")}</CheckoutTitle>
+        <CheckoutSubtitle>{t("checkout.subtitle")}</CheckoutSubtitle>
         {!user && (
           <div style={{
             marginTop: 12,
@@ -745,7 +749,7 @@ const Checkout = () => {
             fontWeight: 700,
             color: '#2c5530'
           }}>
-            Déjà client ?{' '}
+            {t("checkout.already_customer")}{' '}
             <button type="button" onClick={() => setAuthMode('login')} style={{ color: '#2c5530', textDecoration: 'underline', background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: 800 }}>
               Cliquez ici pour vous connecter
             </button>
@@ -760,7 +764,7 @@ const Checkout = () => {
           fontWeight: 700,
           color: '#2c5530'
         }}>
-          Avez-vous un code promo ?{' '}
+          {t("checkout.have_coupon")}{' '}
           <button
             type="button"
             onClick={() => {
@@ -803,7 +807,7 @@ const Checkout = () => {
                   <Input
                     type="email"
                     name="email"
-                    placeholder="Email"
+                    placeholder={t("checkout.email")}
                     value={authFields.email}
                     onChange={handleAuthFieldChange}
                     required
@@ -813,7 +817,7 @@ const Checkout = () => {
                   <Input
                     type="password"
                     name="password"
-                    placeholder="Mot de passe"
+                    placeholder={t("checkout.login_password")}
                     value={authFields.password}
                     onChange={handleAuthFieldChange}
                     required
@@ -1076,7 +1080,7 @@ const Checkout = () => {
                 <Input
                   type="email"
                   name="email"
-                  placeholder="Email"
+                  placeholder={t("checkout.email")}
                   value={formData.email}
                   onChange={handleChange}
                   required
@@ -1091,7 +1095,7 @@ const Checkout = () => {
                 <Input
                   type="tel"
                   name="phone"
-                  placeholder="Téléphone"
+                  placeholder={t("checkout.phone")}
                   value={formData.phone}
                   onChange={handleChange}
                   $withLeftIcon
@@ -1131,7 +1135,7 @@ const Checkout = () => {
                   <Input
                     type="text"
                     name="city"
-                    placeholder="Ville"
+                    placeholder={t("checkout.city")}
                     value={formData.city}
                     onChange={handleChange}
                     required
@@ -1142,7 +1146,7 @@ const Checkout = () => {
                   <Input
                     type="text"
                     name="postalCode"
-                    placeholder="Code postal"
+                    placeholder={t("checkout.postal_code")}
                     value={formData.postalCode}
                     onChange={handleChange}
                     required
@@ -1240,13 +1244,13 @@ const Checkout = () => {
         </CheckoutForm>
 
         <OrderSummary>
-          <SectionTitle>Résumé de la commande</SectionTitle>
+          <SectionTitle>{t("checkout.order_summary")}</SectionTitle>
           <SummaryRow>
-            <span>Sous-total</span>
+            <span>{t("checkout.subtotal")}</span>
             <span>{subtotal.toFixed(2)}€</span>
           </SummaryRow>
           <SummaryRow>
-            <span>Livraison</span>
+            <span>{t("checkout.shipping")}</span>
             <span>{shipping.toFixed(2)}€</span>
           </SummaryRow>
           {discount > 0 && (

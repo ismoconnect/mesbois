@@ -7,3 +7,7 @@ apps/**/.env
 apps/**/.env.local
 apps/**/.env.*
 apps/**/node_modules
+build
+apps/**/build
+dist
+

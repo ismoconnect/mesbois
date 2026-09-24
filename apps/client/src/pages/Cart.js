@@ -4,6 +4,9 @@ import styled from 'styled-components';
 import { FiPlus, FiMinus, FiTrash2, FiShoppingBag, FiArrowLeft } from 'react-icons/fi';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useTranslation } from 'react-i18next';
+import LocalizedLink from '../components/LocalizedLink/LocalizedLink';
+import { useLocalizedNavigate } from '../hooks/useLocalizedNavigate';
 
 const CartContainer = styled.div`
   max-width: 1200px;
@@ -382,9 +385,10 @@ const LoginPrompt = styled.div`
 `;
 
 const Cart = () => {
+  const { t } = useTranslation();
   const { cartItems, updateQuantity, removeFromCart, getCartTotal, clearCart } = useCart();
   const { user } = useAuth();
-  const navigate = useNavigate();
+  const localizedNavigate = useLocalizedNavigate();
 
   const handleQuantityChange = (productId, newQuantity) => {
     if (newQuantity <= 0) {
@@ -396,10 +400,10 @@ const Cart = () => {
 
   const handleCheckout = () => {
     if (!user) {
-      navigate('/checkout');
+      localizedNavigate('checkout');
       return;
     }
-    navigate('/checkout');
+    localizedNavigate('checkout');
   };
 
   const subtotal = getCartTotal();
@@ -422,9 +426,9 @@ const Cart = () => {
 
         <EmptyCart>
           <FiShoppingBag size={64} />
-          <h3>Votre panier est vide</h3>
-          <p>Découvrez nos produits et ajoutez-les à votre panier</p>
-          <ShopButton to="/products">Commencer mes achats</ShopButton>
+          <h3>{t("cart.empty_title")}</h3>
+          <p>{t("cart.empty_desc")}</p>
+          <ShopButton as={LocalizedLink} routeKey="products">{t("cart.start_shopping")}</ShopButton>
         </EmptyCart>
       </CartContainer>
     );
@@ -433,13 +437,13 @@ const Cart = () => {
   return (
     <CartContainer>
       <CartHeader>
-        <BackButton to="/products">
+        <BackButton as={LocalizedLink} routeKey="products">
           <FiArrowLeft size={20} />
-          Retour aux produits
+          {t("cart.back_to_products")}
         </BackButton>
         <CartTitle>
           <FiShoppingBag size={32} />
-          Mon Panier ({cartItems.length} article{cartItems.length > 1 ? 's' : ''})
+          {t("cart.title")} ({cartItems.length} {t("cart.items_count")})
         </CartTitle>
       </CartHeader>
 
@@ -447,7 +451,7 @@ const Cart = () => {
         <CartItems>
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
             <ClearCartButton onClick={clearCart}>
-              <FiTrash2 size={16} /> Vider le panier
+              <FiTrash2 size={16} /> {t("cart.clear_cart")}
             </ClearCartButton>
           </div>
           {cartItems.map((item, idx) => (
@@ -465,7 +469,7 @@ const Cart = () => {
               <ItemInfo>
                 <ItemName>{item.name}</ItemName>
                 <ItemDescription>{item.description}</ItemDescription>
-                <ItemPrice>{(Number(item.price) || 0)}€ / unité</ItemPrice>
+                <ItemPrice>{(Number(item.price) || 0)}€ {t("cart.per_unit")}</ItemPrice>
 
                 <QuantityControls>
                   <QuantityButton
@@ -498,45 +502,45 @@ const Cart = () => {
         </CartItems>
 
         <CartSummary>
-          <SummaryTitle>Résumé de la commande</SummaryTitle>
+          <SummaryTitle>{t("cart.summary_title")}</SummaryTitle>
           {/* Résumé simplifié: uniquement les totaux, sans liste des articles */}
 
           {!user && (
             <LoginPrompt>
-              <p>Vous pouvez créer votre compte à l'étape suivante</p>
-              <Link to="/checkout">Poursuivre mon paiement</Link>
+              <p>{t("cart.guest_checkout_prompt")}</p>
+              <LocalizedLink routeKey="checkout">{t("cart.continue_payment")}</LocalizedLink>
             </LoginPrompt>
           )}
 
           <SummaryRow>
-            <span>Sous-total</span>
+            <span>{t("cart.subtotal")}</span>
             <span>{subtotal.toFixed(2)}€</span>
           </SummaryRow>
 
           <SummaryRow>
-            <span>Livraison</span>
-            <span>{shipping === 0 ? 'Gratuite' : `${shipping.toFixed(2)}€`}</span>
+            <span>{t("cart.shipping")}</span>
+            <span>{shipping === 0 ? t("cart.free") : `${shipping.toFixed(2)}€`}</span>
           </SummaryRow>
 
           {shipping > 0 && (
             <div style={{ fontSize: '12px', color: '#666', marginBottom: '15px' }}>
-              Livraison gratuite à partir de 50€
+              {t("cart.free_shipping_notice")}
             </div>
           )}
 
           <SummaryRow className="total">
-            <span>Total</span>
+            <span>{t("cart.total")}</span>
             <span>{total.toFixed(2)}€</span>
           </SummaryRow>
 
           <CheckoutButton
-            onClick={() => navigate('/products')}
+            onClick={() => localizedNavigate('products')}
             style={{ background: 'white', color: '#2c5530', border: '1px solid #2c5530', marginBottom: '10px', marginTop: '0' }}
           >
-            Continuer mes achats
+            {t("cart.continue_shopping")}
           </CheckoutButton>
           <CheckoutButton onClick={handleCheckout}>
-            {user ? 'Finaliser la commande' : 'Poursuivre mon paiement'}
+            {user ? t("cart.checkout") : t("cart.continue_payment")}
           </CheckoutButton>
         </CartSummary>
       </CartContent>

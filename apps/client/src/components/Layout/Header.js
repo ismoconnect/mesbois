@@ -1,10 +1,34 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useLocalizedNavigate } from '../../hooks/useLocalizedNavigate';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCart } from '../../contexts/CartContext';
 import { useSiteSettings } from '../../contexts/SiteSettingsContext';
+import LocalizedLink from '../LocalizedLink/LocalizedLink';
 import styled from 'styled-components';
 import { FiShoppingCart, FiUser, FiMenu, FiX, FiSearch, FiPhone, FiClock } from 'react-icons/fi';
+import { useTranslation } from 'react-i18next';
+
+const LangSelect = styled.select`
+  appearance: none;
+  background: transparent;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 4px 24px 4px 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #2c5530;
+  cursor: pointer;
+  outline: none;
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%232c5530%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px top 50%;
+  background-size: 8px auto;
+  
+  &:hover {
+    border-color: #2c5530;
+  }
+`;
 
 const HeaderContainer = styled.header`
   background: #fff;
@@ -823,6 +847,7 @@ const CartDrawerSecondary = styled.button`
 `;
 
 const Header = () => {
+  const { t, i18n } = useTranslation();
   const headerRef = useRef(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
@@ -833,6 +858,7 @@ const Header = () => {
   const { user, userData, logout } = useAuth();
   const { cartItems, getCartTotal, updateQuantity, removeFromCart, clearCart } = useCart();
   const navigate = useNavigate();
+  const localizedNavigate = useLocalizedNavigate();
   const location = useLocation();
   const { settings, loaded } = useSiteSettings();
 
@@ -860,7 +886,7 @@ const Header = () => {
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchTerm.trim()) {
-      navigate(`/products?q=${encodeURIComponent(searchTerm.trim())}`);
+      localizedNavigate('products', '', `?q=${encodeURIComponent(searchTerm.trim())}`);
     }
   };
 
@@ -928,7 +954,7 @@ const Header = () => {
   const handleLogout = async () => {
     await logout();
     setIsUserDropdownOpen(false);
-    navigate('/');
+    localizedNavigate('home');
   };
 
   useEffect(() => {
@@ -981,10 +1007,19 @@ const Header = () => {
 
           <DesktopOnly>
             <UserActions>
+              <LangSelect 
+                value={i18n.language} 
+                onChange={(e) => i18n.changeLanguage(e.target.value)}
+                title="Changer la langue"
+                style={{ backgroundColor: '#f3f6f4', padding: '2px 20px 2px 6px', fontSize: '12px' }}
+              >
+                <option value="fr">🇫🇷 FR</option>
+                <option value="de">🇩🇪 DE</option>
+              </LangSelect>
               {!user && (
                 <>
-                  <NavLink to="/login">Connexion</NavLink>
-                  <NavLink to="/register">Inscription</NavLink>
+                  <NavLink as={LocalizedLink} routeKey="login">Connexion</NavLink>
+                  <NavLink as={LocalizedLink} routeKey="register">Inscription</NavLink>
                 </>
               )}
               <CartButton onClick={handleGoToCart}>
@@ -1002,7 +1037,7 @@ const Header = () => {
 
       <HeaderContainer ref={headerRef}>
         <HeaderContent>
-          <Logo to="/" onClick={(e) => handleLinkClick(e, '/')}>
+          <Logo as={LocalizedLink} routeKey="home" onClick={closeAllOverlays}>
             <LogoIcon>🌲</LogoIcon>
             <LogoText>{headerSiteNameDisplay}</LogoText>
           </Logo>
@@ -1020,10 +1055,10 @@ const Header = () => {
           </SearchBar>
 
           <Nav>
-            <NavLink to="/" onClick={(e) => handleLinkClick(e, '/')}>Accueil</NavLink>
-            <NavLink to="/products" onClick={(e) => handleLinkClick(e, '/products')}>Produits</NavLink>
-            <NavLink to="/about" onClick={(e) => handleLinkClick(e, '/about')}>À propos</NavLink>
-            <NavLink to="/contact" onClick={(e) => handleLinkClick(e, '/contact')}>Contact</NavLink>
+            <LocalizedLink routeKey="home" onClick={closeAllOverlays} style={{marginRight: '15px', color: '#333', textDecoration: 'none', fontWeight: '500'}}>{t('nav.home')}</LocalizedLink>
+            <LocalizedLink routeKey="products" onClick={closeAllOverlays} style={{marginRight: '15px', color: '#333', textDecoration: 'none', fontWeight: '500'}}>{t('nav.products')}</LocalizedLink>
+            <LocalizedLink routeKey="about" onClick={closeAllOverlays} style={{marginRight: '15px', color: '#333', textDecoration: 'none', fontWeight: '500'}}>{t('nav.about')}</LocalizedLink>
+            <LocalizedLink routeKey="contact" onClick={closeAllOverlays} style={{color: '#333', textDecoration: 'none', fontWeight: '500'}}>{t('nav.contact')}</LocalizedLink>
           </Nav>
 
           <RightActions>
@@ -1041,9 +1076,9 @@ const Header = () => {
                     <HeaderAvatar>{profileInitial}</HeaderAvatar>
                   </UserButton>
                   <DropdownContent isOpen={isUserDropdownOpen}>
-                    <DropdownItem to="/dashboard" onClick={() => setIsUserDropdownOpen(false)}>Mon espace client</DropdownItem>
-                    <DropdownItem to="/orders" onClick={() => setIsUserDropdownOpen(false)}>Mes Commandes</DropdownItem>
-                    <DropdownItem to="/profile" onClick={() => setIsUserDropdownOpen(false)}>Mon Profil</DropdownItem>
+                    <DropdownItem as={LocalizedLink} routeKey="dashboard" onClick={() => setIsUserDropdownOpen(false)}>Mon espace client</DropdownItem>
+                    <DropdownItem as={LocalizedLink} routeKey="orders" onClick={() => setIsUserDropdownOpen(false)}>Mes Commandes</DropdownItem>
+                    <DropdownItem as={LocalizedLink} routeKey="profile" onClick={() => setIsUserDropdownOpen(false)}>Mon Profil</DropdownItem>
                     <DropdownItem
                       as="button"
                       onClick={handleLogout}
@@ -1061,8 +1096,8 @@ const Header = () => {
                     </ResponsiveIcon>
                   </UserButton>
                   <DropdownContent isOpen={isUserDropdownOpen}>
-                    <DropdownItem to="/login" onClick={() => setIsUserDropdownOpen(false)}>Connexion</DropdownItem>
-                    <DropdownItem to="/register" onClick={() => setIsUserDropdownOpen(false)}>Inscription</DropdownItem>
+                    <DropdownItem as={LocalizedLink} routeKey="login" onClick={() => setIsUserDropdownOpen(false)}>Connexion</DropdownItem>
+                    <DropdownItem as={LocalizedLink} routeKey="register" onClick={() => setIsUserDropdownOpen(false)}>Inscription</DropdownItem>
                   </DropdownContent>
                 </Dropdown>
               )}
@@ -1101,22 +1136,12 @@ const Header = () => {
         </MobileSearchPanel>
 
         <MobileMenu isOpen={isMobileMenuOpen}>
-          <MobileNavLink to="/" onClick={(e) => handleLinkClick(e, '/')}>
-            Accueil
-          </MobileNavLink>
-          <MobileNavLink to="/products" onClick={(e) => handleLinkClick(e, '/products')}>
-            Produits
-          </MobileNavLink>
-          <MobileNavLink to="/about" onClick={(e) => handleLinkClick(e, '/about')}>
-            À propos
-          </MobileNavLink>
-          <MobileNavLink to="/contact" onClick={(e) => handleLinkClick(e, '/contact')}>
-            Contact
-          </MobileNavLink>
+          <LocalizedLink routeKey="home" onClick={closeAllOverlays} style={{display:'block', padding:'15px', color:'#333', textDecoration:'none', borderBottom:'1px solid #eee'}}>{t('nav.home')}</LocalizedLink>
+          <LocalizedLink routeKey="products" onClick={closeAllOverlays} style={{display:'block', padding:'15px', color:'#333', textDecoration:'none', borderBottom:'1px solid #eee'}}>{t('nav.products')}</LocalizedLink>
+          <LocalizedLink routeKey="about" onClick={closeAllOverlays} style={{display:'block', padding:'15px', color:'#333', textDecoration:'none', borderBottom:'1px solid #eee'}}>{t('nav.about')}</LocalizedLink>
+          <LocalizedLink routeKey="contact" onClick={closeAllOverlays} style={{display:'block', padding:'15px', color:'#333', textDecoration:'none', borderBottom:'1px solid #eee'}}>{t('nav.contact')}</LocalizedLink>
           {!user && (
-            <MobileNavLink to="/login" onClick={(e) => handleLinkClick(e, '/login')}>
-              Connexion
-            </MobileNavLink>
+            <LocalizedLink routeKey="login" onClick={closeAllOverlays} style={{display:'block', padding:'15px', color:'#2c5530', textDecoration:'none', fontWeight:'bold'}}>{t('nav.login')}</LocalizedLink>
           )}
         </MobileMenu>
       </HeaderContainer>
@@ -1185,33 +1210,20 @@ const Header = () => {
               )}
               <CartDrawerSecondary
                 type="button"
-                onClick={() => {
-                  setIsCartDrawerOpen(false);
-                  navigate('/products');
-                }}
+                onClick={() => { setIsCartDrawerOpen(false); localizedNavigate('products'); }}
                 style={{ marginBottom: 8 }}
               >
                 Continuer mes achats
               </CartDrawerSecondary>
               <CartDrawerSecondary
                 type="button"
-                onClick={() => {
-                  setIsCartDrawerOpen(false);
-                  navigate('/cart');
-                }}
+                onClick={() => { setIsCartDrawerOpen(false); localizedNavigate('cart'); }}
               >
                 Voir le panier
               </CartDrawerSecondary>
               <CartDrawerPrimary
                 type="button"
-                onClick={() => {
-                  if (!cartItems || cartItems.length === 0) {
-                    setIsEmptyCartAlertOpen(true);
-                    return;
-                  }
-                  setIsCartDrawerOpen(false);
-                  navigate('/checkout');
-                }}
+                onClick={() => { if (!cartItems || cartItems.length === 0) { setIsEmptyCartAlertOpen(true); return; } setIsCartDrawerOpen(false); localizedNavigate('checkout'); }}
               >
                 Commander
               </CartDrawerPrimary>

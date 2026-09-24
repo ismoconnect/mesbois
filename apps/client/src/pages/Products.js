@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocalizedNavigate } from '../hooks/useLocalizedNavigate';
 import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import { FiFilter, FiGrid, FiList, FiStar, FiShoppingCart, FiTag, FiTruck, FiShield } from 'react-icons/fi';
@@ -8,6 +9,7 @@ import { useProductImages } from '../hooks/useProductImages';
 import toast from 'react-hot-toast';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase/config';
+import { useTranslation } from 'react-i18next';
 
 const ProductsContainer = styled.div`
   max-width: 1200px;
@@ -619,6 +621,8 @@ const NoProducts = styled.div`
  
 
 const Products = () => {
+  const { t } = useTranslation();
+  const localizedNavigate = useLocalizedNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
   const { productImages } = useProductImages();
@@ -891,7 +895,7 @@ const Products = () => {
               type="button"
               onClick={() => {
                 toast.dismiss(t.id);
-                navigate('/cart');
+                localizedNavigate('cart');
               }}
               style={{
                 flex: 1,
@@ -1031,7 +1035,7 @@ const Products = () => {
   return (
     <ProductsContainer>
       <PageHeader>
-        <PageTitle>Nos Produits</PageTitle>
+        <PageTitle>{t("products.title")}</PageTitle>
         <PageSubtitle>
           Découvrez notre large gamme de bois de chauffage de qualité
         </PageSubtitle>
@@ -1200,13 +1204,13 @@ const Products = () => {
 
       {filteredProducts.length === 0 ? (
         <NoProducts>
-          <h3>Aucun produit trouvé</h3>
-          <p>Essayez de modifier vos critères de recherche</p>
+          <h3>{t("products.no_products")}</h3>
+          <p>{t("products.try_other_criteria")}</p>
         </NoProducts>
       ) : (
         <>
           <div style={{ marginBottom: '20px', color: '#666', fontSize: '16px' }}>
-            {filteredProducts.length} produit(s) trouvé(s)
+            {filteredProducts.length} {t("products.products_found")}
           </div>
           
           {viewMode === 'grid' ? (
@@ -1214,7 +1218,7 @@ const Products = () => {
               {pagedProducts.map(product => (
                 <ProductCardEnhanced
                   key={product.id}
-                  onClick={() => navigate(inDashboard ? `/dashboard/product/${product.id}` : `/product/${product.id}`)}
+                  onClick={() => localizedNavigate(inDashboard ? 'dashboardProductDetail' : 'productDetail', product.id)}
                   onMouseMove={(e) => {
                     const el = e.currentTarget;
                     const rect = el.getBoundingClientRect();
@@ -1241,8 +1245,8 @@ const Products = () => {
                     />
                     
                     <ProductBadges>
-                      {product.sale && <Badge type="sale">Promo</Badge>}
-                      {product.new && <Badge type="new">Nouveau</Badge>}
+                      {product.sale && <Badge type="sale">{t("products.sale")}</Badge>}
+                      {product.new && <Badge type="new">{t("products.new")}</Badge>}
                     </ProductBadges>
                   </ProductImageContainer>
                   
@@ -1273,25 +1277,25 @@ const Products = () => {
                       </ProductRating>
                       
                       <ProductStock inStock={product.stock > 0}>
-                        {product.stock > 0 ? 'En stock' : 'Rupture'}
+                        {product.stock > 0 ? t('products.in_stock') : t('products.out_of_stock')}
                       </ProductStock>
                     </ProductInfo>
                     
                     <ProductSpecs>
                       <div className="spec-item">
-                        <span>Poids:</span>
+                        <span>{t("products.weight")}</span>
                         <span className="spec-value">{product.weight}</span>
                       </div>
                       <div className="spec-item">
-                        <span>Dimensions:</span>
+                        <span>{t("products.dimensions")}</span>
                         <span className="spec-value">{product.dimensions}</span>
                       </div>
                       <div className="spec-item">
-                        <span>Humidité:</span>
+                        <span>{t("products.humidity")}</span>
                         <span className="spec-value">{product.humidity}</span>
                       </div>
                       <div className="spec-item">
-                        <span>Calorifique:</span>
+                        <span>{t("products.calorific")}</span>
                         <span className="spec-value">{product.calorificValue}</span>
                       </div>
                     </ProductSpecs>
@@ -1299,10 +1303,10 @@ const Products = () => {
                     <ProductActions>
                       <AddToCartButton onClick={(e) => { e.stopPropagation(); handleAddToCart(product); }}>
                         <FiShoppingCart size={16} />
-                        Ajouter
+                        {t("products.add_to_cart")}
                       </AddToCartButton>
-                      <QuickViewButton onClick={(e) => { e.stopPropagation(); navigate(inDashboard ? `/dashboard/product/${product.id}` : `/product/${product.id}`); }}>
-                        Voir
+                      <QuickViewButton onClick={(e) => { e.stopPropagation(); localizedNavigate(inDashboard ? 'dashboardProductDetail' : 'productDetail', product.id); }}>
+                        {t("products.quick_view")}
                       </QuickViewButton>
                     </ProductActions>
                   </ProductContent>
@@ -1315,7 +1319,7 @@ const Products = () => {
                 <ProductCardEnhanced
                   key={product.id}
                   style={{ display: 'flex', flexDirection: 'row' }}
-                  onClick={() => navigate(inDashboard ? `/dashboard/product/${product.id}` : `/product/${product.id}`)}
+                  onClick={() => localizedNavigate(inDashboard ? 'dashboardProductDetail' : 'productDetail', product.id)}
                   onMouseMove={(e) => {
                     const el = e.currentTarget;
                     const rect = el.getBoundingClientRect();
@@ -1344,8 +1348,8 @@ const Products = () => {
                       <div style={{ padding: 8, fontSize: 12, color: '#666' }}>{productImages[product.id] || product.image || `https://picsum.photos/seed/${product.id}/800/500`}</div>
                     )}
                     <ProductBadges>
-                      {product.sale && <Badge type="sale">Promo</Badge>}
-                      {product.new && <Badge type="new">Nouveau</Badge>}
+                      {product.sale && <Badge type="sale">{t("products.sale")}</Badge>}
+                      {product.new && <Badge type="new">{t("products.new")}</Badge>}
                     </ProductBadges>
                   </ProductImageContainer>
                   
@@ -1376,17 +1380,17 @@ const Products = () => {
                       </ProductRating>
                       
                       <ProductStock inStock={product.stock > 0}>
-                        {product.stock > 0 ? 'En stock' : 'Rupture'}
+                        {product.stock > 0 ? t('products.in_stock') : t('products.out_of_stock')}
                       </ProductStock>
                     </ProductInfo>
                     
                     <ProductActions>
                       <AddToCartButton onClick={() => handleAddToCart(product)}>
                         <FiShoppingCart size={16} />
-                        Ajouter
+                        {t("products.add_to_cart")}
                       </AddToCartButton>
-                      <QuickViewButton onClick={() => navigate(inDashboard ? `/dashboard/product/${product.id}` : `/product/${product.id}`)}>
-                        Voir
+                      <QuickViewButton onClick={(e) => { e.stopPropagation(); localizedNavigate(inDashboard ? 'dashboardProductDetail' : 'productDetail', product.id); }}>
+                        {t("products.quick_view")}
                       </QuickViewButton>
                     </ProductActions>
                   </ProductContent>
@@ -1399,7 +1403,7 @@ const Products = () => {
           {totalPages > 1 && (
             <PaginationBar>
               <PageButton onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>
-                Précédent
+                {t("products.prev")}
               </PageButton>
               {getPageNumbers().map(n => (
                 <PageButton key={n} $active={n === currentPage} onClick={() => setCurrentPage(n)}>
@@ -1410,7 +1414,7 @@ const Products = () => {
                 <PageInfo>…</PageInfo>
               )}
               <PageButton onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>
-                Suivant
+                {t("products.next")}
               </PageButton>
             </PaginationBar>
           )}

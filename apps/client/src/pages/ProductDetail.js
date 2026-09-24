@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useLocalizedNavigate } from '../hooks/useLocalizedNavigate';
 import styled from 'styled-components';
 import { FiStar, FiShoppingCart, FiTruck, FiShield, FiArrowLeft, FiPlus, FiMinus } from 'react-icons/fi';
 import { useCart } from '../contexts/CartContext';
@@ -267,6 +268,7 @@ const ErrorMessage = styled.div`
 const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const localizedNavigate = useLocalizedNavigate();
   const { addToCart, isInCart, getCartItem } = useCart();
   const { productImages } = useProductImages();
   const [product, setProduct] = useState(null);
@@ -413,7 +415,7 @@ const ProductDetail = () => {
               type="button"
               onClick={() => {
                 toast.dismiss(t.id);
-                navigate('/cart');
+                localizedNavigate('cart');
               }}
               style={{
                 flex: 1,
