@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useLocalizedNavigate } from '../hooks/useLocalizedNavigate';
 import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
-import { FiFilter, FiGrid, FiList, FiStar, FiShoppingCart, FiTag, FiTruck, FiShield } from 'react-icons/fi';
+import { FiFilter, FiGrid, FiList, FiStar, FiShoppingCart, FiTag, FiTruck, FiShield, FiSearch, FiX, FiCheck } from 'react-icons/fi';
+import { FaFire } from 'react-icons/fa';
 import { products as catalogue } from '../data/catalogue.js';
 import { useCart } from '../contexts/CartContext';
 import { useProductImages } from '../hooks/useProductImages';
@@ -620,12 +621,359 @@ const NoProducts = styled.div`
 
  
 
+
+/* ================= SENIOR REDESIGNED CATALOG HEADER & FILTERS ================= */
+
+const CatalogHeader = styled.div`
+  margin-bottom: 20px;
+  
+  @media (max-width: 768px) {
+    margin-bottom: 14px;
+  }
+`;
+
+const CatalogTitle = styled.h1`
+  font-size: 32px;
+  font-weight: 800;
+  color: #1b3b22;
+  margin: 0 0 6px;
+  letter-spacing: -0.4px;
+  
+  @media (max-width: 768px) {
+    font-size: 24px;
+    margin-bottom: 4px;
+  }
+`;
+
+const CatalogSubtitle = styled.p`
+  color: #64748b;
+  font-size: 15px;
+  margin: 0 0 12px;
+  line-height: 1.5;
+  
+  @media (max-width: 768px) {
+    font-size: 13px;
+    margin-bottom: 10px;
+  }
+`;
+
+const TrustPillBar = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  font-weight: 600;
+  color: #2c5530;
+  padding: 8px 14px;
+  background: #f1f8f3;
+  border-radius: 8px;
+  margin-bottom: 18px;
+
+  span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  @media (max-width: 768px) {
+    font-size: 11.5px;
+    gap: 10px;
+    padding: 6px 10px;
+    margin-bottom: 14px;
+  }
+`;
+
+/* Horizontal Scrollable Category Bar (Swipeable on Mobile) */
+const CategoryPillsScroll = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow-x: auto;
+  white-space: nowrap;
+  padding-bottom: 8px;
+  margin-bottom: 16px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+
+  @media (max-width: 768px) {
+    gap: 8px;
+    margin-left: -16px;
+    margin-right: -16px;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+`;
+
+const CategoryChip = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 13.5px;
+  font-weight: ${p => p.$active ? '700' : '500'};
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid ${p => p.$active ? '#1b3b22' : '#e2e8f0'};
+  background: ${p => p.$active ? '#1b3b22' : '#ffffff'};
+  color: ${p => p.$active ? '#ffffff' : '#334155'};
+  box-shadow: ${p => p.$active ? '0 4px 12px rgba(27, 59, 34, 0.25)' : '0 1px 3px rgba(0,0,0,0.04)'};
+
+  &:hover {
+    border-color: #1b3b22;
+    transform: translateY(-1px);
+  }
+
+  @media (max-width: 768px) {
+    padding: 7px 14px;
+    font-size: 12.5px;
+  }
+`;
+
+/* Search and Toolbar */
+const CatalogToolbar = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+
+  @media (max-width: 768px) {
+    gap: 8px;
+  }
+`;
+
+const SearchBox = styled.div`
+  flex: 1;
+  min-width: 220px;
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  svg.search-icon {
+    position: absolute;
+    left: 14px;
+    color: #94a3b8;
+    pointer-events: none;
+  }
+
+  input {
+    width: 100%;
+    padding: 10px 38px 10px 38px;
+    border-radius: 10px;
+    border: 1px solid #cbd5e1;
+    font-size: 14px;
+    background: #ffffff;
+    outline: none;
+    transition: all 0.2s ease;
+
+    &:focus {
+      border-color: #2c5530;
+      box-shadow: 0 0 0 3px rgba(44, 85, 48, 0.1);
+    }
+  }
+
+  button.clear-btn {
+    position: absolute;
+    right: 10px;
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  @media (max-width: 768px) {
+    min-width: 100%;
+    order: 1;
+  }
+`;
+
+const ToolbarActions = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  @media (max-width: 768px) {
+    order: 2;
+    width: 100%;
+    justify-content: space-between;
+  }
+`;
+
+const FilterTriggerBtn = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border-radius: 10px;
+  border: 1px solid ${p => p.$hasFilters ? '#d97706' : '#cbd5e1'};
+  background: ${p => p.$hasFilters ? '#fef3c7' : '#ffffff'};
+  color: ${p => p.$hasFilters ? '#92400e' : '#1e293b'};
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: #1b3b22;
+  }
+
+  @media (max-width: 768px) {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+`;
+
+const FilterBadge = styled.span`
+  background: #d97706;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 999px;
+`;
+
+const ViewToggleCompact = styled.div`
+  display: flex;
+  align-items: center;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #ffffff;
+`;
+
+const ViewBtn = styled.button`
+  padding: 8px 10px;
+  background: ${p => p.$active ? '#1b3b22' : 'transparent'};
+  color: ${p => p.$active ? '#ffffff' : '#64748b'};
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+
+  &:hover {
+    color: ${p => p.$active ? '#ffffff' : '#1b3b22'};
+  }
+`;
+
+/* Collapsible Advanced Filters Drawer */
+const CollapsibleFiltersPanel = styled.div`
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 18px 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.06);
+  animation: slideDown 0.25s ease-out;
+
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 768px) {
+    padding: 14px 16px;
+    margin-bottom: 14px;
+  }
+`;
+
+const FilterPanelHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #f1f5f9;
+
+  h4 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  button.reset-btn {
+    background: none;
+    border: none;
+    color: #d97706;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+`;
+
+const FilterFieldsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 14px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+`;
+
+const FilterItem = styled.div`
+  label {
+    display: block;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 4px;
+  }
+
+  select, input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 13.5px;
+    outline: none;
+    background: #ffffff;
+
+    &:focus {
+      border-color: #2c5530;
+    }
+  }
+`;
+
+const FilterCheckbox = styled.label`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #1e293b;
+  cursor: pointer;
+  margin-top: 6px;
+
+  input {
+    width: 16px;
+    height: 16px;
+    accent-color: #2c5530;
+  }
+`;
+
 const Products = () => {
   const { t } = useTranslation();
   const localizedNavigate = useLocalizedNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
   const { productImages } = useProductImages();
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [filters, setFilters] = useState({
     category: searchParams.get('category') || '',
     type: searchParams.get('type') || '',
@@ -1034,173 +1382,198 @@ const Products = () => {
   // Vue lorsqu'une catégorie est sélectionnée: filtres + produits
   return (
     <ProductsContainer>
-      <PageHeader>
-        <PageTitle>{t("products.title")}</PageTitle>
-        <PageSubtitle>
-          Découvrez notre large gamme de bois de chauffage de qualité
-        </PageSubtitle>
+      
+      {/* 1. HEADER ÉPURÉ & TRUST BAR */}
+      <CatalogHeader>
+        <CatalogTitle>{t("products.title", "Nos Combustibles & Bois de Chauffage")}</CatalogTitle>
+        <CatalogSubtitle>
+          {t("products.subtitle", "Sélectionnez vos stères de bois dur fendu (chêne, hêtre, charme) ou vos granulés certifiés DINplus.")}
+        </CatalogSubtitle>
         
-        {/* Statistiques rapides */}
-        <StatsGrid>
-          <StatCard style={{ background: 'linear-gradient(135deg, #2c5530, #27ae60)' }}>
-            <FiTag size={24} style={{ marginBottom: '6px' }} />
-            <h4>{totalProducts} Produits</h4>
-            <p style={{ margin: 0, opacity: 0.9 }}>Dans notre catalogue</p>
-          </StatCard>
+        <TrustPillBar>
+          <span><FaFire size={13} style={{ color: '#d97706' }} /> Humidité garantie &lt; 20%</span>
+          <span><FiTruck size={14} style={{ color: '#16a34a' }} /> Livraison à domicile 24-48h</span>
+          <span><FiShield size={14} style={{ color: '#2563eb' }} /> Virement sécurisé (Vorkasse)</span>
+          <span><FiStar size={13} style={{ color: '#f59e0b' }} /> Note 4.8/5</span>
+        </TrustPillBar>
+      </CatalogHeader>
 
-          <StatCard style={{ background: 'linear-gradient(135deg, #27ae60, #2ecc71)' }}>
-            <FiTruck size={24} style={{ marginBottom: '6px' }} />
-            <h4>Livraison</h4>
-            <p style={{ margin: 0, opacity: 0.9 }}>24-48h partout en France</p>
-          </StatCard>
+      {/* 2. BARRE DE CATÉGORIES DÉFILANTE (SWIPEABLE HORIZONTAL CHIPS) */}
+      <CategoryPillsScroll>
+        <CategoryChip 
+          $active={!mainCategory} 
+          onClick={() => setActiveMainCategory('')}
+        >
+          🌲 {t('home.cat_all', 'Tout voir')} ({allProducts.length})
+        </CategoryChip>
+        <CategoryChip 
+          $active={mainCategory === 'bois'} 
+          onClick={() => setActiveMainCategory('bois')}
+        >
+          🪵 {t('home.cat_wood', 'Bois de chauffage')}
+        </CategoryChip>
+        <CategoryChip 
+          $active={mainCategory === 'pellets'} 
+          onClick={() => setActiveMainCategory('pellets')}
+        >
+          ⚡ {t('home.cat_pellets', 'Pellets & Granulés')}
+        </CategoryChip>
+        <CategoryChip 
+          $active={mainCategory === 'buches-densifiees'} 
+          onClick={() => setActiveMainCategory('buches-densifiees')}
+        >
+          🧱 {t('home.cat_briquettes', 'Bûches densifiées')}
+        </CategoryChip>
+        <CategoryChip 
+          $active={mainCategory === 'accessoires'} 
+          onClick={() => setActiveMainCategory('accessoires')}
+        >
+          🪓 {t('home.cat_accessories', 'Accessoires')}
+        </CategoryChip>
+        <CategoryChip 
+          $active={mainCategory === 'poeles'} 
+          onClick={() => setActiveMainCategory('poeles')}
+        >
+          ♨️ {t('home.cat_stoves', 'Poêles')}
+        </CategoryChip>
+      </CategoryPillsScroll>
 
-          <StatCard style={{ background: 'linear-gradient(135deg, #f39c12, #e67e22)' }}>
-            <FiStar size={24} style={{ marginBottom: '6px' }} />
-            <h4>{averageRatingFormatted}/5</h4>
-            <p style={{ margin: 0, opacity: 0.9 }}>Note moyenne clients</p>
-          </StatCard>
-
-          <StatCard style={{ background: 'linear-gradient(135deg, #e74c3c, #c0392b)' }}>
-            <FiShield size={24} style={{ marginBottom: '6px' }} />
-            <h4>Garantie</h4>
-            <p style={{ margin: 0, opacity: 0.9 }}>Qualité certifiée</p>
-          </StatCard>
-        </StatsGrid>
-      </PageHeader>
-
-      <FiltersSection>
-        <FiltersHeader>
-          <FiltersTitle>
-            <FiFilter size={20} />
-            Filtres et recherche
-          </FiltersTitle>
-          <ViewToggle>
-            <ViewToggleButton 
-              active={viewMode === 'grid'} 
-              onClick={() => setViewMode('grid')}
-            >
-              <FiGrid size={16} />
-            </ViewToggleButton>
-            <ViewToggleButton 
-              active={viewMode === 'list'} 
-              onClick={() => setViewMode('list')}
-            >
-              <FiList size={16} />
-            </ViewToggleButton>
-          </ViewToggle>
-        </FiltersHeader>
-
-        <form onSubmit={handleSearch}>
-          <SearchInput
+      {/* 3. TOOLBAR CONDENSÉE (RECHERCHE + BOUTON FILTRE + VUE) */}
+      <CatalogToolbar>
+        <SearchBox>
+          <FiSearch className="search-icon" size={16} />
+          <input
             type="text"
-            placeholder="Rechercher des produits..."
+            placeholder={t('products.search_placeholder', 'Rechercher un produit (ex: chêne 33cm, pellets...)...')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-        </form>
+          {searchTerm && (
+            <button className="clear-btn" onClick={() => setSearchTerm('')} title="Effacer">
+              <FiX size={15} />
+            </button>
+          )}
+        </SearchBox>
 
-        <FiltersGrid>
-          <FilterGroup>
-            <label>Catégorie</label>
-            <select 
-              value={filters.category} 
-              onChange={(e) => handleFilterChange('category', e.target.value)}
+        <ToolbarActions>
+          <FilterTriggerBtn 
+            $hasFilters={Boolean(filters.type || filters.minPrice || filters.maxPrice || filters.available)}
+            onClick={() => setIsFiltersOpen(!isFiltersOpen)}
+          >
+            <FiFilter size={15} />
+            <span>Filtres</span>
+            {(Boolean(filters.type) + Boolean(filters.minPrice) + Boolean(filters.maxPrice) + Boolean(filters.available)) > 0 && (
+              <FilterBadge>
+                {Boolean(filters.type) + Boolean(filters.minPrice) + Boolean(filters.maxPrice) + Boolean(filters.available)}
+              </FilterBadge>
+            )}
+          </FilterTriggerBtn>
+
+          <span style={{ fontSize: '13px', color: '#64748b', fontWeight: 600 }}>
+            {filteredProducts.length} {t("products.products_found", "produits")}
+          </span>
+
+          <ViewToggleCompact>
+            <ViewBtn 
+              $active={viewMode === 'grid'} 
+              onClick={() => setViewMode('grid')}
+              title="Vue Grille"
             >
-              <option value="">Toutes les catégories</option>
-              {uniqueCategories.map(cat => {
-                const value = typeof cat === 'string' ? cat : cat.value;
-                const label = typeof cat === 'string' ? (cat.charAt(0).toUpperCase() + cat.slice(1)) : cat.label;
-                return (
-                  <option key={value} value={value}>{label}</option>
-                );
-              })}
-            </select>
-          </FilterGroup>
-
-          <FilterGroup>
-            <label>Type</label>
-            <select 
-              value={filters.type} 
-              onChange={(e) => handleFilterChange('type', e.target.value)}
+              <FiGrid size={15} />
+            </ViewBtn>
+            <ViewBtn 
+              $active={viewMode === 'list'} 
+              onClick={() => setViewMode('list')}
+              title="Vue Liste"
             >
-              <option value="">Tous les types</option>
-              {uniqueTypes.length === 0 ? null : uniqueTypes.map(t => (
-                <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>
-              ))}
-            </select>
-          </FilterGroup>
+              <FiList size={15} />
+            </ViewBtn>
+          </ViewToggleCompact>
+        </ToolbarActions>
+      </CatalogToolbar>
 
-          <FilterGroup>
-            <label>Prix minimum (€)</label>
-            <input
-              type="number"
-              value={filters.minPrice}
-              onChange={(e) => handleFilterChange('minPrice', e.target.value)}
-              placeholder="0"
-            />
-          </FilterGroup>
+      {/* 4. TIROIR DE FILTRES AVANCÉS DÉPLIABLE */}
+      {isFiltersOpen && (
+        <CollapsibleFiltersPanel>
+          <FilterPanelHeader>
+            <h4><FiFilter size={16} /> Filtres avancés</h4>
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+              <button className="reset-btn" onClick={clearFilters}>Réinitialiser tout</button>
+              <button 
+                onClick={() => setIsFiltersOpen(false)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}
+              >
+                <FiX size={18} />
+              </button>
+            </div>
+          </FilterPanelHeader>
 
-          <FilterGroup>
-            <label>Prix maximum (€)</label>
-            <input
-              type="number"
-              value={filters.maxPrice}
-              onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
-              placeholder="1000"
-            />
-          </FilterGroup>
+          <FilterFieldsGrid>
+            {uniqueTypes.length > 0 && (
+              <FilterItem>
+                <label>Type spécifique</label>
+                <select 
+                  value={filters.type} 
+                  onChange={(e) => handleFilterChange('type', e.target.value)}
+                >
+                  <option value="">Tous les types</option>
+                  {uniqueTypes.map(t => (
+                    <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>
+                  ))}
+                </select>
+              </FilterItem>
+            )}
 
-          <FilterGroup>
-            <CheckboxLabel>
-              En stock uniquement
+            <FilterItem>
+              <label>Prix minimum (€)</label>
+              <input
+                type="number"
+                value={filters.minPrice}
+                onChange={(e) => handleFilterChange('minPrice', e.target.value)}
+                placeholder="0 €"
+              />
+            </FilterItem>
+
+            <FilterItem>
+              <label>Prix maximum (€)</label>
+              <input
+                type="number"
+                value={filters.maxPrice}
+                onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
+                placeholder="1000 €"
+              />
+            </FilterItem>
+          </FilterFieldsGrid>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+            <FilterCheckbox>
               <input
                 type="checkbox"
                 checked={filters.available}
                 onChange={(e) => handleFilterChange('available', e.target.checked)}
               />
-            </CheckboxLabel>
-          </FilterGroup>
-        </FiltersGrid>
+              <span>En stock uniquement ({allProducts.filter(p => p.stock > 0).length})</span>
+            </FilterCheckbox>
 
-        <div style={{ marginTop: '20px', textAlign: 'right' }}>
-          <button 
-            onClick={clearFilters}
-            style={{
-              background: 'none',
-              border: '2px solid #e0e0e0',
-              padding: '8px 16px',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              color: '#666'
-            }}
-          >
-            Effacer les filtres
-          </button>
-        </div>
-        {/* Catégories principales déplacées sous la carte de filtres */}
-        <div style={{ marginTop: '16px' }}>
-          <CategoriesNav>
-            <CategoryButton $active={!mainCategory} onClick={() => setActiveMainCategory('')}>
-              Voir tout
-            </CategoryButton>
-            <CategoryButton $active={mainCategory==='bois'} onClick={() => setActiveMainCategory('bois')}>
-              Bois de chauffage
-            </CategoryButton>
-            <CategoryButton $active={mainCategory==='accessoires'} onClick={() => setActiveMainCategory('accessoires')}>
-              Accessoires
-            </CategoryButton>
-            <CategoryButton $active={mainCategory==='buches-densifiees'} onClick={() => setActiveMainCategory('buches-densifiees')}>
-              Bûches densifiées
-            </CategoryButton>
-            <CategoryButton $active={mainCategory==='pellets'} onClick={() => setActiveMainCategory('pellets')}>
-              Pellets de bois
-            </CategoryButton>
-            <CategoryButton $active={mainCategory==='poeles'} onClick={() => setActiveMainCategory('poeles')}>
-              Poêles
-            </CategoryButton>
-          </CategoriesNav>
-        </div>
-      </FiltersSection>
+            <button 
+              onClick={() => setIsFiltersOpen(false)}
+              style={{
+                background: '#1b3b22',
+                color: '#ffffff',
+                border: 'none',
+                padding: '8px 16px',
+                borderRadius: '8px',
+                fontWeight: 700,
+                fontSize: '13px',
+                cursor: 'pointer'
+              }}
+            >
+              Voir les {filteredProducts.length} résultats
+            </button>
+          </div>
+        </CollapsibleFiltersPanel>
+      )}
+
 
       {filteredProducts.length === 0 ? (
         <NoProducts>
