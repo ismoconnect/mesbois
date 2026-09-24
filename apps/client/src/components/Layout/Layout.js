@@ -14,15 +14,15 @@ const LayoutContainer = styled.div`
   }
   
   @media (max-width: 768px) {
-    padding-top: 60px;
+    padding-top: 64px;
   }
   
   @media (max-width: 480px) {
-    padding-top: 55px;
+    padding-top: 64px;
   }
   
   @media (max-width: 375px) {
-    padding-top: 50px;
+    padding-top: 60px;
   }
 
   /* When header is hidden, reduce the top padding so content sits closer to top */
