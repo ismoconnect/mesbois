@@ -639,11 +639,11 @@ const Products = () => {
   const [mainCategory, setMainCategory] = useState(searchParams.get('main') || '');
   const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '');
   const [viewMode, setViewMode] = useState('grid');
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const inDashboard = location.pathname.startsWith('/dashboard');
   const { addToCart } = useCart();
   const [fsProducts, setFsProducts] = useState([]);
-  const [fsLoading, setFsLoading] = useState(true);
+  const [, setFsLoading] = useState(true);
 
   React.useEffect(() => {
     if (typeof window !== 'undefined') {

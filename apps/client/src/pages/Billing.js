@@ -209,8 +209,8 @@ const Billing = () => {
 
   if (!user) return null;
 
-  const hasBankOrders = orders.some(o => o.payment?.method === 'bank');
-  const hasPaypalOrders = orders.some(o => o.payment?.method === 'paypal');
+  // const hasBankOrders
+  // const hasPaypalOrders
 
   return (
     <DashboardLayout>

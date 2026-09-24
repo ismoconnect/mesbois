@@ -272,7 +272,7 @@ const ProductDetail = () => {
   const { addToCart, isInCart, getCartItem } = useCart();
   const { productImages } = useProductImages();
   const [product, setProduct] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [quantity, setQuantity] = useState(1);
 

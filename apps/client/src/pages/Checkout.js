@@ -334,7 +334,7 @@ const Checkout = () => {
   const { t } = useTranslation();
   const { cartItems, getCartTotal, clearCart } = useCart();
   const { user, userData } = useAuth();
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const localizedNavigate = useLocalizedNavigate();
 
   const [formData, setFormData] = useState({
@@ -599,7 +599,7 @@ const Checkout = () => {
           // ignore email errors
         }
         clearCart();
-        const payMethod = orderData.payment?.method || 'bank';
+        // const payMethod = orderData.payment?.method || 'bank';
         if (wasGuest) {
           if (formData.paymentMethod === 'paypal') {
             localizedNavigate('paypalPayment', '', `?orderId=${result.id}`);
