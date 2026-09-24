@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocalizedNavigate } from '../hooks/useLocalizedNavigate';
 import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
-import { FiFilter, FiGrid, FiList, FiStar, FiShoppingCart, FiTag, FiTruck, FiShield, FiSearch, FiX, FiCheck } from 'react-icons/fi';
+import { FiFilter, FiGrid, FiList, FiStar, FiShoppingCart, FiTag, FiTruck, FiShield, FiSearch, FiX, FiCheck, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { FaFire } from 'react-icons/fa';
 import { products as catalogue } from '../data/catalogue.js';
 import { useCart } from '../contexts/CartContext';
@@ -316,56 +316,116 @@ const PaginationBar = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  margin: 12px 0 4px;
+  gap: 6px;
+  margin: 20px 0 10px;
+  width: 100%;
+  flex-wrap: wrap;
 
   @media (min-width: 769px) {
     justify-content: flex-end;
+    margin: 16px 0 8px;
+  }
+
+  @media (max-width: 480px) {
+    gap: 4px;
+    margin: 14px 0 6px;
   }
 `;
 
 const PageButton = styled.button`
-  padding: 6px 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 12px;
   border-radius: 8px;
-  border: 2px solid ${p => p.$active ? '#2c5530' : '#e0e0e0'};
-  background: ${p => p.$active ? '#2c5530' : '#fff'};
-  color: ${p => p.$active ? '#fff' : '#2c5530'};
+  border: 1.5px solid ${p => p.$active ? '#1b3b22' : '#e2e8f0'};
+  background: ${p => p.$active ? '#1b3b22' : '#ffffff'};
+  color: ${p => p.$active ? '#ffffff' : '#334155'};
   font-weight: 700;
   font-size: 13px;
   min-width: 36px;
+  height: 36px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+
+  &:hover:not(:disabled) {
+    border-color: #1b3b22;
+    background: ${p => p.$active ? '#1b3b22' : '#f8fafc'};
+    color: ${p => p.$active ? '#ffffff' : '#1b3b22'};
+  }
+
+  &:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    border-color: #e2e8f0;
+    background: #ffffff;
+    color: #94a3b8;
+  }
+
+  @media (max-width: 600px) {
+    padding: 0 4px;
+    min-width: 30px;
+    height: 30px;
+    font-size: 12px;
+    border-radius: 6px;
+
+    .nav-label {
+      display: none;
+    }
+  }
 `;
 
 const PageInfo = styled.span`
   font-size: 13px;
-  color: #666;
-  margin-left: 6px;
+  color: #94a3b8;
+  margin: 0 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 `;
 
-// Composants pour les cartes produits améliorées
+// Composants pour les cartes produits améliorées (Senior E-commerce Redesign)
 const ProductCardEnhanced = styled.div`
-  background: white;
-  border-radius: 14px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
   overflow: hidden;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
   position: relative;
   cursor: pointer;
-  transform: translate3d(calc(var(--tx, 0px)), calc(var(--ty, 0px)), 0);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   
   &:hover {
-    /* Combine base subtle proximity with a slight lift on hover */
-    transform: translate3d(calc(var(--tx, 0px)), calc(-4px + var(--ty, 0px)), 0);
-    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.12);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+    border-color: #cbd5e1;
+  }
+
+  @media (max-width: 768px) {
+    border-radius: 10px;
+    &:hover {
+      transform: none;
+    }
   }
 `;
 
 const ProductImageContainer = styled.div`
   position: relative;
+  width: 100%;
   height: 160px;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
   
   @media (max-width: 768px) {
-    height: 120px;
+    height: 130px;
   }
 `;
 
@@ -376,94 +436,117 @@ const ProductImage = styled.img`
   transition: transform 0.3s ease;
   
   ${ProductCardEnhanced}:hover & {
-    transform: scale(1.05);
+    transform: scale(1.04);
   }
 `;
 
 const ProductBadges = styled.div`
   position: absolute;
-  top: 15px;
-  left: 15px;
+  top: 8px;
+  left: 8px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
+  z-index: 2;
 `;
 
 const Badge = styled.div`
-  background: ${props => props.type === 'sale' ? '#e74c3c' : props.type === 'new' ? '#27ae60' : '#2c5530'};
+  background: ${props => props.type === 'sale' ? '#dc2626' : props.type === 'new' ? '#16a34a' : '#1b3b22'};
   color: white;
-  padding: 4px 10px;
-  border-radius: 16px;
-  font-size: 11px;
-  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
   text-transform: uppercase;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
   
   @media (max-width: 768px) {
-    padding: 3px 6px;
-    font-size: 10px;
+    padding: 2px 6px;
+    font-size: 9px;
   }
 `;
 
 const ProductContent = styled.div`
-  padding: 16px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
   
   @media (max-width: 768px) {
-    padding: 10px;
+    padding: 8px;
   }
 `;
 
 const ProductHeader = styled.div`
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 15px;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
   
   @media (max-width: 768px) {
-    margin-bottom: 8px;
+    margin-bottom: 6px;
+    gap: 2px;
   }
 `;
 
 const ProductName = styled.h3`
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 700;
-  color: #2c5530;
+  color: #1e293b;
   margin: 0;
   line-height: 1.3;
-  flex: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 36px;
+  max-height: 36px;
   
   @media (max-width: 768px) {
-    font-size: 13px;
+    font-size: 12px;
+    min-height: 31px;
+    max-height: 31px;
+    line-height: 1.25;
   }
 `;
 
 const ProductPrice = styled.div`
-  font-size: 18px;
-  font-weight: 700;
-  color: #27ae60;
-  margin-left: 15px;
+  font-size: 16px;
+  font-weight: 800;
+  color: #16a34a;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
   
+  span.regular-price {
+    font-size: 11.5px;
+    color: #94a3b8;
+    text-decoration: line-through;
+    font-weight: 500;
+  }
+
   @media (max-width: 768px) {
-    font-size: 15px;
-    margin-left: 8px;
+    font-size: 14px;
+    gap: 4px;
+
+    span.regular-price {
+      font-size: 10px;
+    }
   }
 `;
 
 const ProductDescription = styled.p`
-  color: #666;
-  font-size: 13px;
-  line-height: 1.5;
-  margin-bottom: 15px;
+  color: #64748b;
+  font-size: 12.5px;
+  line-height: 1.4;
+  margin-bottom: 8px;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   
   @media (max-width: 768px) {
-    font-size: 12px;
-    margin-bottom: 6px;
-  }
-  
-  @media (max-width: 480px) {
     display: none;
   }
 `;
@@ -472,7 +555,9 @@ const ProductInfo = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  width: 100%;
+  margin-bottom: 8px;
+  gap: 4px;
   
   @media (max-width: 768px) {
     margin-bottom: 6px;
@@ -482,40 +567,79 @@ const ProductInfo = styled.div`
 const ProductRating = styled.div`
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 3px;
+  min-width: 0;
   
   .stars {
     display: flex;
-    gap: 2px;
-    color: #f39c12;
+    gap: 1px;
+    color: #f59e0b;
+
+    svg {
+      width: 12px;
+      height: 12px;
+    }
   }
   
   .rating-text {
-    color: #666;
-    font-size: 14px;
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 600;
   }
   
-  @media (max-width: 480px) {
-    .rating-text { display: none; }
+  @media (max-width: 768px) {
+    .stars svg {
+      width: 11px;
+      height: 11px;
+    }
+    .rating-text {
+      display: none;
+    }
   }
 `;
 
 const ProductStock = styled.div`
-  font-size: 12px;
-  color: ${props => props.inStock ? '#27ae60' : '#e74c3c'};
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: ${props => props.inStock ? '#047857' : '#b91c1c'};
   font-weight: 600;
-  background: ${props => props.inStock ? '#d4edda' : '#f8d7da'};
-  padding: 4px 8px;
-  border-radius: 12px;
+  background: ${props => props.inStock ? '#ecfdf5' : '#fef2f2'};
+  border: 1px solid ${props => props.inStock ? '#a7f3d0' : '#fecaca'};
+  padding: 2px 7px;
+  border-radius: 999px;
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  &::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: ${props => props.inStock ? '#10b981' : '#ef4444'};
+  }
+
+  @media (max-width: 768px) {
+    font-size: 10px;
+    padding: 2px 6px;
+    gap: 3px;
+
+    &::before {
+      width: 5px;
+      height: 5px;
+    }
+  }
 `;
 
 const ProductSpecs = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 6px;
-  margin-bottom: 14px;
-  font-size: 12px;
-  color: #666;
+  margin-bottom: 10px;
+  font-size: 11.5px;
+  color: #64748b;
   
   .spec-item {
     display: flex;
@@ -523,83 +647,92 @@ const ProductSpecs = styled.div`
     
     .spec-value {
       font-weight: 600;
-      color: #2c5530;
+      color: #1e293b;
     }
   }
 
-  @media (max-width: 480px) {
+  @media (max-width: 768px) {
     display: none;
   }
 `;
 
 const ProductActions = styled.div`
   display: flex;
-  gap: 8px;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 6px;
   
   @media (max-width: 768px) {
-    gap: 6px;
+    gap: 4px;
+    padding-top: 4px;
   }
 `;
 
 const AddToCartButton = styled.button`
   flex: 1;
-  background: #2c5530;
+  background: #1b3b22;
   color: white;
   border: none;
-  padding: 10px;
+  padding: 8px 6px;
   border-radius: 8px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 5px;
   transition: all 0.2s ease;
-  font-size: 13px;
+  font-size: 12px;
+  white-space: nowrap;
   
   &:hover {
-    background: #1e3a22;
+    background: #142c19;
     transform: translateY(-1px);
   }
   
   &:disabled {
-    background: #ccc;
+    background: #cbd5e1;
     cursor: not-allowed;
   }
   
   @media (max-width: 768px) {
-    padding: 8px;
-    font-size: 12.5px;
+    padding: 6px 4px;
+    font-size: 11px;
     border-radius: 6px;
-    gap: 6px;
+    gap: 3px;
+
+    svg {
+      width: 12px;
+      height: 12px;
+    }
   }
 `;
 
 const QuickViewButton = styled.button`
-  background: transparent;
-  color: #2c5530;
-  border: 2px solid #2c5530;
-  padding: 10px 14px;
+  background: #ffffff;
+  color: #334155;
+  border: 1px solid #cbd5e1;
+  padding: 8px 10px;
   border-radius: 8px;
   font-weight: 600;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
   transition: all 0.2s ease;
-  font-size: 13px;
+  font-size: 12px;
   cursor: pointer;
+  white-space: nowrap;
   
   &:hover {
-    background: #2c5530;
-    color: white;
+    background: #f8fafc;
+    border-color: #94a3b8;
+    color: #0f172a;
   }
   
   @media (max-width: 768px) {
-    padding: 8px 10px;
-    font-size: 12.5px;
+    padding: 6px 7px;
+    font-size: 11px;
     border-radius: 6px;
-    gap: 6px;
   }
 `;
 
@@ -628,7 +761,7 @@ const CatalogHeader = styled.div`
   margin-bottom: 20px;
   
   @media (max-width: 768px) {
-    margin-bottom: 14px;
+    margin-bottom: 8px;
   }
 `;
 
@@ -640,8 +773,8 @@ const CatalogTitle = styled.h1`
   letter-spacing: -0.4px;
   
   @media (max-width: 768px) {
-    font-size: 24px;
-    margin-bottom: 4px;
+    font-size: 19px;
+    margin-bottom: 2px;
   }
 `;
 
@@ -652,8 +785,9 @@ const CatalogSubtitle = styled.p`
   line-height: 1.5;
   
   @media (max-width: 768px) {
-    font-size: 13px;
-    margin-bottom: 10px;
+    font-size: 11.5px;
+    margin-bottom: 8px;
+    line-height: 1.3;
   }
 `;
 
@@ -677,17 +811,24 @@ const TrustPillBar = styled.div`
   }
 
   @media (max-width: 768px) {
-    font-size: 11.5px;
-    gap: 10px;
-    padding: 6px 10px;
-    margin-bottom: 14px;
+    font-size: 10px;
+    gap: 4px 8px;
+    padding: 5px 8px;
+    margin-bottom: 8px;
+    border-radius: 6px;
+
+    span {
+      gap: 4px;
+    }
   }
 `;
 
-/* Horizontal Scrollable Category Bar (Swipeable on Mobile) */
+/* Category Bar: Desktop justified 100% full-width, Mobile 100% visible wrap without horizontal scroll */
 const CategoryPillsScroll = styled.div`
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  width: 100%;
   gap: 10px;
   overflow-x: auto;
   white-space: nowrap;
@@ -698,19 +839,28 @@ const CategoryPillsScroll = styled.div`
   &::-webkit-scrollbar { display: none; }
 
   @media (max-width: 768px) {
-    gap: 8px;
-    margin-left: -16px;
-    margin-right: -16px;
-    padding-left: 16px;
-    padding-right: 16px;
+    overflow: visible;
+    overflow-x: visible;
+    flex-wrap: wrap;
+    white-space: normal;
+    gap: 5px;
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 0;
+    padding-right: 0;
+    padding-bottom: 0;
+    margin-bottom: 8px;
   }
 `;
 
 const CategoryChip = styled.button`
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  flex: 1;
+  text-align: center;
   gap: 6px;
-  padding: 8px 16px;
+  padding: 9px 12px;
   border-radius: 999px;
   font-size: 13.5px;
   font-weight: ${p => p.$active ? '700' : '500'};
@@ -720,34 +870,51 @@ const CategoryChip = styled.button`
   background: ${p => p.$active ? '#1b3b22' : '#ffffff'};
   color: ${p => p.$active ? '#ffffff' : '#334155'};
   box-shadow: ${p => p.$active ? '0 4px 12px rgba(27, 59, 34, 0.25)' : '0 1px 3px rgba(0,0,0,0.04)'};
+  white-space: nowrap;
 
   &:hover {
     border-color: #1b3b22;
     transform: translateY(-1px);
   }
 
+  @media (max-width: 1024px) {
+    font-size: 12px;
+    padding: 8px 8px;
+    gap: 4px;
+  }
+
   @media (max-width: 768px) {
-    padding: 7px 14px;
-    font-size: 12.5px;
+    flex: 1 1 calc(33.333% - 6px);
+    min-width: fit-content;
+    justify-content: center;
+    text-align: center;
+    padding: 5px 8px;
+    font-size: 11px;
+    border-radius: 6px;
+    gap: 4px;
+    box-shadow: none;
+    line-height: 1.2;
+    white-space: nowrap;
   }
 `;
 
-/* Search and Toolbar */
+/* Search and Toolbar: Cleanly justified layout */
 const CatalogToolbar = styled.div`
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 10px;
+  width: 100%;
 
   @media (max-width: 768px) {
     gap: 8px;
+    margin-bottom: 8px;
   }
 `;
 
 const SearchBox = styled.div`
   flex: 1;
-  min-width: 220px;
+  min-width: 0;
   position: relative;
   display: flex;
   align-items: center;
@@ -789,35 +956,37 @@ const SearchBox = styled.div`
   }
 
   @media (max-width: 768px) {
-    min-width: 100%;
-    order: 1;
-  }
-`;
+    svg.search-icon {
+      left: 10px;
+      font-size: 13px;
+    }
 
-const ToolbarActions = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
+    input {
+      padding: 7px 28px 7px 30px;
+      font-size: 12px;
+      border-radius: 8px;
+    }
 
-  @media (max-width: 768px) {
-    order: 2;
-    width: 100%;
-    justify-content: space-between;
+    button.clear-btn {
+      right: 6px;
+    }
   }
 `;
 
 const FilterTriggerBtn = styled.button`
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   padding: 9px 14px;
   border-radius: 10px;
   border: 1px solid ${p => p.$hasFilters ? '#d97706' : '#cbd5e1'};
   background: ${p => p.$hasFilters ? '#fef3c7' : '#ffffff'};
   color: ${p => p.$hasFilters ? '#92400e' : '#1e293b'};
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
   transition: all 0.2s ease;
 
   &:hover {
@@ -825,8 +994,32 @@ const FilterTriggerBtn = styled.button`
   }
 
   @media (max-width: 768px) {
-    padding: 8px 12px;
-    font-size: 13px;
+    padding: 7px 12px;
+    font-size: 12px;
+    border-radius: 8px;
+    gap: 4px;
+  }
+`;
+
+const ResultsHeaderBar = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin: 6px 0 12px;
+
+  span.results-count {
+    font-size: 13.5px;
+    color: #64748b;
+    font-weight: 600;
+  }
+
+  @media (max-width: 768px) {
+    margin: 4px 0 10px;
+
+    span.results-count {
+      font-size: 12px;
+    }
   }
 `;
 
@@ -861,6 +1054,10 @@ const ViewBtn = styled.button`
 
   &:hover {
     color: ${p => p.$active ? '#ffffff' : '#1b3b22'};
+  }
+
+  @media (max-width: 768px) {
+    padding: 5px 8px;
   }
 `;
 
@@ -967,6 +1164,34 @@ const FilterCheckbox = styled.label`
   }
 `;
 
+
+/* ================= PRODUCT SKELETON LOADER ================= */
+const SkeletonCard = styled.div`
+  background: #ffffff;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+`;
+
+const SkeletonShimmer = styled.div`
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: shimmerAnim 1.4s infinite ease-in-out;
+  border-radius: ${p => p.$radius || '6px'};
+  height: ${p => p.$height || '16px'};
+  width: ${p => p.$width || '100%'};
+
+  @keyframes shimmerAnim {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+`;
+
 const Products = () => {
   const { t } = useTranslation();
   const localizedNavigate = useLocalizedNavigate();
@@ -990,8 +1215,22 @@ const Products = () => {
   // const navigate = useNavigate();
   const inDashboard = location.pathname.startsWith('/dashboard');
   const { addToCart } = useCart();
-  const [fsProducts, setFsProducts] = useState([]);
-  const [, setFsLoading] = useState(true);
+  const FS_PRODUCTS_CACHE_KEY = 'mesbois:fs_products:v2';
+  const getCachedFsProducts = () => {
+    try {
+      if (typeof window !== 'undefined' && window.sessionStorage) {
+        const raw = sessionStorage.getItem(FS_PRODUCTS_CACHE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      }
+    } catch (e) {}
+    return [];
+  };
+
+  const [fsProducts, setFsProducts] = useState(getCachedFsProducts);
+  const [fsLoading, setFsLoading] = useState(() => getCachedFsProducts().length === 0);
 
   React.useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -1024,20 +1263,28 @@ const Products = () => {
     };
   }, []);
 
-  // Charger les produits depuis Firestore (préféré) et rebasculer sur le catalogue local si vide
+  // Charger les produits depuis Firestore et synchroniser le cache
   useEffect(() => {
+    let mounted = true;
     (async () => {
       try {
         const snap = await getDocs(collection(db, 'products'));
         const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        setFsProducts(list);
+        if (mounted && list.length > 0) {
+          setFsProducts(list);
+          try {
+            if (typeof window !== 'undefined' && window.sessionStorage) {
+              sessionStorage.setItem(FS_PRODUCTS_CACHE_KEY, JSON.stringify(list));
+            }
+          } catch (e) {}
+        }
       } catch (e) {
-        // silencieux: on bascule simplement sur le catalogue local
-        setFsProducts([]);
+        // En cas d'erreur réseau, ne pas écraser les produits en cache
       } finally {
-        setFsLoading(false);
+        if (mounted) setFsLoading(false);
       }
     })();
+    return () => { mounted = false; };
   }, []);
 
   // Réinitialiser la page si les filtres changent
@@ -1118,7 +1365,7 @@ const Products = () => {
       category: mapMainToCategory(p.main),
       type: '',
       stock: 1,
-      image: `https://picsum.photos/seed/${p.id || `p-${i}`}/800/500`,
+      image: 'https://images.unsplash.com/photo-1520114878144-6123749968dd?q=80&w=800&auto=format&fit=crop',
       rating: 0,
       reviewCount: 0,
       sale: p.regularPrice ? p.price < p.regularPrice : false,
@@ -1131,7 +1378,8 @@ const Products = () => {
   });
 
   const usingFS = fsProducts.length > 0;
-  const allProducts = usingFS ? fsMapped : catMapped;
+  // Ne JAMAIS afficher le catalogue mock pendant le chargement des vrais produits !
+  const allProducts = usingFS ? fsMapped : (fsLoading ? [] : catMapped);
 
   const handleFilterChange = (key, value) => {
     const newFilters = { ...filters, [key]: value };
@@ -1438,7 +1686,7 @@ const Products = () => {
         </CategoryChip>
       </CategoryPillsScroll>
 
-      {/* 3. TOOLBAR CONDENSÉE (RECHERCHE + BOUTON FILTRE + VUE) */}
+      {/* 3. TOOLBAR CONDENSÉE (RECHERCHE + FILTRES CÔTE À CÔTE) */}
       <CatalogToolbar>
         <SearchBox>
           <FiSearch className="search-icon" size={16} />
@@ -1455,41 +1703,18 @@ const Products = () => {
           )}
         </SearchBox>
 
-        <ToolbarActions>
-          <FilterTriggerBtn 
-            $hasFilters={Boolean(filters.type || filters.minPrice || filters.maxPrice || filters.available)}
-            onClick={() => setIsFiltersOpen(!isFiltersOpen)}
-          >
-            <FiFilter size={15} />
-            <span>Filtres</span>
-            {(Boolean(filters.type) + Boolean(filters.minPrice) + Boolean(filters.maxPrice) + Boolean(filters.available)) > 0 && (
-              <FilterBadge>
-                {Boolean(filters.type) + Boolean(filters.minPrice) + Boolean(filters.maxPrice) + Boolean(filters.available)}
-              </FilterBadge>
-            )}
-          </FilterTriggerBtn>
-
-          <span style={{ fontSize: '13px', color: '#64748b', fontWeight: 600 }}>
-            {filteredProducts.length} {t("products.products_found", "produits")}
-          </span>
-
-          <ViewToggleCompact>
-            <ViewBtn 
-              $active={viewMode === 'grid'} 
-              onClick={() => setViewMode('grid')}
-              title="Vue Grille"
-            >
-              <FiGrid size={15} />
-            </ViewBtn>
-            <ViewBtn 
-              $active={viewMode === 'list'} 
-              onClick={() => setViewMode('list')}
-              title="Vue Liste"
-            >
-              <FiList size={15} />
-            </ViewBtn>
-          </ViewToggleCompact>
-        </ToolbarActions>
+        <FilterTriggerBtn 
+          $hasFilters={Boolean(filters.type || filters.minPrice || filters.maxPrice || filters.available)}
+          onClick={() => setIsFiltersOpen(!isFiltersOpen)}
+        >
+          <FiFilter size={15} />
+          <span>Filtres</span>
+          {(Boolean(filters.type) + Boolean(filters.minPrice) + Boolean(filters.maxPrice) + Boolean(filters.available)) > 0 && (
+            <FilterBadge>
+              {Boolean(filters.type) + Boolean(filters.minPrice) + Boolean(filters.maxPrice) + Boolean(filters.available)}
+            </FilterBadge>
+          )}
+        </FilterTriggerBtn>
       </CatalogToolbar>
 
       {/* 4. TIROIR DE FILTRES AVANCÉS DÉPLIABLE */}
@@ -1575,16 +1800,53 @@ const Products = () => {
       )}
 
 
-      {filteredProducts.length === 0 ? (
+            {filteredProducts.length > 0 && (
+        <ResultsHeaderBar>
+          <span className="results-count">
+            {filteredProducts.length} {t("products.products_found")}
+          </span>
+
+          <ViewToggleCompact>
+            <ViewBtn 
+              $active={viewMode === 'grid'} 
+              onClick={() => setViewMode('grid')}
+              title="Vue Grille"
+            >
+              <FiGrid size={15} />
+            </ViewBtn>
+            <ViewBtn 
+              $active={viewMode === 'list'} 
+              onClick={() => setViewMode('list')}
+              title="Vue Liste"
+            >
+              <FiList size={15} />
+            </ViewBtn>
+          </ViewToggleCompact>
+        </ResultsHeaderBar>
+      )}
+
+{fsLoading && allProducts.length === 0 ? (
+        <ProductsGrid>
+          {[...Array(itemsPerPage || 8)].map((_, i) => (
+            <SkeletonCard key={i}>
+              <SkeletonShimmer $height="180px" $radius="10px" />
+              <SkeletonShimmer $height="16px" $width="80%" />
+              <SkeletonShimmer $height="14px" $width="45%" />
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: '10px' }}>
+                <SkeletonShimmer $height="22px" $width="55px" $radius="6px" />
+                <SkeletonShimmer $height="32px" $width="75px" $radius="8px" />
+              </div>
+            </SkeletonCard>
+          ))}
+        </ProductsGrid>
+      ) : filteredProducts.length === 0 ? (
         <NoProducts>
           <h3>{t("products.no_products")}</h3>
           <p>{t("products.try_other_criteria")}</p>
         </NoProducts>
       ) : (
         <>
-          <div style={{ marginBottom: '20px', color: '#666', fontSize: '16px' }}>
-            {filteredProducts.length} {t("products.products_found")}
-          </div>
+          
           
           {viewMode === 'grid' ? (
             <ProductsGrid>
@@ -1775,8 +2037,13 @@ const Products = () => {
           {/* Pagination */}
           {totalPages > 1 && (
             <PaginationBar>
-              <PageButton onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>
-                {t("products.prev")}
+              <PageButton 
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))} 
+                disabled={currentPage === 1}
+                aria-label={t("products.prev")}
+              >
+                <FiChevronLeft size={16} />
+                <span className="nav-label">{t("products.prev")}</span>
               </PageButton>
               {getPageNumbers().map(n => (
                 <PageButton key={n} $active={n === currentPage} onClick={() => setCurrentPage(n)}>
@@ -1786,8 +2053,13 @@ const Products = () => {
               {getPageNumbers()[getPageNumbers().length - 1] < totalPages && (
                 <PageInfo>…</PageInfo>
               )}
-              <PageButton onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>
-                {t("products.next")}
+              <PageButton 
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} 
+                disabled={currentPage === totalPages}
+                aria-label={t("products.next")}
+              >
+                <span className="nav-label">{t("products.next")}</span>
+                <FiChevronRight size={16} />
               </PageButton>
             </PaginationBar>
           )}

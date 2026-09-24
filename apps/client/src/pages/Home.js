@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { 
   FiTruck, 
@@ -7,10 +7,13 @@ import {
   FiCheckCircle, 
   FiShoppingCart, 
   FiArrowRight, 
-  FiCheck 
+  FiCheck,
+  FiChevronLeft,
+  FiChevronRight
 } from 'react-icons/fi';
 import { FaFire } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
+import { useLocalizedNavigate } from '../hooks/useLocalizedNavigate';
 import toast from 'react-hot-toast';
 import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase/config';
@@ -228,9 +231,23 @@ const TrustGrid = styled.div`
     gap: 14px;
   }
 
-  @media (max-width: 576px) {
-    grid-template-columns: 1fr;
+  @media (max-width: 768px) {
+    display: flex;
+    align-items: stretch;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    cursor: grab;
+    user-select: none;
+    &:active { cursor: grabbing; }
+    scroll-padding: 0 16px;
+    -webkit-overflow-scrolling: touch;
     gap: 12px;
+    padding: 4px 16px 14px;
+    margin: 0 -16px;
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
+      display: none;
+    }
   }
 `;
 
@@ -250,6 +267,17 @@ const TrustCard = styled.div`
     transform: translateY(-2px);
     box-shadow: 0 8px 24px rgba(44, 85, 48, 0.08);
   }
+
+  @media (max-width: 768px) {
+    flex: 0 0 78%;
+    min-width: 250px;
+    max-width: 295px;
+    scroll-snap-align: start;
+    padding: 14px 12px;
+    gap: 10px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
 `;
 
 const TrustIconBox = styled.div`
@@ -263,14 +291,28 @@ const TrustIconBox = styled.div`
   justify-content: center;
   flex-shrink: 0;
   font-size: 20px;
+
+  @media (max-width: 768px) {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    font-size: 16px;
+  }
 `;
 
 const TrustInfo = styled.div`
+  min-width: 0;
+
   h4 {
     font-size: 15px;
     font-weight: 700;
     color: #1e293b;
     margin: 0 0 4px;
+
+    @media (max-width: 768px) {
+      font-size: 13px;
+      margin-bottom: 2px;
+    }
   }
 
   p {
@@ -278,6 +320,11 @@ const TrustInfo = styled.div`
     line-height: 1.5;
     color: #64748b;
     margin: 0;
+
+    @media (max-width: 768px) {
+      font-size: 11px;
+      line-height: 1.45;
+    }
   }
 `;
 
@@ -416,6 +463,33 @@ const CategoryDesc = styled.span`
 `;
 
 /* BESTSELLERS SECTION */
+
+const BestsellersHeader = styled.div`
+  margin-bottom: 24px;
+  text-align: left;
+
+  h2 {
+    font-size: 26px;
+    font-weight: 800;
+    color: #1b3b22;
+    margin: 0 0 6px;
+    letter-spacing: -0.3px;
+  }
+
+  p {
+    font-size: 14.5px;
+    color: #64748b;
+    margin: 0;
+  }
+
+  @media (max-width: 768px) {
+    margin-bottom: 16px;
+
+    h2 { font-size: 20px; margin-bottom: 4px; }
+    p { font-size: 12.5px; }
+  }
+`;
+
 const BestsellersSection = styled.section`
   margin-bottom: 56px;
 
@@ -427,41 +501,60 @@ const BestsellersSection = styled.section`
 const ProductsGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
+  gap: 16px;
 
   @media (max-width: 1024px) {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
   }
 
-  @media (max-width: 576px) {
-    grid-template-columns: 1fr;
-    gap: 14px;
+  @media (max-width: 600px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  @media (max-width: 420px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
   }
 `;
 
 const ProductCard = styled.div`
   background: #ffffff;
+  border-radius: 12px;
   border: 1px solid #e2e8f0;
-  border-radius: 14px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
   overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  position: relative;
+  cursor: pointer;
   display: flex;
   flex-direction: column;
-  transition: all 0.25s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  height: 100%;
 
   &:hover {
-    border-color: #2c5530;
     transform: translateY(-3px);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+    border-color: #cbd5e1;
+  }
+
+  @media (max-width: 768px) {
+    border-radius: 10px;
+    &:hover {
+      transform: none;
+    }
   }
 `;
 
 const ProductImageWrap = styled.div`
   position: relative;
-  height: 190px;
+  width: 100%;
+  height: 160px;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
-  background: #f1f5f9;
 
   img {
     width: 100%;
@@ -471,93 +564,269 @@ const ProductImageWrap = styled.div`
   }
 
   ${ProductCard}:hover & img {
-    transform: scale(1.05);
+    transform: scale(1.04);
+  }
+
+  @media (max-width: 768px) {
+    height: 130px;
   }
 `;
 
-const StockBadge = styled.span`
+const ProductBadges = styled.div`
   position: absolute;
-  top: 10px;
-  left: 10px;
-  background: #16a34a;
-  color: #ffffff;
-  font-size: 11px;
-  font-weight: 700;
-  padding: 4px 8px;
-  border-radius: 6px;
+  top: 8px;
+  left: 8px;
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 4px;
+  z-index: 2;
+`;
+
+const Badge = styled.div`
+  background: ${props => props.type === 'sale' ? '#dc2626' : props.type === 'new' ? '#16a34a' : '#1b3b22'};
+  color: white;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+
+  @media (max-width: 768px) {
+    padding: 2px 6px;
+    font-size: 9px;
+  }
 `;
 
 const ProductBody = styled.div`
-  padding: 16px;
+  padding: 12px;
   display: flex;
   flex-direction: column;
   flex: 1;
+
+  @media (max-width: 768px) {
+    padding: 8px;
+  }
+`;
+
+const ProductHeader = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+
+  @media (max-width: 768px) {
+    margin-bottom: 6px;
+    gap: 2px;
+  }
+`;
+
+const ProductTitle = styled.h3`
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 36px;
+  max-height: 36px;
+
+  @media (max-width: 768px) {
+    font-size: 12px;
+    min-height: 31px;
+    max-height: 31px;
+    line-height: 1.25;
+  }
+`;
+
+const ProductPrice = styled.div`
+  font-size: 16px;
+  font-weight: 800;
+  color: #16a34a;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+
+  span.regular-price {
+    font-size: 11.5px;
+    color: #94a3b8;
+    text-decoration: line-through;
+    font-weight: 500;
+  }
+
+  @media (max-width: 768px) {
+    font-size: 14px;
+    gap: 4px;
+
+    span.regular-price {
+      font-size: 10px;
+    }
+  }
+`;
+
+const ProductInfo = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 8px;
+  gap: 4px;
+
+  @media (max-width: 768px) {
+    margin-bottom: 6px;
+  }
 `;
 
 const ProductRating = styled.div`
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  color: #d97706;
-  font-weight: 700;
-  margin-bottom: 6px;
+  gap: 3px;
+  min-width: 0;
+
+  .stars {
+    display: flex;
+    gap: 1px;
+    color: #f59e0b;
+
+    svg {
+      width: 12px;
+      height: 12px;
+    }
+  }
+
+  .rating-text {
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  @media (max-width: 768px) {
+    .stars svg {
+      width: 11px;
+      height: 11px;
+    }
+    .rating-text {
+      display: none;
+    }
+  }
 `;
 
-const ProductTitle = styled.h4`
-  font-size: 14.5px;
-  font-weight: 700;
-  color: #1e293b;
-  margin: 0 0 6px;
-  line-height: 1.4;
-  height: 40px;
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-`;
-
-const ProductPriceRow = styled.div`
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  margin-top: auto;
-  margin-bottom: 12px;
-`;
-
-const CurrentPrice = styled.span`
-  font-size: 20px;
-  font-weight: 800;
-  color: #1b3b22;
-`;
-
-const RegularPrice = styled.span`
-  font-size: 13px;
-  color: #94a3b8;
-  text-decoration: line-through;
-`;
-
-const ProductActionBtn = styled.button`
-  width: 100%;
-  display: flex;
+const ProductStock = styled.div`
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
-  background: #2c5530;
-  color: #ffffff;
+  gap: 4px;
+  font-size: 11px;
+  color: ${props => props.$inStock ? '#047857' : '#b91c1c'};
+  font-weight: 600;
+  background: ${props => props.$inStock ? '#ecfdf5' : '#fef2f2'};
+  border: 1px solid ${props => props.$inStock ? '#a7f3d0' : '#fecaca'};
+  padding: 2px 7px;
+  border-radius: 999px;
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  &::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: ${props => props.$inStock ? '#10b981' : '#ef4444'};
+  }
+
+  @media (max-width: 768px) {
+    font-size: 10px;
+    padding: 2px 6px;
+    gap: 3px;
+
+    &::before {
+      width: 5px;
+      height: 5px;
+    }
+  }
+`;
+
+const ProductActions = styled.div`
+  display: flex;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 6px;
+
+  @media (max-width: 768px) {
+    gap: 4px;
+    padding-top: 4px;
+  }
+`;
+
+const AddToCartBtn = styled.button`
+  flex: 1;
+  background: #1b3b22;
+  color: white;
   border: none;
-  padding: 10px 14px;
+  padding: 8px 6px;
   border-radius: 8px;
-  font-size: 14px;
   font-weight: 700;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
   transition: all 0.2s ease;
+  font-size: 12px;
+  white-space: nowrap;
 
   &:hover {
-    background: #1e3a22;
+    background: #142c19;
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    background: #cbd5e1;
+    cursor: not-allowed;
+  }
+
+  @media (max-width: 768px) {
+    padding: 6px 4px;
+    font-size: 11px;
+    border-radius: 6px;
+    gap: 3px;
+
+    svg {
+      width: 12px;
+      height: 12px;
+    }
+  }
+`;
+
+const QuickViewBtn = styled.button`
+  background: #ffffff;
+  color: #334155;
+  border: 1px solid #cbd5e1;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover {
+    background: #f8fafc;
+    border-color: #94a3b8;
+    color: #0f172a;
+  }
+
+  @media (max-width: 768px) {
+    padding: 6px 8px;
+    font-size: 11px;
+    border-radius: 6px;
   }
 `;
 
@@ -596,9 +865,27 @@ const ReviewsGrid = styled.div`
   gap: 20px;
   margin-top: 24px;
 
-  @media (max-width: 900px) {
-    grid-template-columns: 1fr;
+  @media (max-width: 992px) and (min-width: 769px) {
+    grid-template-columns: repeat(2, 1fr);
     gap: 16px;
+  }
+
+  @media (max-width: 768px) {
+    display: flex;
+    align-items: stretch;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    cursor: grab;
+    user-select: none;
+    scroll-padding: 0 16px;
+    -webkit-overflow-scrolling: touch;
+    gap: 12px;
+    padding: 6px 16px 16px;
+    margin: 16px -16px 0;
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
+      display: none;
+    }
   }
 `;
 
@@ -610,6 +897,16 @@ const ReviewCard = styled.div`
   display: flex;
   flex-direction: column;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+
+  @media (max-width: 768px) {
+    flex: 0 0 82%;
+    min-width: 260px;
+    max-width: 310px;
+    scroll-snap-align: start;
+    padding: 14px 12px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
 `;
 
 const ReviewStars = styled.div`
@@ -617,6 +914,14 @@ const ReviewStars = styled.div`
   gap: 2px;
   color: #f59e0b;
   margin-bottom: 10px;
+
+  @media (max-width: 768px) {
+    margin-bottom: 8px;
+    svg {
+      width: 14px;
+      height: 14px;
+    }
+  }
 `;
 
 const VerifiedPill = styled.span`
@@ -631,6 +936,12 @@ const VerifiedPill = styled.span`
   border-radius: 4px;
   margin-bottom: 12px;
   width: fit-content;
+
+  @media (max-width: 768px) {
+    font-size: 10px;
+    padding: 1.5px 6px;
+    margin-bottom: 8px;
+  }
 `;
 
 const ReviewText = styled.p`
@@ -639,6 +950,12 @@ const ReviewText = styled.p`
   color: #334155;
   margin: 0 0 16px;
   flex: 1;
+
+  @media (max-width: 768px) {
+    font-size: 11.5px;
+    line-height: 1.5;
+    margin-bottom: 12px;
+  }
 `;
 
 const ReviewAuthor = styled.div`
@@ -754,22 +1071,172 @@ const FinalCTASection = styled.section`
 
 /* ================= COMPOSANT ================= */
 
+// Images réelles Cloudinary par défaut (évite le flash de placeholders génériques)
+const DEFAULT_CATEGORY_IMAGES = {
+  bois: "https://res.cloudinary.com/dxvbuhadg/image/upload/v1763064291/B%C3%BBches_de_bois_de_chauffage_x7kt6r.jpg",
+  pellets: "https://res.cloudinary.com/dxvbuhadg/image/upload/v1763072420/palette_78_sacs_pellets_premium_crepito_zdplcf.jpg",
+  buches_densifiees: "https://res.cloudinary.com/dxvbuhadg/image/upload/v1763070687/gg_zgp11a.jpg",
+  accessoires: "https://res.cloudinary.com/dxvbuhadg/image/upload/v1763069970/set-entretien-poele-adagio_swhxtm.jpg",
+  poeles: "https://res.cloudinary.com/dxvbuhadg/image/upload/v1763070039/dixneuf-opus-005-10425n3_1_c6qun6.webp"
+};
+
+const CATEGORY_IMAGES_CACHE_KEY = 'mesbois:category_images:v2';
+const getCachedCategoryImages = () => {
+  try {
+    if (typeof window !== 'undefined' && window.sessionStorage) {
+      const raw = sessionStorage.getItem(CATEGORY_IMAGES_CACHE_KEY);
+      if (raw) return JSON.parse(raw);
+    }
+  } catch (e) {}
+  return DEFAULT_CATEGORY_IMAGES;
+};
+
+const FS_PRODUCTS_CACHE_KEY = 'mesbois:fs_products:v2';
+const getCachedFeaturedProducts = () => {
+  try {
+    if (typeof window !== 'undefined' && window.sessionStorage) {
+      const raw = sessionStorage.getItem(FS_PRODUCTS_CACHE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed.slice(0, 4);
+      }
+    }
+  } catch (e) {}
+  return [];
+};
+
 const Home = () => {
   const { t } = useTranslation();
   const { addToCart } = useCart();
+  const localizedNavigate = useLocalizedNavigate();
   const [newsletterEmail, setNewsletterEmail] = useState('');
-  const [featuredProducts, setFeaturedProducts] = useState([]);
+  const [featuredProducts, setFeaturedProducts] = useState(getCachedFeaturedProducts);
+  const [categoryImages, setCategoryImages] = useState(getCachedCategoryImages);
 
-  // Images par défaut pour les catégories
-  const [categoryImages, setCategoryImages] = useState({
-    bois: "https://images.unsplash.com/photo-1520114878144-6123749968dd?q=80&w=1200&auto=format&fit=crop",
-    pellets: "https://images.unsplash.com/photo-1615485737594-3b42cfaa6a8a?q=80&w=1200&auto=format&fit=crop",
-    buches_densifiees: "https://images.unsplash.com/photo-1527061011665-3652c757a4d7?q=80&w=1200&auto=format&fit=crop",
-    accessoires: "https://images.unsplash.com/photo-1543674892-7d64d45df18b?q=80&w=1200&auto=format&fit=crop",
-    poeles: "https://images.unsplash.com/photo-1556911261-6bd341186b66?q=80&w=1200&auto=format&fit=crop"
-  });
+  const trustScrollRef = useRef(null);
+  const reviewsScrollRef = useRef(null);
 
-  // Charger les images configurées et les produits phares
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const makeInteractiveCarousel = (ref, autoScrollMs = 4000) => {
+      const container = ref.current;
+      if (!container) return null;
+
+      let isDown = false;
+      let startX = 0;
+      let scrollLeft = 0;
+      let hasDragged = false;
+      let isPaused = false;
+      let resumeTimer = null;
+
+      const pause = () => {
+        isPaused = true;
+        if (resumeTimer) clearTimeout(resumeTimer);
+      };
+
+      const resume = (delay = 2500) => {
+        if (resumeTimer) clearTimeout(resumeTimer);
+        resumeTimer = setTimeout(() => {
+          isPaused = false;
+        }, delay);
+      };
+
+      // Drag à la souris (pour PC ou test en fenêtre réduite)
+      const onMouseDown = (e) => {
+        if (e.button !== 0) return;
+        isDown = true;
+        hasDragged = false;
+        startX = e.pageX - container.offsetLeft;
+        scrollLeft = container.scrollLeft;
+        pause();
+      };
+
+      const onMouseMove = (e) => {
+        if (!isDown) return;
+        const x = e.pageX - container.offsetLeft;
+        const walk = (x - startX) * 1.3;
+        if (Math.abs(walk) > 5) {
+          hasDragged = true;
+          e.preventDefault();
+        }
+        container.scrollLeft = scrollLeft - walk;
+      };
+
+      const onMouseUp = () => {
+        isDown = false;
+        resume(2500);
+      };
+
+      const onClickCapture = (e) => {
+        if (hasDragged) {
+          e.stopPropagation();
+          e.preventDefault();
+          hasDragged = false;
+        }
+      };
+
+      // Événements tactiles (mobile)
+      const onTouchStart = () => { pause(); };
+      const onTouchEnd = () => { resume(2000); };
+
+      // Molette souris convertie en défilement horizontal si survol du carrousel
+      const onWheel = (e) => {
+        if (Math.abs(e.deltaY) > Math.abs(e.deltaX) && container.scrollWidth > container.clientWidth + 10) {
+          container.scrollLeft += e.deltaY * 0.8;
+          pause();
+          resume(2000);
+        }
+      };
+
+      container.addEventListener('mousedown', onMouseDown);
+      window.addEventListener('mousemove', onMouseMove);
+      window.addEventListener('mouseup', onMouseUp);
+      container.addEventListener('click', onClickCapture, true);
+      container.addEventListener('touchstart', onTouchStart, { passive: true });
+      container.addEventListener('touchend', onTouchEnd, { passive: true });
+      container.addEventListener('wheel', onWheel, { passive: true });
+
+      // Auto-défilement périodique
+      const timer = setInterval(() => {
+        if (isPaused || isDown || !ref.current) return;
+        const target = ref.current;
+        if (target.scrollWidth <= target.clientWidth + 10) return;
+
+        const maxScroll = target.scrollWidth - target.clientWidth;
+        const firstChild = target.firstElementChild;
+        const step = firstChild ? (firstChild.offsetWidth + 12) : 270;
+
+        if (target.scrollLeft >= maxScroll - 20) {
+          target.scrollTo({ left: 0, behavior: 'smooth' });
+        } else {
+          target.scrollBy({ left: step, behavior: 'smooth' });
+        }
+      }, autoScrollMs);
+
+      return () => {
+        clearInterval(timer);
+        if (resumeTimer) clearTimeout(resumeTimer);
+        container.removeEventListener('mousedown', onMouseDown);
+        window.removeEventListener('mousemove', onMouseMove);
+        window.removeEventListener('mouseup', onMouseUp);
+        container.removeEventListener('click', onClickCapture, true);
+        container.removeEventListener('touchstart', onTouchStart);
+        container.removeEventListener('touchend', onTouchEnd);
+        container.removeEventListener('wheel', onWheel);
+      };
+    };
+
+    const cleanupTrust = makeInteractiveCarousel(trustScrollRef, 3600);
+    const cleanupReviews = makeInteractiveCarousel(reviewsScrollRef, 4800);
+
+    return () => {
+      if (cleanupTrust) cleanupTrust();
+      if (cleanupReviews) cleanupReviews();
+    };
+  }, []);
+
+  // Charger les images configurées et les produits phares en arrière-plan
   useEffect(() => {
     let mounted = true;
 
@@ -780,13 +1247,19 @@ const Home = () => {
         if (mounted && homeDoc.exists()) {
           const data = homeDoc.data() || {};
           const ci = data.categoryImages || {};
-          setCategoryImages(prev => ({
-            bois: ci.bois || prev.bois,
-            pellets: ci.pellets || prev.pellets,
-            buches_densifiees: ci.buches_densifiees || prev.buches_densifiees,
-            accessoires: ci.accessoires || prev.accessoires,
-            poeles: ci.poeles || prev.poeles,
-          }));
+          const updatedImages = {
+            bois: ci.bois || DEFAULT_CATEGORY_IMAGES.bois,
+            pellets: ci.pellets || DEFAULT_CATEGORY_IMAGES.pellets,
+            buches_densifiees: ci.buches_densifiees || DEFAULT_CATEGORY_IMAGES.buches_densifiees,
+            accessoires: ci.accessoires || DEFAULT_CATEGORY_IMAGES.accessoires,
+            poeles: ci.poeles || DEFAULT_CATEGORY_IMAGES.poeles,
+          };
+          setCategoryImages(updatedImages);
+          try {
+            if (typeof window !== 'undefined' && window.sessionStorage) {
+              sessionStorage.setItem(CATEGORY_IMAGES_CACHE_KEY, JSON.stringify(updatedImages));
+            }
+          } catch (e) {}
         }
       } catch (e) {
         // silencieux
@@ -798,15 +1271,20 @@ const Home = () => {
         if (mounted && !snap.empty) {
           const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
           setFeaturedProducts(list.slice(0, 4));
+          try {
+            if (typeof window !== 'undefined' && window.sessionStorage) {
+              sessionStorage.setItem(FS_PRODUCTS_CACHE_KEY, JSON.stringify(list));
+            }
+          } catch (e) {}
           return;
         }
       } catch (e) {
-        // fallback catalogue local
+        // fallback silencieux
       }
 
-      // Fallback: 4 produits du catalogue local
+      // Fallback: 4 produits du catalogue local si aucun produit en cache/firebase
       if (mounted) {
-        setFeaturedProducts(localCatalogue.slice(0, 4).map((p, idx) => ({
+        setFeaturedProducts(prev => prev.length > 0 ? prev : localCatalogue.slice(0, 4).map((p, idx) => ({
           id: p.id || `local-${idx}`,
           name: p.name,
           price: p.price,
@@ -878,7 +1356,7 @@ const Home = () => {
 
       {/* 2. TRUST BAR / ENGAGEMENTS */}
       <TrustBarSection>
-        <TrustGrid>
+        <TrustGrid ref={trustScrollRef}>
           <TrustCard>
             <TrustIconBox><FiTruck /></TrustIconBox>
             <TrustInfo>
@@ -966,49 +1444,87 @@ const Home = () => {
       {/* 4. PRODUITS VEDETTES (BESTSELLERS) */}
       {featuredProducts.length > 0 && (
         <BestsellersSection>
-          <SectionHeader>
+          <BestsellersHeader>
             <h2>{t('home.bestsellers_title', 'Nos Meilleures Ventes')}</h2>
             <p>{t('home.bestsellers_subtitle', 'Les combustibles les plus plébiscités par nos clients pour cet hiver')}</p>
-          </SectionHeader>
+          </BestsellersHeader>
 
           <ProductsGrid>
-            {featuredProducts.map((p) => (
-              <ProductCard key={p.id}>
-                <ProductImageWrap>
-                  <img 
-                    src={p.image || 'https://images.unsplash.com/photo-1520114878144-6123749968dd?q=80&w=600&auto=format&fit=crop'} 
-                    alt={p.name} 
-                    onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1520114878144-6123749968dd?q=80&w=600&auto=format&fit=crop'; }}
-                  />
-                  <StockBadge>
-                    <FiCheck size={12} /> {t('home.in_stock', 'En stock')}
-                  </StockBadge>
-                </ProductImageWrap>
-
-                <ProductBody>
-                  <ProductRating>
-                    <FiStar fill="#d97706" size={13} />
-                    <span>4.9 / 5</span>
-                  </ProductRating>
-
-                  <ProductTitle title={p.name}>
-                    {p.name}
-                  </ProductTitle>
-
-                  <ProductPriceRow>
-                    <CurrentPrice>{Number(p.price || 0).toFixed(2)}€</CurrentPrice>
-                    {p.regularPrice && p.regularPrice > p.price && (
-                      <RegularPrice>{Number(p.regularPrice).toFixed(2)}€</RegularPrice>
+            {featuredProducts.map((p) => {
+              const rating = p.rating || 4.5;
+              const isAvailable = p.stock === undefined || p.stock === null ? true : p.stock > 0;
+              return (
+                <ProductCard 
+                  key={p.id}
+                  onClick={() => localizedNavigate('productDetail', p.id)}
+                >
+                  <ProductImageWrap>
+                    <img 
+                      src={p.image || 'https://images.unsplash.com/photo-1520114878144-6123749968dd?q=80&w=600&auto=format&fit=crop'} 
+                      alt={p.name} 
+                      onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1520114878144-6123749968dd?q=80&w=600&auto=format&fit=crop'; }}
+                    />
+                    {(p.sale || p.isSale) && (
+                      <ProductBadges>
+                        <Badge type="sale">{t('products.sale', 'Promo')}</Badge>
+                      </ProductBadges>
                     )}
-                  </ProductPriceRow>
+                  </ProductImageWrap>
 
-                  <ProductActionBtn onClick={() => handleAddToCart(p)}>
-                    <FiShoppingCart size={15} />
-                    <span>{t('home.add_to_cart', 'Ajouter au panier')}</span>
-                  </ProductActionBtn>
-                </ProductBody>
-              </ProductCard>
-            ))}
+                  <ProductBody>
+                    <ProductHeader>
+                      <ProductTitle title={p.name}>{p.name}</ProductTitle>
+                      <ProductPrice>
+                        {p.price}€
+                        {p.regularPrice && Number(p.regularPrice) > Number(p.price) && (
+                          <span className="regular-price">{p.regularPrice}€</span>
+                        )}
+                      </ProductPrice>
+                    </ProductHeader>
+
+                    <ProductInfo>
+                      <ProductRating>
+                        <div className="stars">
+                          {[...Array(5)].map((_, i) => (
+                            <FiStar
+                              key={i}
+                              size={12}
+                              fill={i < Math.floor(rating) ? '#f59e0b' : 'none'}
+                            />
+                          ))}
+                        </div>
+                        <span className="rating-text">{rating}</span>
+                      </ProductRating>
+
+                      <ProductStock $inStock={isAvailable}>
+                        {isAvailable ? t('products.in_stock', 'En stock') : t('products.out_of_stock', 'Rupture')}
+                      </ProductStock>
+                    </ProductInfo>
+
+                    <ProductActions>
+                      <AddToCartBtn 
+                        onClick={(e) => { 
+                          e.stopPropagation(); 
+                          handleAddToCart(p); 
+                        }}
+                        disabled={!isAvailable}
+                      >
+                        <FiShoppingCart size={13} />
+                        <span>{t('products.add_to_cart', 'Ajouter')}</span>
+                      </AddToCartBtn>
+                      <QuickViewBtn 
+                        onClick={(e) => { 
+                          e.stopPropagation(); 
+                          localizedNavigate('productDetail', p.id); 
+                        }}
+                      >
+                        {t('products.quick_view', 'Voir')}
+                      </QuickViewBtn>
+                    </ProductActions>
+                  </ProductBody>
+                </ProductCard>
+              );
+            })}
           </ProductsGrid>
         </BestsellersSection>
       )}
@@ -1025,7 +1541,7 @@ const Home = () => {
           </SectionHeader>
         </div>
 
-        <ReviewsGrid>
+        <ReviewsGrid ref={reviewsScrollRef}>
           <ReviewCard>
             <ReviewStars>
               {[...Array(5)].map((_, i) => <FiStar key={i} fill="#f59e0b" size={16} />)}

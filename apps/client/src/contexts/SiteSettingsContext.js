@@ -5,15 +5,15 @@ import { db } from '../firebase/config';
 const SiteSettingsContext = createContext(null);
 
 const defaultSettings = {
-  siteName: '',
-  supportEmail: '',
+  siteName: 'brennholzkaufen',
+  supportEmail: 'kontakt@brennholzkaufen.online',
   supportPhone: '',
   legalCompanyName: '',
   legalAddress: '',
   legalDirector: '',
   legalSiteUrl: '',
-  legalContactEmail: '',
-  legalDpoEmail: '',
+  legalContactEmail: 'kontakt@brennholzkaufen.online',
+  legalDpoEmail: 'kontakt@brennholzkaufen.online',
   legalCompanyForm: '',
   legalSiren: '',
   legalSiret: '',
@@ -34,7 +34,20 @@ export const SiteSettingsProvider = ({ children }) => {
         const snap = await getDoc(ref);
         if (snap.exists()) {
           const data = snap.data();
-          setSettings(prev => ({ ...prev, ...data }));
+          setSettings(prev => ({ 
+            ...prev, 
+            ...data,
+            supportEmail: 'kontakt@brennholzkaufen.online',
+            legalContactEmail: 'kontakt@brennholzkaufen.online',
+            legalDpoEmail: 'kontakt@brennholzkaufen.online'
+          }));
+        } else {
+          setSettings(prev => ({
+            ...prev,
+            supportEmail: 'kontakt@brennholzkaufen.online',
+            legalContactEmail: 'kontakt@brennholzkaufen.online',
+            legalDpoEmail: 'kontakt@brennholzkaufen.online'
+          }));
         }
       } catch (e) {
         // on garde les valeurs par défaut en cas d'erreur
