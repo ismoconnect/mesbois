@@ -1,8 +1,22 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useLocalizedNavigate } from '../hooks/useLocalizedNavigate';
 import styled from 'styled-components';
-import { FiCreditCard, FiTruck, FiUser, FiMapPin, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
+import { 
+  FiTruck, 
+  FiEye, 
+  FiEyeOff, 
+  FiCheck, 
+  FiChevronDown, 
+  FiChevronUp, 
+  FiTag, 
+  FiShield, 
+  FiLock,
+  FiCheckCircle, 
+  FiShoppingBag,
+  FiArrowRight,
+  FiX
+} from 'react-icons/fi';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
@@ -12,502 +26,848 @@ import { sendEmailVerification } from 'firebase/auth';
 import toast from 'react-hot-toast';
 import { getCouponByCode, validateAndComputeDiscount } from '../firebase/coupons';
 
-const CheckoutContainer = styled.div`
-  max-width: 1000px;
+/* ==========================================================================
+   STYLED COMPONENTS
+   ========================================================================== */
+
+const PageContainer = styled.div`
+  max-width: 1140px;
   margin: 0 auto;
-  padding: 40px 20px;
+  padding: 32px 16px 80px;
 
   @media (max-width: 768px) {
-    padding: 24px 16px 96px;
+    padding: 16px 12px 90px;
   }
 `;
 
-const CheckoutHeader = styled.div`
+const PageHeader = styled.div`
+  margin-bottom: 24px;
   text-align: center;
-  margin-bottom: 40px;
-`;
-
-const CheckoutTitle = styled.h1`
-  font-size: 32px;
-  font-weight: 700;
-  color: #2c5530;
-  margin-bottom: 10px;
-`;
-
-const CheckoutSubtitle = styled.p`
-  color: #666;
-  font-size: 16px;
-`;
-
-const CheckoutContent = styled.div`
-  display: grid;
-  grid-template-columns: 1fr 400px;
-  gap: 40px;
 
   @media (max-width: 768px) {
+    margin-bottom: 16px;
+    text-align: left;
+  }
+`;
+
+const Title = styled.h1`
+  font-size: 28px;
+  font-weight: 800;
+  color: #142618;
+  margin: 0 0 6px 0;
+  letter-spacing: -0.5px;
+
+  @media (max-width: 768px) {
+    font-size: 22px;
+  }
+`;
+
+const Subtitle = styled.div`
+  color: #55695a;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+
+  @media (max-width: 768px) {
+    justify-content: flex-start;
+    font-size: 13px;
+  }
+`;
+
+const LoginPromptButton = styled.button`
+  background: none;
+  border: none;
+  color: #2c5530;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+  font-size: inherit;
+
+  &:hover {
+    color: #1b381e;
+  }
+`;
+
+/* Accordeon de connexion compact */
+const LoginAccordion = styled.div`
+  max-width: 480px;
+  margin: 14px auto 0;
+  background: #f8faf8;
+  border: 1px solid #d4dfd6;
+  border-radius: 10px;
+  padding: 16px;
+  text-align: left;
+  animation: fadeIn 0.2s ease-in-out;
+
+  @media (max-width: 768px) {
+    margin: 12px 0 0;
+    max-width: 100%;
+  }
+`;
+
+/* Mobile Summary Toggle Bar */
+const MobileSummaryBar = styled.div`
+  display: none;
+
+  @media (max-width: 900px) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f3f6f4;
+    border: 1px solid #e1ebe3;
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 16px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1e3d22;
+  }
+`;
+
+const MobileSummaryDropdown = styled.div`
+  display: none;
+
+  @media (max-width: 900px) {
+    display: ${props => props.$isOpen ? 'block' : 'none'};
+    background: #fff;
+    border: 1px solid #e1ebe3;
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  }
+`;
+
+/* Layout 2 Colonnes */
+const CheckoutGrid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: 28px;
+  align-items: start;
+
+  @media (max-width: 992px) {
+    grid-template-columns: 1fr 360px;
+    gap: 20px;
+  }
+
+  @media (max-width: 900px) {
     grid-template-columns: 1fr;
     gap: 20px;
   }
 `;
 
-const CheckoutForm = styled.form`
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  padding: 30px;
-
-  @media (max-width: 600px) {
-    padding: 20px;
-  }
-`;
-
-const SectionTitle = styled.h3`
-  font-size: 20px;
-  font-weight: 600;
-  color: #2c5530;
-  margin-bottom: 20px;
+const FormColumn = styled.div`
   display: flex;
-  align-items: center;
-  gap: 10px;
-`;
-
-const FormGrid = styled.div`
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  flex-direction: column;
   gap: 20px;
-  margin-bottom: 30px;
+`;
+
+const Card = styled.div`
+  background: #ffffff;
+  border: 1px solid #e8eee9;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
 
   @media (max-width: 600px) {
-    grid-template-columns: 1fr;
+    padding: 18px 14px;
+    border-radius: 10px;
   }
 `;
 
-const InputGroup = styled.div`
-  position: relative;
-  margin-bottom: 20px;
-`;
-
-const Input = styled.input`
-  width: 100%;
-  padding: 12px ${props => (props.$withRightIcon ? '44px' : '16px')} 12px ${props => (props.$withLeftIcon ? '44px' : '16px')};
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
-  font-size: 16px;
-  outline: none;
-  transition: border-color 0.3s ease;
-
-  &:focus {
-    border-color: #2c5530;
-  }
-`;
-
-const InputIcon = styled.div`
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #666;
-  pointer-events: none;
-`;
-
-const InputRight = styled.button`
-  position: absolute;
-  right: 8px;
-  top: 0;
-  bottom: 0;
-  margin: auto 0;
-  height: 100%;
-  width: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: none;
-  color: #666;
-  cursor: pointer;
-`;
-
-const Select = styled.select`
-  width: 100%;
-  padding: 12px 40px 12px 16px;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
-  font-size: 16px;
-  outline: none;
-  transition: border-color 0.3s ease;
-  background: white;
-
-  &:focus {
-    border-color: #2c5530;
-  }
-`;
-
-const TextArea = styled.textarea`
-  width: 100%;
-  padding: 12px 16px;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
-  font-size: 16px;
-  outline: none;
-  transition: border-color 0.3s ease;
-  resize: vertical;
-  min-height: 100px;
-
-  &:focus {
-    border-color: #2c5530;
-  }
-`;
-
-const PaymentMethods = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 15px;
-  margin-bottom: 20px;
-`;
-
-const PaymentMethod = styled.label`
+const CardHeader = styled.div`
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 15px;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.3s ease;
+  margin-bottom: 18px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #edf2ee;
 
-  &:hover {
-    border-color: #2c5530;
-  }
-
-  input[type="radio"] {
+  h2 {
+    font-size: 17px;
+    font-weight: 700;
+    color: #1e3d22;
     margin: 0;
   }
 
-  input[type="radio"]:checked + & {
+  .step-badge {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #2c5530;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+`;
+
+/* Formulaire Compact */
+const FormGroup = styled.div`
+  display: grid;
+  grid-template-columns: ${props => props.$cols || '1fr'};
+  gap: 12px;
+  margin-bottom: 12px;
+
+  @media (max-width: 600px) {
+    grid-template-columns: ${props => props.$mobileCols || '1fr'};
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+`;
+
+const InputWrapper = styled.div`
+  position: relative;
+  display: flex;
+  flex-direction: column;
+
+  label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #3b5240;
+    margin-bottom: 4px;
+    display: flex;
+    justify-content: space-between;
+
+    span.req {
+      color: #dc2626;
+      margin-left: 2px;
+    }
+
+    span.opt {
+      color: #88998c;
+      font-weight: 400;
+    }
+  }
+`;
+
+const StyledInput = styled.input`
+  width: 100%;
+  height: 42px;
+  padding: 8px 12px;
+  border: 1.5px solid #d2ddd4;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #142618;
+  background: #ffffff;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s, box-shadow 0.2s;
+
+  &:focus {
     border-color: #2c5530;
-    background: #f8f9fa;
+    box-shadow: 0 0 0 3px rgba(44, 85, 48, 0.12);
+  }
+
+  &::placeholder {
+    color: #9eb0a1;
+  }
+
+  @media (max-width: 600px) {
+    font-size: 14px;
+    height: 40px;
   }
 `;
 
-const OrderSummary = styled.div`
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  padding: 30px;
-  height: fit-content;
-  position: sticky;
-  top: 20px;
+const StyledSelect = styled.select`
+  width: 100%;
+  height: 42px;
+  padding: 8px 12px;
+  border: 1.5px solid #d2ddd4;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #142618;
+  background: #ffffff;
+  outline: none;
+  box-sizing: border-box;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
 
-  @media (max-width: 768px) {
-    position: static;
-    top: auto;
-    padding: 20px;
+  &:focus {
+    border-color: #2c5530;
+    box-shadow: 0 0 0 3px rgba(44, 85, 48, 0.12);
+  }
+
+  @media (max-width: 600px) {
+    font-size: 14px;
+    height: 40px;
   }
 `;
 
-const OrderItem = styled.div`
+const StyledTextarea = styled.textarea`
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid #d2ddd4;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #142618;
+  background: #ffffff;
+  outline: none;
+  box-sizing: border-box;
+  min-height: 60px;
+  resize: vertical;
+  transition: border-color 0.2s, box-shadow 0.2s;
+
+  &:focus {
+    border-color: #2c5530;
+    box-shadow: 0 0 0 3px rgba(44, 85, 48, 0.12);
+  }
+
+  &::placeholder {
+    color: #9eb0a1;
+  }
+`;
+
+/* Bloc Virement Bancaire Unique */
+const PaymentBox = styled.div`
+  border: 2px solid #2c5530;
+  background: #f4f8f5;
+  border-radius: 10px;
+  padding: 16px;
+  position: relative;
+`;
+
+const PaymentBoxHeader = styled.div`
   display: flex;
   align-items: center;
-  gap: 15px;
-  padding: 15px 0;
-  border-bottom: 1px solid #f0f0f0;
+  justify-content: space-between;
+  margin-bottom: 10px;
+`;
+
+const PaymentOptionTitle = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 15px;
+  color: #142618;
+
+  .radio-check {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #2c5530;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 12px;
+  }
+`;
+
+const SecurityBadge = styled.span`
+  background: #dcfce7;
+  color: #166534;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+`;
+
+const PaymentDetails = styled.div`
+  font-size: 13px;
+  line-height: 1.55;
+  color: #3b5240;
+  background: #ffffff;
+  border: 1px solid #d9e4db;
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-top: 10px;
+
+  p {
+    margin: 0 0 6px 0;
+    &:last-child { margin-bottom: 0; }
+  }
+
+  strong {
+    color: #142618;
+  }
+`;
+
+/* Right Column: Order Summary (Sticky) */
+const SummaryColumn = styled.div`
+  position: sticky;
+  top: 80px;
+
+  @media (max-width: 900px) {
+    position: static;
+  }
+`;
+
+const SummaryCard = styled(Card)`
+  padding: 22px;
+  border: 1px solid #d4dfd6;
+  background: #fafcfa;
+`;
+
+const SummaryTitle = styled.h3`
+  font-size: 16px;
+  font-weight: 800;
+  color: #142618;
+  margin: 0 0 16px 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e1ebe3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+`;
+
+const ItemList = styled.div`
+  max-height: 240px;
+  overflow-y: auto;
+  margin-bottom: 16px;
+  padding-right: 4px;
+
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #cbd8ce;
+    border-radius: 4px;
+  }
+`;
+
+const ItemRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px dashed #e8efe9;
 
   &:last-child {
     border-bottom: none;
   }
 `;
 
-const ItemImage = styled.img`
-  width: 60px;
-  height: 60px;
-  object-fit: cover;
+const ItemThumb = styled.div`
+  position: relative;
+  width: 44px;
+  height: 44px;
   border-radius: 6px;
+  background: #fff;
+  border: 1px solid #d4dfd6;
+  overflow: hidden;
+  flex-shrink: 0;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .qty-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: #2c5530;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1.5px solid #fff;
+  }
 `;
 
-const ItemInfo = styled.div`
+const ItemDetails = styled.div`
   flex: 1;
-`;
+  min-width: 0;
 
-const ItemName = styled.h4`
-  font-size: 14px;
-  font-weight: 600;
-  color: #2c5530;
-  margin-bottom: 5px;
-`;
+  .name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #142618;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 
-const ItemQuantity = styled.span`
-  color: #666;
-  font-size: 12px;
+  .meta {
+    font-size: 11px;
+    color: #667c6c;
+  }
 `;
 
 const ItemPrice = styled.div`
-  font-weight: 600;
-  color: #2c5530;
+  font-size: 13px;
+  font-weight: 700;
+  color: #142618;
+  white-space: nowrap;
 `;
 
-const SummaryRow = styled.div`
+/* Coupon Section */
+const CouponBox = styled.div`
   display: flex;
-  justify-content: space-between;
-  margin-bottom: 15px;
-  color: #666;
+  gap: 8px;
+  margin-bottom: 16px;
+`;
 
-  &.total {
-    font-size: 18px;
-    font-weight: 700;
-    color: #2c5530;
-    border-top: 2px solid #f0f0f0;
-    padding-top: 15px;
-    margin-top: 15px;
+const CouponInput = styled.input`
+  flex: 1;
+  height: 38px;
+  padding: 0 10px;
+  border: 1.5px solid #d2ddd4;
+  border-radius: 6px;
+  font-size: 13px;
+  text-transform: uppercase;
+  outline: none;
+
+  &:focus {
+    border-color: #2c5530;
   }
 `;
 
-const PlaceOrderButton = styled.button`
-  width: 100%;
-  background: #27ae60;
-  color: white;
+const CouponButton = styled.button`
+  height: 38px;
+  padding: 0 14px;
+  background: #2c5530;
+  color: #fff;
   border: none;
-  padding: 15px;
-  border-radius: 8px;
-  font-size: 16px;
-  font-weight: 600;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
   cursor: pointer;
-  transition: background-color 0.3s ease;
-  margin-top: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
+  white-space: nowrap;
 
   &:hover {
-    background: #219a52;
+    background: #1e3d22;
   }
 
   &:disabled {
-    background: #ccc;
+    background: #a8b8ac;
     cursor: not-allowed;
   }
 `;
 
-const MobileCheckoutBar = styled.div`
-  position: sticky;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: #fff;
-  box-shadow: 0 -6px 20px rgba(0,0,0,0.08);
-  padding: 12px 16px;
-  display: none;
+const AppliedCouponBadge = styled.div`
+  display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
+  background: #e8f5e9;
+  border: 1px solid #a5d6a7;
+  color: #1b5e20;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 10px;
+  border-radius: 6px;
+  margin-bottom: 14px;
 
-  @media (max-width: 768px) {
+  button {
+    background: none;
+    border: none;
+    color: #c62828;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 0;
     display: flex;
+    align-items: center;
   }
 `;
 
-const MobileTotal = styled.div`
-  font-size: 16px;
-  font-weight: 700;
-  color: #2c5530;
+/* Calculations */
+const LineRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #4f6655;
+  margin-bottom: 8px;
+
+  &.discount {
+    color: #166534;
+    font-weight: 600;
+  }
+
+  &.total {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 2px solid #dce5de;
+    font-size: 18px;
+    font-weight: 800;
+    color: #142618;
+  }
 `;
 
-const MobilePlaceOrderButton = styled.button`
-  flex: 1;
-  background: #27ae60;
-  color: white;
-  border: none;
-  padding: 12px 14px;
-  border-radius: 8px;
-  font-size: 15px;
-  font-weight: 700;
+/* Checkbox Conditions */
+const TermsWrapper = styled.label`
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 12px;
+  color: #4b5e50;
+  line-height: 1.45;
+  margin: 16px 0;
   cursor: pointer;
-  transition: background-color 0.3s ease;
 
-  &:hover { background: #219a52; }
-  &:disabled { background: #ccc; cursor: not-allowed; }
+  input[type="checkbox"] {
+    margin-top: 2px;
+    accent-color: #2c5530;
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+
+  a {
+    color: #2c5530;
+    text-decoration: underline;
+    font-weight: 600;
+  }
 `;
+
+/* Bouton Soumission */
+const SubmitButton = styled.button`
+  width: 100%;
+  height: 50px;
+  background: #27ae60;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(39, 174, 96, 0.3);
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background: #219653;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(39, 174, 96, 0.38);
+  }
+
+  &:disabled {
+    background: #a3c4ae;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+  }
+
+  @media (max-width: 600px) {
+    height: 48px;
+    font-size: 15px;
+  }
+`;
+
+/* Reassurance Badges */
+const TrustList = styled.div`
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid #edf2ee;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+`;
+
+const TrustItem = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #4a6150;
+
+  svg {
+    color: #2c5530;
+    flex-shrink: 0;
+  }
+`;
+
+/* ==========================================================================
+   COMPONENT
+   ========================================================================== */
 
 const Checkout = () => {
   const { t } = useTranslation();
   const { cartItems, getCartTotal, clearCart } = useCart();
   const { user, userData } = useAuth();
-  // const navigate = useNavigate();
   const localizedNavigate = useLocalizedNavigate();
 
+  // Formulaire d'expédition & facturation
   const [formData, setFormData] = useState({
-    firstName: userData?.displayName?.split(' ')[0] || '',
-    lastName: userData?.displayName?.split(' ').slice(1).join(' ') || '',
-    email: user?.email || '',
-    phone: userData?.phone || '',
-    address: userData?.address || '',
-    city: userData?.city || '',
-    postalCode: userData?.postalCode || '',
-    country: userData?.country || 'France',
-    deliveryMethod: 'standard',
-    paymentMethod: 'bank',
-    notes: ''
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    address: '',
+    address2: '',
+    postalCode: '',
+    city: '',
+    country: 'France',
+    notes: '',
+    paymentMethod: 'bank' // STRICTEMENT Virement Bancaire
   });
 
-  const [loading, setLoading] = useState(false);
-  const [acceptCreate, setAcceptCreate] = useState(false);
-  const [authLoading, setAuthLoading] = useState(false);
-  const [accountPassword, setAccountPassword] = useState('');
+  // Gestion accordéon connexion & coupon
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [loginFields, setLoginFields] = useState({ email: '', password: '' });
+  const [loginLoading, setLoginLoading] = useState(false);
+
+  // Création de compte facultative pour invité
+  const [createAccount, setCreateAccount] = useState(false);
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [authMode, setAuthMode] = useState('register'); // 'register' | 'login'
-  const [authFields, setAuthFields] = useState({ email: '', password: '', confirm: '' });
-  const [showCoupon, setShowCoupon] = useState(false);
+
+  // Coupon promo
   const [couponCode, setCouponCode] = useState('');
-  const [applyingCoupon, setApplyingCoupon] = useState(false);
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [discount, setDiscount] = useState(0);
-  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [applyingCoupon, setApplyingCoupon] = useState(false);
 
-  const couponSectionRef = useRef(null);
+  // Accordéon récapitulatif mobile
+  const [isMobileSummaryOpen, setIsMobileSummaryOpen] = useState(false);
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-  };
+  // Conditions & validation
+  const [acceptTerms, setAcceptTerms] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Pré-remplissage si utilisateur connecté
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        firstName: userData?.firstName || prev.firstName || '',
+        lastName: userData?.lastName || prev.lastName || '',
+        email: user.email || prev.email || '',
+        phone: userData?.phone || prev.phone || '',
+        address: userData?.address || prev.address || '',
+        postalCode: userData?.postalCode || prev.postalCode || '',
+        city: userData?.city || prev.city || '',
+        country: userData?.country || prev.country || 'France'
+      }));
+    }
+  }, [user, userData]);
+
+  // Recalcul de remise coupon si sous-total change
   const subtotal = getCartTotal();
   const shipping = subtotal > 50 ? 0 : 9.99;
   const total = Math.max(0, subtotal - discount) + shipping;
+  const totalItemsCount = cartItems.reduce((acc, it) => acc + (it.quantity || 1), 0);
 
-  // Recompute discount when subtotal changes if a coupon is applied
   useEffect(() => {
     if (!appliedCoupon) return;
     const { valid, discount: d } = validateAndComputeDiscount(appliedCoupon, subtotal);
     setDiscount(valid ? Number(d.toFixed(2)) : 0);
-  }, [subtotal]);
+  }, [subtotal, appliedCoupon]);
 
-  const handleAuthFieldChange = (e) => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
-    setAuthFields(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleLogin = async (e) => {
+  // Connexion rapide en accordéon
+  const handleQuickLogin = async (e) => {
     e.preventDefault();
-    e.stopPropagation();
-    if (!authFields.email || !authFields.password) {
-      toast.error('Veuillez renseigner votre email et votre mot de passe');
+    if (!loginFields.email || !loginFields.password) {
+      toast.error('Veuillez renseigner votre email et mot de passe');
       return;
     }
     try {
-      setAuthLoading(true);
-      const res = await signInUser(authFields.email, authFields.password);
+      setLoginLoading(true);
+      const res = await signInUser(loginFields.email, loginFields.password);
       if (!res.success) {
-        toast.error(res.error || 'Impossible de vous connecter');
-        setAuthLoading(false);
+        toast.error(res.error || 'Identifiants incorrects');
+        setLoginLoading(false);
         return;
       }
-      toast.dismiss('login-success');
-      toast.custom((t) => (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            display: 'flex',
-            alignItems: 'flex-start',
-            justifyContent: 'center',
-            background: 'rgba(0,0,0,0.35)',
-            zIndex: 20000
-          }}
-        >
-          <div
-            style={{
-              background: '#fff',
-              borderRadius: 12,
-              padding: '20px 18px 16px',
-              maxWidth: '90vw',
-              width: 320,
-              boxShadow: '0 12px 40px rgba(0,0,0,0.25)',
-              textAlign: 'center',
-              marginTop: '22vh'
-            }}
-          >
-            <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>
-              Connexion réussie.
-            </div>
-            <div style={{ fontSize: 13, color: '#555', marginBottom: 16 }}>
-              Vos informations ont été chargées pour finaliser la commande.
-            </div>
-            <button
-              type="button"
-              onClick={() => toast.dismiss(t.id)}
-              style={{
-                padding: '8px 16px',
-                borderRadius: 999,
-                border: 'none',
-                background: '#2c5530',
-                color: '#fff',
-                fontSize: 13,
-                fontWeight: 600,
-                cursor: 'pointer'
-              }}
-            >
-              OK
-            </button>
-          </div>
-        </div>
-      ), {
-        id: 'login-success',
-        duration: 1000,
-        position: 'top-center'
-      });
-      // Don't switch to register mode - user is now logged in
-      setShowCoupon(false);
-      setAuthLoading(false);
+      toast.success('Connexion réussie ! Vos données ont été chargées.');
+      setIsLoginOpen(false);
+      setLoginLoading(false);
     } catch (err) {
-      console.error('Login error:', err);
       toast.error('Erreur lors de la connexion');
-      setAuthLoading(false);
+      setLoginLoading(false);
     }
   };
 
+  // Application code promo
+  const handleApplyCoupon = async () => {
+    const raw = (couponCode || '').trim();
+    if (!raw) return toast.error('Veuillez saisir un code promo');
+    try {
+      setApplyingCoupon(true);
+      const res = await getCouponByCode(raw);
+      if (!res.success || !res.data) {
+        setAppliedCoupon(null);
+        setDiscount(0);
+        return toast.error(res.error || 'Code promo invalide');
+      }
+      const coupon = res.data;
+      const { valid, discount: d, reason } = validateAndComputeDiscount(coupon, subtotal);
+      if (!valid) {
+        setAppliedCoupon(null);
+        setDiscount(0);
+        return toast.error(reason || 'Code promo non applicable');
+      }
+      setAppliedCoupon(coupon);
+      setDiscount(Number(d.toFixed(2)));
+      toast.success(`Code promo "${coupon.code}" appliqué avec succès ! (-${d.toFixed(2)}€)`);
+    } catch {
+      toast.error('Impossible d’appliquer ce code promo');
+    } finally {
+      setApplyingCoupon(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setDiscount(0);
+    setCouponCode('');
+    toast.success('Code promo retiré');
+  };
+
+  // Validation & Enregistrement de commande
   const handleSubmit = async (e) => {
     if (e && typeof e.preventDefault === 'function') {
       e.preventDefault();
     }
+
     if (!acceptTerms) {
-      return toast.error('Veuillez lire et accepter les conditions générales avant de confirmer la commande.');
+      return toast.error('Veuillez accepter les conditions générales de vente pour continuer.');
     }
 
-    // Ensure payment method is selected if user is logged in or in register mode
-    if ((user || authMode === 'register') && !formData.paymentMethod) {
-      return toast.error('Veuillez sélectionner un mode de paiement.');
+    // Validation des champs essentiels
+    if (!formData.firstName.trim() || !formData.lastName.trim()) {
+      return toast.error('Veuillez renseigner vos nom et prénom.');
+    }
+    if (!formData.email.trim() || !formData.email.includes('@')) {
+      return toast.error('Veuillez renseigner une adresse email valide.');
+    }
+    if (!formData.address.trim()) {
+      return toast.error('Veuillez renseigner votre adresse de livraison complète.');
+    }
+    if (!formData.postalCode.trim() || !formData.city.trim()) {
+      return toast.error('Veuillez renseigner votre code postal et ville.');
     }
 
-    setLoading(true);
+    setIsSubmitting(true);
 
     try {
-      const wasGuest = !user;
       let currentUser = user;
+      const wasGuest = !user;
 
-      // Si non connecté
-      if (!currentUser) {
-        // En mode connexion, on n'impose pas la création de compte :
-        // on demande à l'utilisateur de se connecter ou de choisir "Continuer sans connexion".
-        if (authMode === 'login') {
-          setLoading(false);
-          return toast.error('Veuillez vous connecter ou cliquer sur "Continuer sans connexion pour creer un compte "', { id: 'checkout-auth' });
+      // Si invité a choisi de créer un compte facultatif
+      if (!currentUser && createAccount) {
+        if (!password || password.length < 6) {
+          setIsSubmitting(false);
+          return toast.error('Le mot de passe doit comporter au moins 6 caractères.');
         }
-
-        // En mode création de compte, création automatique + mail de vérification
-        if (!acceptCreate) {
-          setLoading(false);
-          return toast.error('Veuillez cocher "Créer un compte ?" pour continuer', { id: 'checkout-auth' });
-        }
-        if (!accountPassword || accountPassword.length < 6) {
-          setLoading(false);
-          return toast.error('Veuillez renseigner un mot de passe (6 caractères minimum)');
-        }
-        const displayName = `${formData.firstName} ${formData.lastName}`.trim() || 'Client';
-        const regRes = await createUser(formData.email, accountPassword, {
+        const displayName = `${formData.firstName} ${formData.lastName}`.trim();
+        const regRes = await createUser(formData.email, password, {
           displayName,
           phone: formData.phone,
           address: formData.address,
@@ -515,779 +875,627 @@ const Checkout = () => {
           postalCode: formData.postalCode,
           country: formData.country
         });
-        if (!regRes.success) {
-          setLoading(false);
-          return toast.error(regRes.error || 'Impossible de créer le compte');
+        if (regRes.success) {
+          currentUser = regRes.user;
+          try { await sendEmailVerification(currentUser); } catch { }
         }
-        currentUser = regRes.user;
-        try { await sendEmailVerification(currentUser); } catch { }
       }
 
       const orderData = {
-        userId: currentUser.uid,
+        userId: currentUser ? currentUser.uid : `guest_${Date.now()}`,
         items: cartItems,
-        customerInfo: currentUser && userData ? {
-          firstName: userData.firstName || formData.firstName,
-          lastName: userData.lastName || formData.lastName,
-          email: currentUser.email || formData.email,
-          phone: userData.phone || formData.phone,
-          address: userData.address || formData.address,
-          city: userData.city || formData.city,
-          postalCode: userData.postalCode || formData.postalCode,
-          country: userData.country || formData.country
-        } : {
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          email: formData.email,
-          phone: formData.phone,
-          address: formData.address,
-          city: formData.city,
-          postalCode: formData.postalCode,
-          country: formData.country
+        customerInfo: {
+          firstName: formData.firstName.trim(),
+          lastName: formData.lastName.trim(),
+          email: formData.email.trim(),
+          phone: formData.phone.trim(),
+          address: formData.address.trim(),
+          address2: (formData.address2 || '').trim(),
+          city: formData.city.trim(),
+          postalCode: formData.postalCode.trim(),
+          country: formData.country || 'France'
         },
         delivery: {
           method: 'standard',
-          cost: subtotal > 50 ? 0 : 9.99
+          label: 'Livraison spécialisée avec chariot tout-terrain',
+          cost: shipping
         },
         payment: {
-          method: formData.paymentMethod || 'bank'
+          method: 'bank',
+          label: 'Virement bancaire (SEPA)'
         },
-        notes: formData.notes,
-        total: Math.max(0, subtotal - discount) + (subtotal > 50 ? 0 : 9.99),
+        notes: (formData.notes || '').trim(),
+        subtotal: subtotal,
+        discount: discount,
+        total: total,
         coupon: appliedCoupon ? {
           code: appliedCoupon.code,
-          type: appliedCoupon.type,
-          value: appliedCoupon.value,
-          discount
-        } : null
+          discount: discount
+        } : null,
+        isGuest: wasGuest && !createAccount
       };
 
       const result = await createOrder(orderData);
 
       if (result.success) {
-        // Fire-and-forget: send professional confirmation email
+        // Envoi asynchrone du mail de confirmation
         try {
-          const customer = orderData.customerInfo || {};
           const emailPayload = {
             orderId: result.id,
             total: orderData.total,
-            items: Array.isArray(orderData.items) ? orderData.items.map(it => ({
+            items: orderData.items.map(it => ({
               name: it.name,
               quantity: it.quantity,
               price: it.price
-            })) : [],
-            customer: {
-              firstName: customer.firstName,
-              lastName: customer.lastName,
-              email: customer.email,
-              phone: customer.phone,
-              address: customer.address,
-              city: customer.city,
-              postalCode: customer.postalCode,
-              country: customer.country,
-            },
-            newUser: wasGuest,
+            })),
+            customer: orderData.customerInfo,
+            newUser: wasGuest && createAccount
           };
-          // Do not await to avoid blocking UX; failures are silent
           fetch('/api/order-confirmation', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(emailPayload),
             keepalive: true
           }).catch(() => { });
-        } catch (_) {
-          // ignore email errors
-        }
+        } catch { }
+
+        // Vider le panier et rediriger vers la page de virement bancaire avec coordonnées
         clearCart();
-        // const payMethod = orderData.payment?.method || 'bank';
-        if (wasGuest) {
-          if (formData.paymentMethod === 'paypal') {
-            localizedNavigate('paypalPayment', '', `?orderId=${result.id}`);
-          } else {
-            localizedNavigate('bankTransfer', '', `?orderId=${result.id}`);
-          }
-        } else {
-          localizedNavigate('billing');
-        }
+        localizedNavigate('bankTransfer', '', `?orderId=${result.id}`);
       } else {
-        toast.error(result.error);
+        toast.error(result.error || 'Erreur lors de la validation de la commande');
       }
-    } catch (error) {
-      toast.error('Erreur lors de la création de la commande');
+    } catch (err) {
+      toast.error('Une erreur inattendue est survenue.');
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
 
-  const handleApplyCoupon = async () => {
-    const raw = (couponCode || '').trim();
-    if (!raw) return toast.error('Veuillez saisir un code');
-    try {
-      setApplyingCoupon(true);
-      // fetch coupon by code (uppercase normalized)
-      const res = await getCouponByCode(raw);
-      if (!res.success || !res.data) {
-        setAppliedCoupon(null);
-        setDiscount(0);
-        return toast.error(res.error || 'Code invalide');
-      }
-      const coupon = res.data;
-      // compute discount against current subtotal
-      const { valid, discount: d, reason } = validateAndComputeDiscount(coupon, subtotal);
-      if (!valid) {
-        setAppliedCoupon(null);
-        setDiscount(0);
-        return toast.error(reason || 'Code non applicable');
-      }
-      setAppliedCoupon(coupon);
-      setDiscount(Number(d.toFixed(2)));
-      toast.dismiss('coupon-applied');
-      toast.custom((t) => (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            display: 'flex',
-            alignItems: 'flex-start',
-            justifyContent: 'center',
-            background: 'rgba(0,0,0,0.35)',
-            zIndex: 20000
-          }}
-        >
-          <div
-            style={{
-              background: '#fff',
-              borderRadius: 12,
-              padding: '20px 18px 16px',
-              maxWidth: '90vw',
-              width: 320,
-              boxShadow: '0 12px 40px rgba(0,0,0,0.25)',
-              textAlign: 'center',
-              marginTop: '22vh'
-            }}
-          >
-            <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>
-              Code promo appliqué avec succès.
-            </div>
-            <div style={{ fontSize: 13, color: '#555', marginBottom: 16 }}>
-              Votre remise a été prise en compte sur le total.
-            </div>
+  // Si panier vide
+  if (cartItems.length === 0) {
+    return (
+      <PageContainer>
+        <PageHeader>
+          <Title>{t('checkout.empty_cart_title', 'Votre panier est vide')}</Title>
+          <Subtitle>Ajoutez des produits de qualité à votre panier pour finaliser votre commande.</Subtitle>
+          <div style={{ marginTop: 24 }}>
             <button
               type="button"
-              onClick={() => toast.dismiss(t.id)}
+              onClick={() => localizedNavigate('products')}
               style={{
-                padding: '8px 16px',
-                borderRadius: 999,
+                padding: '12px 24px',
+                borderRadius: 8,
                 border: 'none',
                 background: '#2c5530',
                 color: '#fff',
-                fontSize: 13,
-                fontWeight: 600,
+                fontWeight: 700,
+                fontSize: 15,
                 cursor: 'pointer'
               }}
             >
-              OK
+              Découvrir nos bois & granulés
             </button>
           </div>
-        </div>
-      ), {
-        id: 'coupon-applied',
-        duration: 1000,
-        position: 'top-center'
-      });
-    } catch (err) {
-      toast.error('Impossible d\'appliquer le code');
-    } finally {
-      setApplyingCoupon(false);
-    }
-  };
-
-  // Si le panier est vide (ex: accès direct à /checkout), afficher un message
-  // plutôt qu'une page blanche. Cela n'empêche pas une navigation programmée
-  // (ex: vers /payment/bank) car la redirection se fait immédiatement.
-  if (cartItems.length === 0) {
-    return (
-      <CheckoutContainer>
-        <CheckoutHeader>
-          <CheckoutTitle>{t("checkout.empty_cart_title")}</CheckoutTitle>
-          <CheckoutSubtitle>
-            Ajoutez des produits à votre panier avant de finaliser votre commande.
-          </CheckoutSubtitle>
-          <button
-            type="button"
-            onClick={() => localizedNavigate('products')}
-            style={{
-              marginTop: 20,
-              padding: '10px 18px',
-              borderRadius: 8,
-              border: 'none',
-              fontWeight: 700,
-              cursor: 'pointer',
-              background: '#2c5530',
-              color: '#fff'
-            }}
-          >
-            Voir les produits
-          </button>
-        </CheckoutHeader>
-      </CheckoutContainer>
+        </PageHeader>
+      </PageContainer>
     );
   }
 
   return (
-    <CheckoutContainer>
-      <CheckoutHeader>
-        <CheckoutTitle>{t("checkout.title")}</CheckoutTitle>
-        <CheckoutSubtitle>{t("checkout.subtitle")}</CheckoutSubtitle>
-        {!user && (
-          <div style={{
-            marginTop: 12,
-            padding: '10px 12px',
-            border: '2px solid #e0e0e0',
-            borderRadius: 8,
-            background: '#f8f9fa',
-            fontWeight: 700,
-            color: '#2c5530'
-          }}>
-            {t("checkout.already_customer")}{' '}
-            <button type="button" onClick={() => setAuthMode('login')} style={{ color: '#2c5530', textDecoration: 'underline', background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: 800 }}>
-              Cliquez ici pour vous connecter
-            </button>
-          </div>
-        )}
-        <div style={{
-          marginTop: 12,
-          padding: '10px 12px',
-          border: '2px solid #e0e0e0',
-          borderRadius: 8,
-          background: '#f8f9fa',
-          fontWeight: 700,
-          color: '#2c5530'
-        }}>
-          {t("checkout.have_coupon")}{' '}
-          <button
-            type="button"
-            onClick={() => {
-              // toggle: si déjà ouvert, on le referme; sinon on l'ouvre et on scrolle jusqu'au champ
-              if (showCoupon) {
-                setShowCoupon(false);
-                return;
-              }
-              setShowCoupon(true);
-              // petit délai pour laisser le DOM afficher la section puis scroller jusqu'au champ
-              setTimeout(() => {
-                if (couponSectionRef.current) {
-                  couponSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
-              }, 10);
-            }}
-            style={{ color: '#2c5530', textDecoration: 'underline', background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: 800 }}
-          >
-            Cliquez ici pour saisir votre code
-          </button>
-        </div>
-      </CheckoutHeader>
-
-      <CheckoutContent>
-        <CheckoutForm id="checkoutForm" onSubmit={handleSubmit}>
-          {!user && authMode === 'login' && (
-            <div style={{
-              marginBottom: 24,
-              padding: 16,
-              borderRadius: 8,
-              border: '1px solid #e0e0e0',
-              background: '#f8f9fa'
-            }}>
-              <SectionTitle>
-                <FiLock size={20} />
-                Connexion à votre compte
-              </SectionTitle>
-              <div onKeyDown={(e) => e.key === 'Enter' && handleLogin(e)}>
-                <InputGroup>
-                  <Input
-                    type="email"
-                    name="email"
-                    placeholder={t("checkout.email")}
-                    value={authFields.email}
-                    onChange={handleAuthFieldChange}
-                    required
-                  />
-                </InputGroup>
-                <InputGroup>
-                  <Input
-                    type="password"
-                    name="password"
-                    placeholder={t("checkout.login_password")}
-                    value={authFields.password}
-                    onChange={handleAuthFieldChange}
-                    required
-                  />
-                </InputGroup>
-                <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
-                  <button
-                    type="button"
-                    onClick={handleLogin}
-                    disabled={authLoading}
-                    style={{
-                      padding: '10px 16px',
-                      borderRadius: 8,
-                      background: '#2c5530',
-                      color: '#fff',
-                      border: 'none',
-                      fontWeight: 700,
-                      cursor: 'pointer'
-                    }}
-                  >
-                    {authLoading ? 'Connexion…' : 'Se connecter'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setAuthMode('register')}
-                    style={{
-                      padding: '10px 16px',
-                      borderRadius: 8,
-                      background: '#fff',
-                      color: '#2c5530',
-                      border: '1px solid #e0e0e0',
-                      fontWeight: 600,
-                      cursor: 'pointer'
-                    }}
-                  >
-                    Continuer sans connexion
-                  </button>
-                </div>
-              </div>
-
-              {/* Payment options for quick selection */}
-              <div style={{ marginTop: 20, borderTop: '1px solid #eee', paddingTop: 16 }}>
-                <p style={{ marginBottom: 10, fontSize: 14, fontWeight: 600, color: '#2c5530' }}>
-                  Choisissez votre moyen de paiement :
-                </p>
-                <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                  <label style={{
-                    flex: 1,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    border: '2px solid #e0e0e0',
-                    borderRadius: 8,
-                    padding: '10px 12px',
-                    cursor: 'pointer',
-                    background: formData.paymentMethod === 'bank' ? '#f0fdf4' : 'white',
-                    borderColor: formData.paymentMethod === 'bank' ? '#2c5530' : '#e0e0e0'
-                  }}>
-                    <input
-                      type="radio"
-                      name="paymentMethodQuick"
-                      value="bank"
-                      checked={formData.paymentMethod === 'bank'}
-                      onChange={(e) => {
-                        setFormData({ ...formData, paymentMethod: e.target.value });
-                      }}
-                    />
-                    Virement bancaire
-                  </label>
-                  <label style={{
-                    flex: 1,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    border: '2px solid #e0e0e0',
-                    borderRadius: 8,
-                    padding: '10px 12px',
-                    cursor: 'pointer',
-                    background: formData.paymentMethod === 'paypal' ? '#f0fdf4' : 'white',
-                    borderColor: formData.paymentMethod === 'paypal' ? '#2c5530' : '#e0e0e0'
-                  }}>
-                    <input
-                      type="radio"
-                      name="paymentMethodQuick"
-                      value="paypal"
-                      checked={formData.paymentMethod === 'paypal'}
-                      onChange={(e) => {
-                        setFormData({ ...formData, paymentMethod: e.target.value });
-                      }}
-                    />
-                    PayPal
-                  </label>
-                </div>
-              </div>
-            </div>
+    <PageContainer>
+      <PageHeader>
+        <Title>Finaliser votre commande</Title>
+        <Subtitle>
+          {!user ? (
+            <>
+              <span>Achat rapide et direct en tant qu’invité.</span>
+              <span>•</span>
+              <span>
+                Déjà client ?{' '}
+                <LoginPromptButton 
+                  type="button" 
+                  onClick={() => setIsLoginOpen(!isLoginOpen)}
+                >
+                  {isLoginOpen ? 'Fermer la connexion' : 'Se connecter'}
+                </LoginPromptButton>
+              </span>
+            </>
+          ) : (
+            <span style={{ color: '#27ae60', fontWeight: 600 }}>
+              ✓ Connecté en tant que {userData?.firstName || user.email}
+            </span>
           )}
+        </Subtitle>
 
-          {user && (
-            <div style={{
-              marginBottom: 24,
-              padding: 20,
-              borderRadius: 8,
-              border: '2px solid #27ae60',
-              background: '#f0fdf4'
-            }}>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 12,
-                marginBottom: 16,
-                color: '#27ae60',
-                fontSize: 18,
-                fontWeight: 700
-              }}>
-                <FiLock size={24} />
-                Vous êtes connecté !
-              </div>
-              <p style={{
-                color: '#2c5530',
-                marginBottom: 20,
-                fontSize: 15,
-                lineHeight: 1.5
-              }}>
-                Choisissez un mode de paiement pour confirmer votre achat.
-              </p>
-
-              {/* Payment options */}
-              <div>
-                <p style={{ marginBottom: 10, fontSize: 14, fontWeight: 600, color: '#2c5530' }}>
-                  Mode de paiement :
-                </p>
-                <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                  <label style={{
-                    flex: 1,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    border: '2px solid #e0e0e0',
-                    borderRadius: 8,
-                    padding: '12px 14px',
-                    cursor: 'pointer',
-                    background: formData.paymentMethod === 'bank' ? '#fff' : 'white',
-                    borderColor: formData.paymentMethod === 'bank' ? '#2c5530' : '#e0e0e0',
-                    fontWeight: formData.paymentMethod === 'bank' ? 600 : 400
-                  }}>
-                    <input
-                      type="radio"
-                      name="paymentMethodLoggedIn"
-                      value="bank"
-                      checked={formData.paymentMethod === 'bank'}
-                      onChange={(e) => {
-                        setFormData({ ...formData, paymentMethod: e.target.value });
-                      }}
-                    />
-                    Virement bancaire
-                  </label>
-                  <label style={{
-                    flex: 1,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    border: '2px solid #e0e0e0',
-                    borderRadius: 8,
-                    padding: '12px 14px',
-                    cursor: 'pointer',
-                    background: formData.paymentMethod === 'paypal' ? '#fff' : 'white',
-                    borderColor: formData.paymentMethod === 'paypal' ? '#2c5530' : '#e0e0e0',
-                    fontWeight: formData.paymentMethod === 'paypal' ? 600 : 400
-                  }}>
-                    <input
-                      type="radio"
-                      name="paymentMethodLoggedIn"
-                      value="paypal"
-                      checked={formData.paymentMethod === 'paypal'}
-                      onChange={(e) => {
-                        setFormData({ ...formData, paymentMethod: e.target.value });
-                      }}
-                    />
-                    PayPal
-                  </label>
-                </div>
-              </div>
+        {/* Volet compact de connexion optionnelle */}
+        {!user && isLoginOpen && (
+          <LoginAccordion>
+            <div style={{ fontWeight: 700, fontSize: 14, color: '#142618', marginBottom: 10 }}>
+              Connexion à votre compte client
             </div>
-          )}
-          {showCoupon && (
-            <div ref={couponSectionRef} style={{ marginBottom: 20 }}>
-              <SectionTitle>Code promo</SectionTitle>
-              <div style={{ display: 'flex', gap: 10 }}>
-                <Input
-                  type="text"
-                  name="coupon"
-                  placeholder="Saisissez votre code"
-                  value={couponCode}
-                  onChange={(e) => setCouponCode(e.target.value)}
+            <form onSubmit={handleQuickLogin}>
+              <FormGroup $cols="1fr 1fr" $mobileCols="1fr">
+                <StyledInput
+                  type="email"
+                  placeholder="Votre adresse email"
+                  value={loginFields.email}
+                  onChange={(e) => setLoginFields({ ...loginFields, email: e.target.value })}
+                  required
                 />
-                <button type="button" onClick={handleApplyCoupon} disabled={applyingCoupon} style={{
-                  padding: '12px 16px',
-                  borderRadius: 8,
-                  background: '#2c5530',
-                  color: '#fff',
-                  border: 'none',
-                  fontWeight: 700,
-                  cursor: 'pointer'
-                }}>
-                  {applyingCoupon ? 'Application...' : 'Appliquer'}
+                <StyledInput
+                  type="password"
+                  placeholder="Votre mot de passe"
+                  value={loginFields.password}
+                  onChange={(e) => setLoginFields({ ...loginFields, password: e.target.value })}
+                  required
+                />
+              </FormGroup>
+              <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+                <button
+                  type="submit"
+                  disabled={loginLoading}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: 6,
+                    border: 'none',
+                    background: '#2c5530',
+                    color: '#fff',
+                    fontWeight: 700,
+                    fontSize: 13,
+                    cursor: 'pointer'
+                  }}
+                >
+                  {loginLoading ? 'Connexion...' : 'Se connecter'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsLoginOpen(false)}
+                  style={{
+                    padding: '8px 12px',
+                    borderRadius: 6,
+                    border: '1px solid #d4dfd6',
+                    background: '#fff',
+                    color: '#4a6150',
+                    fontSize: 13,
+                    cursor: 'pointer'
+                  }}
+                >
+                  Annuler
                 </button>
               </div>
-            </div>
-          )}
+            </form>
+          </LoginAccordion>
+        )}
+      </PageHeader>
 
-          {!user && authMode === 'register' && (
-            <>
-              <SectionTitle>
-                <FiUser size={20} />
-                Facturation & Expédition
-              </SectionTitle>
+      {/* Accordéon mobile récapitulatif synthétique */}
+      <MobileSummaryBar onClick={() => setIsMobileSummaryOpen(!isMobileSummaryOpen)}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <FiShoppingBag color="#2c5530" size={18} />
+          <span>Panier ({totalItemsCount} articles) • <strong>{total.toFixed(2)} €</strong></span>
+        </span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#2c5530' }}>
+          {isMobileSummaryOpen ? 'Masquer' : 'Voir détail'}
+          {isMobileSummaryOpen ? <FiChevronUp /> : <FiChevronDown />}
+        </span>
+      </MobileSummaryBar>
 
-              <FormGrid>
-                <InputGroup>
-                  <InputIcon>
-                    <FiUser size={20} />
-                  </InputIcon>
-                  <Input
-                    type="text"
-                    name="firstName"
-                    placeholder="Prénom *"
-                    value={formData.firstName}
-                    onChange={handleChange}
-                    required
-                    $withLeftIcon
-                  />
-                </InputGroup>
+      <MobileSummaryDropdown $isOpen={isMobileSummaryOpen}>
+        <ItemList>
+          {cartItems.map((item) => (
+            <ItemRow key={item.id}>
+              <ItemThumb>
+                <img src={item.image || 'https://picsum.photos/seed/wood/100/100'} alt={item.name} />
+                <span className="qty-badge">{item.quantity}</span>
+              </ItemThumb>
+              <ItemDetails>
+                <div className="name">{item.name}</div>
+                <div className="meta">Qté : {item.quantity} × {Number(item.price || 0).toFixed(2)} €</div>
+              </ItemDetails>
+              <ItemPrice>{(Number(item.price || 0) * (item.quantity || 1)).toFixed(2)} €</ItemPrice>
+            </ItemRow>
+          ))}
+        </ItemList>
+        <LineRow>
+          <span>Sous-total</span>
+          <span>{subtotal.toFixed(2)} €</span>
+        </LineRow>
+        <LineRow>
+          <span>Livraison</span>
+          <span>{shipping === 0 ? <strong style={{ color: '#27ae60' }}>Offerte</strong> : `${shipping.toFixed(2)} €`}</span>
+        </LineRow>
+        {discount > 0 && (
+          <LineRow className="discount">
+            <span>Remise appliquée</span>
+            <span>-{discount.toFixed(2)} €</span>
+          </LineRow>
+        )}
+        <LineRow className="total">
+          <span>Total</span>
+          <span>{total.toFixed(2)} €</span>
+        </LineRow>
+      </MobileSummaryDropdown>
 
-                <InputGroup>
-                  <Input
-                    type="text"
-                    name="lastName"
-                    placeholder="Nom *"
-                    value={formData.lastName}
-                    onChange={handleChange}
-                    required
-                  />
-                </InputGroup>
-              </FormGrid>
+      {/* Grille Principale Tout-en-un */}
+      <CheckoutGrid>
+        {/* Colonne Formulaire (Gauche) */}
+        <FormColumn>
+          {/* Étape 1 : Coordonnées & Livraison */}
+          <Card>
+            <CardHeader>
+              <div className="step-badge">1</div>
+              <h2>Coordonnées & Adresse de livraison</h2>
+            </CardHeader>
 
-              <InputGroup>
-                <Input
+            {/* Prénom & Nom */}
+            <FormGroup $cols="1fr 1fr" $mobileCols="1fr 1fr">
+              <InputWrapper>
+                <label>Prénom <span className="req">*</span></label>
+                <StyledInput
                   type="text"
-                  name="company"
-                  placeholder="Nom de l’entreprise (facultatif)"
-                  value={formData.company || ''}
+                  name="firstName"
+                  autoComplete="given-name"
+                  placeholder="Jean"
+                  value={formData.firstName}
                   onChange={handleChange}
+                  required
                 />
-              </InputGroup>
+              </InputWrapper>
+              <InputWrapper>
+                <label>Nom <span className="req">*</span></label>
+                <StyledInput
+                  type="text"
+                  name="lastName"
+                  autoComplete="family-name"
+                  placeholder="Dupont"
+                  value={formData.lastName}
+                  onChange={handleChange}
+                  required
+                />
+              </InputWrapper>
+            </FormGroup>
 
-              <InputGroup>
-                <InputIcon>
-                  <FiCreditCard size={20} />
-                </InputIcon>
-                <Input
+            {/* Email & Téléphone */}
+            <FormGroup $cols="1.2fr 1fr" $mobileCols="1fr">
+              <InputWrapper>
+                <label>Adresse email <span className="req">*</span></label>
+                <StyledInput
                   type="email"
                   name="email"
-                  placeholder={t("checkout.email")}
+                  autoComplete="email"
+                  placeholder="jean.dupont@email.com"
                   value={formData.email}
                   onChange={handleChange}
                   required
-                  $withLeftIcon
                 />
-              </InputGroup>
-
-              <InputGroup>
-                <InputIcon>
-                  <FiCreditCard size={20} />
-                </InputIcon>
-                <Input
+              </InputWrapper>
+              <InputWrapper>
+                <label>Téléphone <span className="req">*</span></label>
+                <StyledInput
                   type="tel"
                   name="phone"
-                  placeholder={t("checkout.phone")}
+                  autoComplete="tel"
+                  placeholder="06 12 34 56 78"
                   value={formData.phone}
                   onChange={handleChange}
-                  $withLeftIcon
+                  required
                 />
-              </InputGroup>
+              </InputWrapper>
+            </FormGroup>
 
-              <p style={{ margin: '4px 0 6px', fontSize: 13, color: '#dc2626', fontWeight: 600 }}>
-                Merci de bien renseigner l’adresse de livraison complète (numéro, rue, code postal, ville) pour garantir une expédition sans erreur.
-              </p>
-              <InputGroup>
-                <InputIcon>
-                  <FiMapPin size={20} />
-                </InputIcon>
-                <Input
+            {/* Adresse */}
+            <FormGroup $cols="1fr">
+              <InputWrapper>
+                <label>Adresse de livraison complète <span className="req">*</span></label>
+                <StyledInput
                   type="text"
                   name="address"
-                  placeholder="Numéro et nom de rue *"
+                  autoComplete="street-address"
+                  placeholder="Numéro et nom de rue"
                   value={formData.address}
                   onChange={handleChange}
                   required
-                  $withLeftIcon
                 />
-              </InputGroup>
+              </InputWrapper>
+            </FormGroup>
 
-              <InputGroup>
-                <Input
+            {/* Complément d'adresse */}
+            <FormGroup $cols="1fr">
+              <InputWrapper>
+                <label>Complément d'adresse <span className="opt">(Bâtiment, étage, etc.)</span></label>
+                <StyledInput
                   type="text"
                   name="address2"
-                  placeholder="Appartement, suite, unité, etc. (facultatif)"
-                  value={formData.address2 || ''}
+                  placeholder="Appartement, lieu-dit, digicode..."
+                  value={formData.address2}
                   onChange={handleChange}
                 />
-              </InputGroup>
+              </InputWrapper>
+            </FormGroup>
 
-              <FormGrid>
-                <InputGroup>
-                  <Input
-                    type="text"
-                    name="city"
-                    placeholder={t("checkout.city")}
-                    value={formData.city}
-                    onChange={handleChange}
-                    required
-                  />
-                </InputGroup>
-
-                <InputGroup>
-                  <Input
-                    type="text"
-                    name="postalCode"
-                    placeholder={t("checkout.postal_code")}
-                    value={formData.postalCode}
-                    onChange={handleChange}
-                    required
-                  />
-                </InputGroup>
-              </FormGrid>
-
-              <InputGroup>
-                <Select
+            {/* Code Postal, Ville & Pays */}
+            <FormGroup $cols="1fr 1.5fr 1fr" $mobileCols="1fr 1fr">
+              <InputWrapper>
+                <label>Code postal <span className="req">*</span></label>
+                <StyledInput
+                  type="text"
+                  name="postalCode"
+                  autoComplete="postal-code"
+                  placeholder="67000"
+                  value={formData.postalCode}
+                  onChange={handleChange}
+                  required
+                />
+              </InputWrapper>
+              <InputWrapper>
+                <label>Ville <span className="req">*</span></label>
+                <StyledInput
+                  type="text"
+                  name="city"
+                  autoComplete="address-level2"
+                  placeholder="Strasbourg"
+                  value={formData.city}
+                  onChange={handleChange}
+                  required
+                />
+              </InputWrapper>
+              <InputWrapper style={{ gridColumn: 'span 1' }}>
+                <label>Pays <span className="req">*</span></label>
+                <StyledSelect
                   name="country"
                   value={formData.country}
                   onChange={handleChange}
                 >
-                  <option value="">Sélectionner un pays/région…</option>
+                  <option value="France">France</option>
                   <option value="Allemagne">Allemagne</option>
                   <option value="Belgique">Belgique</option>
-                  <option value="France">France</option>
                   <option value="Luxembourg">Luxembourg</option>
                   <option value="Suisse">Suisse</option>
-                </Select>
-              </InputGroup>
+                </StyledSelect>
+              </InputWrapper>
+            </FormGroup>
 
-              <SectionTitle>
-                <FiCreditCard size={20} />
-                Mode de paiement
-              </SectionTitle>
-              <div style={{ marginBottom: 16 }}>
-                <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, border: '2px solid #e0e0e0', borderRadius: 8, padding: '10px 12px', cursor: 'pointer' }}>
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value="bank"
-                      checked={formData.paymentMethod === 'bank'}
-                      onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
-                    />
-                    Virement bancaire
-                  </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, border: '2px solid #e0e0e0', borderRadius: 8, padding: '10px 12px', cursor: 'pointer' }}>
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value="paypal"
-                      checked={formData.paymentMethod === 'paypal'}
-                      onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
-                    />
-                    PayPal (paiement manuel)
-                  </label>
-                </div>
-              </div>
-
-              <SectionTitle>
-                <FiTruck size={20} />
-                Informations complémentaires
-              </SectionTitle>
-
-              <InputGroup>
-                <TextArea
+            {/* Instructions de livraison */}
+            <div style={{ marginTop: 10 }}>
+              <InputWrapper>
+                <label>Instructions spécifiques pour le chauffeur <span className="opt">(facultatif)</span></label>
+                <StyledTextarea
                   name="notes"
-                  placeholder="Notes pour la livraison (optionnel)"
+                  placeholder="Ex : Accès facile sous abri, largeur portail 3m, déposer le long du garage..."
                   value={formData.notes}
                   onChange={handleChange}
                 />
-              </InputGroup>
+              </InputWrapper>
+            </div>
 
-              {!user && authMode === 'register' && (
-                <div style={{ marginTop: 12 }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <input type="checkbox" name="createAccount" required checked={acceptCreate} onChange={(e) => setAcceptCreate(e.target.checked)} />
-                    Créer un compte ?
-                  </label>
-                  {acceptCreate && (
-                    <div style={{ marginTop: 10 }}>
+            {/* Création de compte facultative pour invité */}
+            {!user && (
+              <div style={{ marginTop: 14, paddingTop: 12, borderTop: '1px solid #edf2ee' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#334d3a', cursor: 'pointer', fontWeight: 600 }}>
+                  <input
+                    type="checkbox"
+                    checked={createAccount}
+                    onChange={(e) => setCreateAccount(e.target.checked)}
+                    style={{ accentColor: '#2c5530', width: 16, height: 16 }}
+                  />
+                  <span>Créer un compte pour suivre mes futures commandes plus tard</span>
+                </label>
+
+                {createAccount && (
+                  <div style={{ marginTop: 10, maxWidth: 320, animation: 'fadeIn 0.2s ease-in-out' }}>
+                    <InputWrapper>
+                      <label>Mot de passe souhaité <span className="req">*</span></label>
                       <div style={{ position: 'relative' }}>
-                        <Input
+                        <StyledInput
                           type={showPassword ? 'text' : 'password'}
-                          name="accountPassword"
-                          placeholder="Mot de passe *"
-                          value={accountPassword}
-                          onChange={(e) => setAccountPassword(e.target.value)}
-                          required
-                          $withRightIcon
+                          placeholder="6 caractères minimum"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          style={{ paddingRight: 40 }}
                         />
-                        <InputRight type="button" onClick={() => setShowPassword(v => !v)} aria-label="Basculer la visibilité du mot de passe">
-                          {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
-                        </InputRight>
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          style={{
+                            position: 'absolute',
+                            right: 10,
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            background: 'none',
+                            border: 'none',
+                            color: '#667c6c',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center'
+                          }}
+                        >
+                          {showPassword ? <FiEyeOff size={16} /> : <FiEye size={16} />}
+                        </button>
                       </div>
-                      <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>6 caractères minimum</div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </>
-          )}
-        </CheckoutForm>
+                    </InputWrapper>
+                  </div>
+                )}
+              </div>
+            )}
+          </Card>
 
-        <OrderSummary>
-          <SectionTitle>{t("checkout.order_summary")}</SectionTitle>
-          <SummaryRow>
-            <span>{t("checkout.subtotal")}</span>
-            <span>{subtotal.toFixed(2)}€</span>
-          </SummaryRow>
-          <SummaryRow>
-            <span>{t("checkout.shipping")}</span>
-            <span>{shipping.toFixed(2)}€</span>
-          </SummaryRow>
-          {discount > 0 && (
-            <SummaryRow>
-              <span>Remise{appliedCoupon?.code ? ` (${appliedCoupon.code})` : ''}</span>
-              <span>-{discount.toFixed(2)}€</span>
-            </SummaryRow>
-          )}
-          <SummaryRow className="total">
-            <span>Total</span>
-            <span>{total.toFixed(2)}€</span>
-          </SummaryRow>
-          <div style={{ marginTop: 12, fontSize: 12, color: '#4b5563', lineHeight: 1.5 }}>
-            Vos données personnelles seront utilisées pour le traitement de votre commande, vous accompagner au cours
-            de votre visite du site web, et pour d’autres raisons décrites dans notre{' '}
-            <a href="/privacy" style={{ color: '#2c5530', textDecoration: 'underline' }}>politique de confidentialité</a>.
-          </div>
-          <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginTop: 10, fontSize: 13, color: '#111827' }}>
-            <input
-              type="checkbox"
-              checked={acceptTerms}
-              onChange={(e) => setAcceptTerms(e.target.checked)}
-              style={{ marginTop: 3 }}
-            />
-            <span>
-              J’ai lu et j’accepte les{' '}
-              <a href="/terms" style={{ color: '#2c5530', textDecoration: 'underline' }}>conditions générales</a>.
-              <span style={{ color: '#dc2626' }}> *</span>
-            </span>
-          </label>
-          <PlaceOrderButton type="button" onClick={handleSubmit} disabled={loading}>
-            <FiLock size={20} />
-            {loading ? 'Traitement...' : 'Confirmer la commande'}
-          </PlaceOrderButton>
-        </OrderSummary>
-      </CheckoutContent>
-    </CheckoutContainer>
+          {/* Étape 2 : Mode de Paiement Unique (Virement Bancaire) */}
+          <Card>
+            <CardHeader>
+              <div className="step-badge">2</div>
+              <h2>Mode de paiement</h2>
+            </CardHeader>
+
+            <PaymentBox>
+              <PaymentBoxHeader>
+                <PaymentOptionTitle>
+                  <span className="radio-check">
+                    <FiCheck size={12} />
+                  </span>
+                  <span>Virement bancaire (SEPA)</span>
+                </PaymentOptionTitle>
+                <SecurityBadge>
+                  <FiShield size={12} />
+                  100% Sécurisé
+                </SecurityBadge>
+              </PaymentBoxHeader>
+
+              <PaymentDetails>
+                <p>
+                  <strong>Procédure simple et sécurisée :</strong> Vous effectuerez le virement directement depuis l'application de votre banque sans transmettre vos identifiants.
+                </p>
+                <p style={{ marginTop: 6 }}>
+                  Nos coordonnées bancaires officielles (<strong>IBAN, BIC, Titulaire</strong>) et votre <strong>référence de virement unique</strong> vous seront affichées dès la confirmation ci-dessous.
+                </p>
+                <p style={{ marginTop: 6, color: '#166534', fontWeight: 600 }}>
+                  ✓ Vos produits sont immédiatement réservés et l'expédition est enclenchée dès réception.
+                </p>
+              </PaymentDetails>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 12, color: '#4a6150', fontSize: 12 }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <FiLock size={13} color="#2c5530" /> Chiffrement SSL 256-bit
+                </span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <FiCheckCircle size={13} color="#27ae60" /> Sans frais additionnels
+                </span>
+              </div>
+            </PaymentBox>
+          </Card>
+        </FormColumn>
+
+        {/* Colonne Récapitulatif Sticky (Droite) */}
+        <SummaryColumn>
+          <SummaryCard>
+            <SummaryTitle>
+              <span>Récapitulatif de la commande</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: '#4a6150' }}>{totalItemsCount} article{totalItemsCount > 1 ? 's' : ''}</span>
+            </SummaryTitle>
+
+            {/* Liste des articles */}
+            <ItemList>
+              {cartItems.map((item) => (
+                <ItemRow key={item.id}>
+                  <ItemThumb>
+                    <img src={item.image || 'https://picsum.photos/seed/wood/100/100'} alt={item.name} />
+                    <span className="qty-badge">{item.quantity}</span>
+                  </ItemThumb>
+                  <ItemDetails>
+                    <div className="name" title={item.name}>{item.name}</div>
+                    <div className="meta">Qté : {item.quantity} × {Number(item.price || 0).toFixed(2)} €</div>
+                  </ItemDetails>
+                  <ItemPrice>{(Number(item.price || 0) * (item.quantity || 1)).toFixed(2)} €</ItemPrice>
+                </ItemRow>
+              ))}
+            </ItemList>
+
+            {/* Code promo compact */}
+            {appliedCoupon ? (
+              <AppliedCouponBadge>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <FiTag size={14} />
+                  Code <strong>{appliedCoupon.code}</strong> (-{discount.toFixed(2)} €)
+                </span>
+                <button type="button" onClick={handleRemoveCoupon} title="Supprimer le code">
+                  <FiX />
+                </button>
+              </AppliedCouponBadge>
+            ) : (
+              <CouponBox>
+                <CouponInput
+                  type="text"
+                  placeholder="Code promo"
+                  value={couponCode}
+                  onChange={(e) => setCouponCode(e.target.value)}
+                />
+                <CouponButton 
+                  type="button" 
+                  onClick={handleApplyCoupon}
+                  disabled={applyingCoupon || !couponCode.trim()}
+                >
+                  {applyingCoupon ? '...' : 'Appliquer'}
+                </CouponButton>
+              </CouponBox>
+            )}
+
+            {/* Lignes de décompte */}
+            <LineRow>
+              <span>Sous-total articles</span>
+              <span>{subtotal.toFixed(2)} €</span>
+            </LineRow>
+
+            <LineRow>
+              <span>Frais de livraison</span>
+              <span>
+                {shipping === 0 ? (
+                  <strong style={{ color: '#27ae60' }}>Offerte</strong>
+                ) : (
+                  `${shipping.toFixed(2)} €`
+                )}
+              </span>
+            </LineRow>
+
+            {discount > 0 && (
+              <LineRow className="discount">
+                <span>Remise coupon</span>
+                <span>-{discount.toFixed(2)} €</span>
+              </LineRow>
+            )}
+
+            <LineRow className="total">
+              <span>Total TTC</span>
+              <span>{total.toFixed(2)} €</span>
+            </LineRow>
+
+            {/* Conditions Générales */}
+            <TermsWrapper>
+              <input
+                type="checkbox"
+                checked={acceptTerms}
+                onChange={(e) => setAcceptTerms(e.target.checked)}
+                required
+              />
+              <span>
+                J'accepte les <Link to="/terms" target="_blank">Conditions Générales de Vente</Link> et reconnais avoir pris connaissance de la <Link to="/privacy" target="_blank">Politique de Confidentialité</Link>. <span style={{ color: '#dc2626' }}>*</span>
+              </span>
+            </TermsWrapper>
+
+            {/* Bouton de confirmation principal */}
+            <SubmitButton
+              type="button"
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <>Validation en cours...</>
+              ) : (
+                <>
+                  <span>Confirmer la commande</span>
+                  <FiArrowRight size={18} />
+                </>
+              )}
+            </SubmitButton>
+
+            {/* Badges de réassurance */}
+            <TrustList>
+              <TrustItem>
+                <FiTruck size={15} />
+                <span>Livraison soignée avec chariot tout-terrain directement sous abri</span>
+              </TrustItem>
+              <TrustItem>
+                <FiShield size={15} />
+                <span>Paiement sécurisé par virement bancaire garanti</span>
+              </TrustItem>
+              <TrustItem>
+                <FiCheckCircle size={15} />
+                <span>Bois 100% sec haute performance & granulés certifiés DINplus</span>
+              </TrustItem>
+            </TrustList>
+          </SummaryCard>
+        </SummaryColumn>
+      </CheckoutGrid>
+    </PageContainer>
   );
 };
 
