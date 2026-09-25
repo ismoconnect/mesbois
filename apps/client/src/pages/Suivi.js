@@ -17,8 +17,10 @@ const Container = styled.div`
   padding: 0 0 36px 0;
   word-break: break-word;
   overflow-wrap: break-word;
+  box-sizing: border-box;
+  
   @media (max-width: 600px) {
-    padding: 0 4px 28px 4px;
+    padding: 0 12px 28px 12px;
   }
 `;
 
@@ -29,6 +31,8 @@ const HeaderCard = styled.div`
   padding: 24px 28px;
   margin-bottom: 20px;
   box-shadow: 0 10px 25px rgba(27, 56, 32, 0.15);
+  box-sizing: border-box;
+  width: 100%;
 
   @media (max-width: 600px) {
     padding: 18px 16px;
@@ -41,6 +45,11 @@ const HeaderBadges = styled.div`
   flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 12px;
+  
+  @media (max-width: 600px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
 `;
 
 const TrustBadge = styled.span`
@@ -52,9 +61,15 @@ const TrustBadge = styled.span`
   border: 1px solid rgba(255, 255, 255, 0.25);
   color: #f1f8f3;
   padding: 4px 10px;
-  border-radius: 999px;
+  border-radius: 8px;
   font-size: 11.5px;
   font-weight: 600;
+  
+  @media (max-width: 600px) {
+    padding: 8px 12px;
+    font-size: 12.5px;
+    justify-content: flex-start;
+  }
 `;
 
 const Title = styled.h1`
@@ -84,6 +99,8 @@ const OrderCard = styled.div`
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
   padding: 22px;
   margin-bottom: 18px;
+  box-sizing: border-box;
+  width: 100%;
 
   @media (max-width: 600px) {
     padding: 16px;
@@ -255,48 +272,70 @@ const DetailsRow = styled.div`
 
 const ActionsRow = styled.div`
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
   gap: 10px;
-  flex-wrap: wrap;
   margin-top: 16px;
   padding-top: 14px;
   border-top: 1px solid #f1f5f9;
+  
+  .buttons-group {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+    
+    @media (max-width: 600px) {
+      flex-direction: column;
+    }
+  }
 `;
 
 const PrimaryBtn = styled(Link)`
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 7px;
   background: #2c5530;
   color: #fff;
-  padding: 9px 16px;
+  padding: 10px 16px;
   border-radius: 8px;
   font-size: 13px;
   font-weight: 700;
   text-decoration: none;
   transition: all 0.2s ease;
+  flex: 1;
 
   &:hover {
     background: #1e3a22;
+  }
+  
+  @media (max-width: 600px) {
+    width: 100%;
+    padding: 12px;
   }
 `;
 
 const SecondaryBtn = styled(Link)`
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   background: #fff;
   color: #334155;
   border: 1px solid #cbd5e1;
-  padding: 9px 14px;
+  padding: 10px 14px;
   border-radius: 8px;
   font-size: 13px;
   font-weight: 600;
   text-decoration: none;
+  flex: 1;
 
   &:hover {
     background: #f8fafc;
+  }
+  
+  @media (max-width: 600px) {
+    width: 100%;
+    padding: 12px;
   }
 `;
 
@@ -457,7 +496,7 @@ const Suivi = () => {
 
               {/* Actions */}
               <ActionsRow>
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <div className="buttons-group">
                   <PrimaryBtn to={`/dashboard/suivi/${order.id}`}>
                     <FiTruck size={14} /> Suivi détaillé & Facture PDF
                   </PrimaryBtn>

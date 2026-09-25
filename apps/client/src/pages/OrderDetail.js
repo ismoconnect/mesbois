@@ -21,24 +21,18 @@ const OrderDetailContainer = styled.div`
   }
 `;
 
-// Mobile Header avec navigation sticky
 const MobileHeader = styled.div`
   position: sticky;
   top: 0;
   z-index: 100;
-  background: white;
+  background: #f8f9fa;
   padding: 16px 20px;
-  border-bottom: 1px solid #e9ecef;
   display: flex;
   align-items: center;
   justify-content: space-between;
   
   @media (min-width: 768px) {
-    position: static;
-    background: transparent;
-    border: none;
-    padding: 0;
-    margin-bottom: 30px;
+    display: none;
   }
 `;
 
@@ -102,10 +96,15 @@ const MobileStatusBadge = styled.div`
 
 // Hero Section Mobile
 const MobileHeroSection = styled.div`
-  background: linear-gradient(135deg, #2c5530 0%, #1e3a22 100%);
+  background: linear-gradient(135deg, #1b3820 0%, #2c5530 65%, #3d7243 100%);
   color: white;
-  padding: 24px 20px;
+  padding: 20px 16px;
   text-align: center;
+  border-radius: 14px;
+  margin: 0 14px 16px 14px;
+  box-shadow: 0 10px 25px rgba(27, 56, 32, 0.15);
+  box-sizing: border-box;
+  width: calc(100% - 28px);
   
   @media (min-width: 768px) {
     display: none;
@@ -113,19 +112,19 @@ const MobileHeroSection = styled.div`
 `;
 
 const MobileOrderTitle = styled.h1`
-  font-size: 24px;
-  font-weight: 700;
-  margin-bottom: 8px;
+  font-size: 18px;
+  font-weight: 800;
+  margin: 0 0 6px 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 8px;
 `;
 
 const MobileOrderDate = styled.p`
   opacity: 0.9;
-  font-size: 14px;
-  margin-bottom: 16px;
+  font-size: 13px;
+  margin: 0;
 `;
 
 // Desktop Header (caché sur mobile)
@@ -206,6 +205,10 @@ const OrderStatus = styled.div`
 // Mobile Content Layout
 const MobileContent = styled.div`
   padding: 0 0 80px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
   
   @media (min-width: 768px) {
     display: none;
@@ -224,15 +227,16 @@ const DesktopContent = styled.div`
   }
 `;
 
-// Mobile Cards - Très réduites
+// Mobile Cards
 const MobileCard = styled.div`
   background: white;
-  margin: 12px 32px;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin: 10px 14px;
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   overflow: hidden;
-  width: calc(100% - 64px);
-  max-width: 400px;
+  width: calc(100% - 28px);
+  max-width: 500px;
+  border: 1px solid #e2e8f0;
   
   @media (min-width: 768px) {
     display: none;
@@ -240,13 +244,14 @@ const MobileCard = styled.div`
 `;
 
 const MobileCardHeader = styled.div`
-  padding: 14px 16px 12px 16px;
-  border-bottom: 1px solid #f0f0f0;
+  padding: 14px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  background: #f8fafc;
   
   h3 {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 700;
-    color: #2c5530;
+    color: #1b4332;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -255,15 +260,15 @@ const MobileCardHeader = styled.div`
 `;
 
 const MobileCardContent = styled.div`
-  padding: 16px;
+  padding: 14px 16px;
 `;
 
 // Mobile Order Item - Plus compact
 const MobileOrderItem = styled.div`
   display: flex;
-  gap: 10px;
+  gap: 12px;
   padding: 12px 0;
-  border-bottom: 1px solid #f8f9fa;
+  border-bottom: 1px solid #f1f5f9;
   
   &:last-child {
     border-bottom: none;
@@ -272,15 +277,16 @@ const MobileOrderItem = styled.div`
 `;
 
 const MobileItemImage = styled.div`
-  width: 50px;
-  height: 50px;
+  width: 54px;
+  height: 54px;
   border-radius: 10px;
-  background: #f8f9fa;
+  background: #f1f5f9;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
   flex-shrink: 0;
+  border: 1px solid #e2e8f0;
   
   img {
     width: 100%;
@@ -293,17 +299,17 @@ const MobileItemDetails = styled.div`
   flex: 1;
   
   .item-name {
-    font-size: 14px;
-    font-weight: 600;
-    color: #2c5530;
-    margin-bottom: 3px;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 4px;
     line-height: 1.3;
   }
   
   .item-description {
-    font-size: 12px;
-    color: #666;
-    margin-bottom: 6px;
+    font-size: 11.5px;
+    color: #64748b;
+    margin-bottom: 8px;
     line-height: 1.3;
   }
   
@@ -311,15 +317,20 @@ const MobileItemDetails = styled.div`
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 13px;
+    font-size: 12.5px;
     
     .quantity {
-      color: #666;
+      background: #ecfdf5;
+      color: #166534;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-size: 11.5px;
     }
     
     .price {
-      font-weight: 700;
-      color: #2c5530;
+      font-weight: 800;
+      color: #1b4332;
     }
   }
 `;
@@ -329,8 +340,8 @@ const MobileSummaryRow = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 0;
-  border-bottom: 1px solid #f8f9fa;
+  padding: 10px 0;
+  border-bottom: 1px solid #f1f5f9;
   
   &:last-child {
     border-bottom: none;
@@ -338,22 +349,23 @@ const MobileSummaryRow = styled.div`
   }
   
   &.total {
-    font-size: 18px;
-    font-weight: 700;
-    color: #2c5530;
-    border-top: 2px solid #e9ecef;
-    padding-top: 16px;
+    font-size: 16px;
+    font-weight: 800;
+    color: #1b4332;
+    border-top: 2px solid #e2e8f0;
+    padding-top: 14px;
     margin-top: 8px;
   }
   
   .label {
-    color: #666;
-    font-size: 14px;
+    color: #64748b;
+    font-size: 13.5px;
   }
   
   .value {
-    font-weight: 600;
-    color: #2c5530;
+    font-weight: 700;
+    color: #1e293b;
+    font-size: 13.5px;
   }
 `;
 
@@ -362,8 +374,8 @@ const MobileInfoRow = styled.div`
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  padding: 12px 0;
-  border-bottom: 1px solid #f8f9fa;
+  padding: 10px 0;
+  border-bottom: 1px solid #f1f5f9;
   
   &:last-child {
     border-bottom: none;
@@ -372,59 +384,67 @@ const MobileInfoRow = styled.div`
   
   .icon {
     color: #2c5530;
-    margin-top: 1px;
+    margin-top: 2px;
   }
   
   .content {
     flex: 1;
     
     .label {
-      font-size: 12px;
-      color: #666;
-      margin-bottom: 3px;
+      font-size: 11.5px;
+      color: #64748b;
+      margin-bottom: 2px;
       text-transform: uppercase;
-      letter-spacing: 0.3px;
+      letter-spacing: 0.5px;
+      font-weight: 600;
     }
     
     .value {
-      font-size: 14px;
-      color: #2c5530;
-      font-weight: 500;
-      line-height: 1.3;
+      font-size: 13.5px;
+      color: #1e293b;
+      font-weight: 600;
+      line-height: 1.4;
     }
   }
 `;
 
-// Mobile Action Button - Aligné avec les cartes très réduites
+const MobileActionContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: calc(100% - 28px);
+  margin: 16px 14px 24px 14px;
+  max-width: 500px;
+`;
+
+// Mobile Action Button
 const MobileActionButton = styled.button`
-  width: calc(100% - 64px);
-  margin: 16px 32px;
-  padding: 14px;
+  width: 100%;
+  padding: 12px;
   border-radius: 10px;
   border: none;
-  font-size: 15px;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.3s ease;
-  max-width: 400px;
+  transition: all 0.2s ease;
   
   &.primary {
-    background: #2c5530;
+    background: #16a34a;
     color: white;
+    box-shadow: 0 4px 12px rgba(22, 163, 74, 0.2);
     
     &:hover {
-      background: #1e3a22;
+      background: #15803d;
     }
   }
   
   &.danger {
-    background: #fff;
-    color: #dc3545;
-    border: 2px solid #dc3545;
+    background: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fee2e2;
     
     &:hover {
-      background: #dc3545;
-      color: white;
+      background: #fee2e2;
     }
   }
   
@@ -1202,26 +1222,27 @@ const OrderDetail = () => {
             </MobileCard>
           )}
 
-          {/* Action Button - Mobile */}
-          {(order.status === 'pending' || order.status === 'processing') && (
-            <MobileActionButton
-              className="danger"
-              onClick={handleCancelOrder}
-              disabled={cancelling}
-            >
-              {cancelling ? 'Annulation...' : 'Annuler la commande'}
-            </MobileActionButton>
-          )}
-
-          {(order.status === 'pending') && (
-            <MobileActionButton
-              className="primary"
-              onClick={handlePayment}
-              style={{ marginTop: 0 }}
-            >
-              Payer la commande
-            </MobileActionButton>
-          )}
+          {/* Action Buttons - Mobile */}
+          <MobileActionContainer>
+            {(order.status === 'pending') && (
+              <MobileActionButton
+                className="primary"
+                onClick={handlePayment}
+              >
+                Payer la commande
+              </MobileActionButton>
+            )}
+            
+            {(order.status === 'pending' || order.status === 'processing') && (
+              <MobileActionButton
+                className="danger"
+                onClick={handleCancelOrder}
+                disabled={cancelling}
+              >
+                {cancelling ? 'Annulation...' : 'Annuler la commande'}
+              </MobileActionButton>
+            )}
+          </MobileActionContainer>
         </MobileContent>
 
         {/* Desktop Content (layout existant) */}

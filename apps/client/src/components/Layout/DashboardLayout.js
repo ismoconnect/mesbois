@@ -275,7 +275,9 @@ const DashboardLayout = ({ children }) => {
     <>
       <Sidebar $open={open}>
         <UserCard to="/dashboard" onClick={() => setOpen(false)}>
-          <Avatar>🌲</Avatar>
+          <Avatar style={{ background: 'transparent' }}>
+            <img src="/images/brennholzkaufen_logo_transparent.png" alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+          </Avatar>
           <UserInfo>
             <strong>{appName}</strong>
             <small>Espace client</small>
@@ -291,17 +293,13 @@ const DashboardLayout = ({ children }) => {
             <FiPackage />
             <span>Mes commandes</span>
           </NavItem>
-          <NavItem to="/dashboard/suivi" onClick={() => setOpen(false)}>
-            <FiTruck />
-            <span>Suivi livraison</span>
-          </NavItem>
           <NavItem to="/dashboard/billing" onClick={() => setOpen(false)}>
             <FiFileText />
             <span>Facturation &amp; RIB</span>
           </NavItem>
-          <NavItem to="/dashboard/profile" onClick={() => setOpen(false)}>
-            <FiUser />
-            <span>Mon profil</span>
+          <NavItem to="/dashboard/suivi" onClick={() => setOpen(false)}>
+            <FiTruck />
+            <span>Suivi livraison</span>
           </NavItem>
           <NavItem to="/dashboard/settings" onClick={() => setOpen(false)}>
             <FiSettings />

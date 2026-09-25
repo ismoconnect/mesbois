@@ -141,27 +141,25 @@ const TimelineDescription = styled.div`
 `;
 
 const DownloadButton = styled.button`
-  display: inline-flex;
+  display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  background: #dc3545;
-  color: white;
-  border: none;
+  background: #f8fafc;
+  color: #1e293b;
+  border: 1px solid #cbd5e1;
   padding: 12px 20px;
-  border-radius: 8px;
-  font-weight: 600;
+  border-radius: 10px;
+  font-weight: 700;
   font-size: 14px;
   cursor: pointer;
-  transition: all 0.3s ease;
-  margin-top: 20px;
+  transition: all 0.2s ease;
+  margin-top: 24px;
+  width: 100%;
   
   &:hover {
-    background: #c82333;
-    transform: translateY(-1px);
-  }
-  
-  &:active {
-    transform: translateY(0);
+    background: #f1f5f9;
+    border-color: #94a3b8;
   }
 `;
 

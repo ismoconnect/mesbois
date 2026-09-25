@@ -749,7 +749,7 @@ const Dashboard = () => {
               </ActiveButton>
 
               {activeOrder.status === 'pending' || activeOrder.status === 'awaiting_payment' ? (
-                <ActiveButton to={`/bank-transfer?orderId=${activeOrder.id}`} className="secondary">
+                <ActiveButton to="/dashboard/billing" className="secondary">
                   <FiFileText />
                   <span>Coordonnées RIB</span>
                 </ActiveButton>

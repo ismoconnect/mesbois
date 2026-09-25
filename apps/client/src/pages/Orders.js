@@ -30,7 +30,7 @@ const OrdersContainer = styled.div`
   box-sizing: border-box;
 
   @media (max-width: 640px) { 
-    padding: 0 8px 24px; 
+    padding: 0 12px 24px; 
   }
 `;
 
@@ -39,75 +39,79 @@ const HeaderCard = styled.div`
   border: 1px solid #e2e8f0;
   border-radius: 14px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
-  padding: 20px 22px;
-  margin-bottom: 14px;
+  padding: 24px;
+  margin-bottom: 20px;
 
   @media (max-width: 640px) {
-    border-radius: 12px;
-    padding: 14px 12px;
-    margin-bottom: 10px;
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 12px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   }
 `;
 
 const WoodTag = styled.div`
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   background: #ecfdf5;
   color: #166534;
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 700;
-  padding: 3px 10px;
+  padding: 4px 12px;
   border-radius: 999px;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 
   @media (max-width: 640px) {
     font-size: 10.5px;
-    padding: 2px 8px;
-    margin-bottom: 6px;
+    padding: 3px 10px;
+    margin-bottom: 8px;
   }
 `;
 
 const OrdersTitle = styled.h1`
-  font-size: 24px;
+  font-size: 26px;
   font-weight: 800;
   color: #1b4332;
-  margin: 0 0 4px 0;
+  margin: 0 0 8px 0;
   letter-spacing: -0.3px;
 
   @media (max-width: 640px) { 
-    font-size: 18px; 
+    font-size: 20px; 
+    margin: 0 0 4px 0;
   }
 `;
 
 const OrdersSubtitle = styled.p`
   color: #64748b;
-  font-size: 13.5px;
+  font-size: 15px;
   margin: 0;
-  line-height: 1.45;
+  line-height: 1.5;
 
   @media (max-width: 640px) { 
-    font-size: 11.5px; 
+    font-size: 12.5px; 
+    line-height: 1.4;
   }
 `;
 
 const OrdersList = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
   min-width: 0;
 
   @media (max-width: 640px) {
-    gap: 8px;
+    gap: 12px;
   }
 `;
 
 const OrderCard = styled.div`
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 14px;
+  border-radius: 16px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
-  padding: 18px 20px;
+  padding: 24px;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
   min-width: 0;
   overflow: hidden;
@@ -118,53 +122,63 @@ const OrderCard = styled.div`
   }
 
   @media (max-width: 640px) {
-    padding: 12px 10px;
-    border-radius: 12px;
+    padding: 16px;
+    border-radius: 14px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   }
 `;
 
 const OrderHeader = styled.div`
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   flex-wrap: wrap;
-  gap: 8px;
-  padding-bottom: 10px;
+  gap: 12px;
+  padding-bottom: 16px;
   border-bottom: 1px solid #f1f5f9;
-  margin-bottom: 10px;
+  margin-bottom: 16px;
+  
+  @media (max-width: 640px) {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+  }
 `;
 
 const OrderInfo = styled.div`
   min-width: 0;
 
   .order-ref {
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 800;
     color: #166534;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
   }
 
   .order-date {
     color: #64748b;
-    font-size: 11.5px;
-    margin-top: 2px;
+    font-size: 13px;
+    margin-top: 4px;
   }
 
   @media (max-width: 640px) {
-    .order-ref { font-size: 13px; }
-    .order-date { font-size: 10.5px; }
+    .order-ref { font-size: 14px; gap: 6px; }
+    .order-date { font-size: 11.5px; margin-top: 2px; }
   }
 `;
 
 const StatusPill = styled.div`
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 3px 10px;
+  gap: 6px;
+  padding: 4px 12px;
   border-radius: 999px;
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 700;
   background: ${props => props.bg || '#f1f5f9'};
   color: ${props => props.color || '#334155'};
@@ -172,8 +186,9 @@ const StatusPill = styled.div`
   white-space: nowrap;
 
   @media (max-width: 640px) {
-    font-size: 10px;
-    padding: 2px 7px;
+    font-size: 11px;
+    padding: 3px 8px;
+    align-self: flex-start;
   }
 `;
 
@@ -181,87 +196,98 @@ const StatusPill = styled.div`
 const PayNotice = styled.div`
   background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
   border: 1px solid #fde68a;
-  border-radius: 10px;
-  padding: 10px 12px;
-  margin-bottom: 10px;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 12px;
   flex-wrap: wrap;
 
   .notice-left {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 12px;
+    gap: 10px;
+    font-size: 13px;
     color: #92400e;
     font-weight: 600;
+    line-height: 1.4;
 
     .icon {
-      font-size: 16px;
+      font-size: 20px;
       flex-shrink: 0;
     }
   }
 
   @media (max-width: 640px) {
-    padding: 8px 10px;
-    .notice-left { font-size: 11px; }
+    padding: 12px 14px;
+    gap: 10px;
+    .notice-left { 
+      font-size: 12px; 
+      .icon { font-size: 18px; }
+    }
   }
 `;
 
 const PayNoticeButton = styled(Link)`
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  justify-content: center;
+  gap: 6px;
   background: #2c5530;
   color: #ffffff;
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 11.5px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
   font-weight: 700;
   text-decoration: none;
   white-space: nowrap;
   flex-shrink: 0;
+  transition: background-color 0.15s ease;
 
   &:hover {
     background: #1e3a22;
   }
 
   @media (max-width: 640px) {
-    padding: 5px 10px;
-    font-size: 10.5px;
+    padding: 8px 14px;
+    font-size: 11.5px;
+    width: auto;
   }
 `;
 
 const DeliveryBadge = styled.div`
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   background: #f0fdf4;
   border: 1px solid #bbf7d0;
-  padding: 6px 10px;
-  border-radius: 8px;
-  font-size: 11.5px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 13px;
   color: #166534;
   font-weight: 600;
-  margin-bottom: 10px;
+  margin-bottom: 16px;
 
   svg {
     flex-shrink: 0;
+    font-size: 16px;
   }
 
   @media (max-width: 640px) {
-    font-size: 10.5px;
-    padding: 5px 8px;
+    font-size: 11.5px;
+    padding: 8px 10px;
+    margin-bottom: 12px;
+    svg { font-size: 14px; }
   }
 `;
 
 const OrderItems = styled.div`
-  margin-bottom: 10px;
+  margin-bottom: 16px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 `;
 
 const OrderItem = styled.div`
@@ -270,15 +296,20 @@ const OrderItem = styled.div`
   justify-content: space-between;
   background: #f8fafc;
   border: 1px solid #f1f5f9;
-  border-radius: 8px;
-  padding: 8px 10px;
-  gap: 8px;
+  border-radius: 10px;
+  padding: 12px 14px;
+  gap: 12px;
+  
+  @media (max-width: 640px) {
+    padding: 10px 12px;
+    border-radius: 8px;
+  }
 `;
 
 const ItemLeft = styled.div`
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   min-width: 0;
   flex: 1;
 
@@ -286,14 +317,14 @@ const ItemLeft = styled.div`
     background: #ecfdf5;
     color: #166534;
     font-weight: 800;
-    font-size: 11px;
-    padding: 2px 6px;
-    border-radius: 4px;
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 6px;
     flex-shrink: 0;
   }
 
   .item-title {
-    font-size: 12.5px;
+    font-size: 14px;
     font-weight: 600;
     color: #1e293b;
     white-space: nowrap;
@@ -302,18 +333,20 @@ const ItemLeft = styled.div`
   }
 
   @media (max-width: 640px) {
-    .item-title { font-size: 11px; }
+    gap: 8px;
+    .item-qty { font-size: 11px; padding: 2px 6px; }
+    .item-title { font-size: 12px; white-space: normal; }
   }
 `;
 
 const ItemPrice = styled.div`
   font-weight: 700;
-  font-size: 12.5px;
+  font-size: 14px;
   color: #334155;
   flex-shrink: 0;
 
   @media (max-width: 640px) {
-    font-size: 11.5px;
+    font-size: 12.5px;
   }
 `;
 
@@ -321,33 +354,34 @@ const OrderTotalRow = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 8px;
+  padding-top: 16px;
   border-top: 1px solid #f1f5f9;
-  margin-bottom: 12px;
-  font-size: 13px;
+  margin-bottom: 16px;
+  font-size: 14px;
   color: #64748b;
 
   .total-amount {
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 800;
     color: #1b4332;
   }
 
   @media (max-width: 640px) {
-    font-size: 11.5px;
-    .total-amount { font-size: 14px; }
-    margin-bottom: 10px;
+    padding-top: 12px;
+    font-size: 12.5px;
+    .total-amount { font-size: 16px; }
+    margin-bottom: 12px;
   }
 `;
 
 const OrderActions = styled.div`
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   flex-wrap: wrap;
 
   @media (max-width: 640px) {
-    gap: 6px;
+    gap: 8px;
   }
 `;
 
@@ -355,10 +389,10 @@ const ActionButton = styled(Link)`
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 8px 14px;
-  border-radius: 8px;
-  font-size: 12.5px;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 13px;
   font-weight: 700;
   text-decoration: none;
   transition: all 0.15s ease;
@@ -377,12 +411,11 @@ const ActionButton = styled(Link)`
   }
 
   @media (max-width: 640px) {
-    padding: 7px 10px;
-    font-size: 11px;
+    padding: 8px 12px;
+    font-size: 12px;
+    border-radius: 8px;
     flex: 1;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
 `;
 
@@ -390,10 +423,10 @@ const CancelButton = styled.button`
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
-  padding: 8px 12px;
-  border-radius: 8px;
-  font-size: 12px;
+  gap: 6px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 13px;
   font-weight: 600;
   background: #ffffff;
   color: #dc2626;
@@ -411,23 +444,26 @@ const CancelButton = styled.button`
   }
 
   @media (max-width: 640px) {
-    padding: 7px 8px;
-    font-size: 10.5px;
+    padding: 8px 12px;
+    font-size: 12px;
+    border-radius: 8px;
+    flex: 1;
+    white-space: nowrap;
   }
 `;
 
 const EmptyOrders = styled.div`
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 14px;
+  border-radius: 16px;
   text-align: center;
-  padding: 40px 20px;
+  padding: 48px 24px;
   color: #64748b;
 
   .empty-icon {
-    font-size: 48px;
+    font-size: 56px;
     color: #2c5530;
-    margin-bottom: 10px;
+    margin-bottom: 16px;
   }
 
   h3 {
@@ -708,7 +744,7 @@ const Orders = () => {
                         <span className="icon">🏦</span>
                         <span>Virement en attente : vos coordonnées bancaires officielles sont prêtes.</span>
                       </div>
-                      <PayNoticeButton to={`/bank-transfer?orderId=${order.id}`}>
+                      <PayNoticeButton to="/dashboard/billing">
                         Voir le RIB →
                       </PayNoticeButton>
                     </PayNotice>

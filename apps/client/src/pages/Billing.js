@@ -17,8 +17,10 @@ const PageWrapper = styled.div`
   max-width: 1000px;
   margin: 0 auto;
   padding: 0 0 32px 0;
+  box-sizing: border-box;
+  
   @media (max-width: 600px) {
-    padding: 0 4px 24px 4px;
+    padding: 0 12px 28px 12px;
   }
 `;
 
@@ -29,6 +31,8 @@ const HeaderCard = styled.div`
   padding: 24px 28px;
   margin-bottom: 20px;
   box-shadow: 0 10px 25px rgba(27, 56, 32, 0.15);
+  box-sizing: border-box;
+  width: 100%;
 
   @media (max-width: 600px) {
     padding: 18px 16px;
@@ -41,6 +45,11 @@ const HeaderBadges = styled.div`
   flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 12px;
+  
+  @media (max-width: 600px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
 `;
 
 const TrustBadge = styled.span`
@@ -52,9 +61,15 @@ const TrustBadge = styled.span`
   border: 1px solid rgba(255, 255, 255, 0.25);
   color: #f1f8f3;
   padding: 4px 10px;
-  border-radius: 999px;
+  border-radius: 8px;
   font-size: 11.5px;
   font-weight: 600;
+  
+  @media (max-width: 600px) {
+    padding: 8px 12px;
+    font-size: 12.5px;
+    justify-content: flex-start;
+  }
 `;
 
 const Title = styled.h1`
@@ -80,13 +95,14 @@ const Subtitle = styled.p`
 const NoticeCard = styled.div`
   background: #f0fdf4;
   border: 1px solid #bbf7d0;
-  border-left: 4px solid #16a34a;
   border-radius: 12px;
   padding: 14px 18px;
   margin-bottom: 20px;
   display: flex;
   align-items: flex-start;
   gap: 12px;
+  box-sizing: border-box;
+  width: 100%;
 
   @media (max-width: 600px) {
     padding: 12px 14px;
@@ -111,6 +127,14 @@ const SectionTitle = styled.h2`
   display: flex;
   align-items: center;
   gap: 8px;
+
+  @media (max-width: 600px) {
+    font-size: 15px;
+    gap: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 `;
 
 const Card = styled.div`
@@ -120,6 +144,8 @@ const Card = styled.div`
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
   padding: 20px;
   margin-bottom: 20px;
+  box-sizing: border-box;
+  width: 100%;
 
   @media (max-width: 600px) {
     padding: 14px;
@@ -298,10 +324,21 @@ const WhatsAppBtn = styled.a`
   text-decoration: none;
   box-shadow: 0 2px 8px rgba(37, 211, 102, 0.25);
   transition: all 0.2s ease;
+  white-space: nowrap;
 
   &:hover {
     background: #20ba5a;
     transform: translateY(-1px);
+  }
+
+  &.big-btn {
+    padding: 14px 28px;
+    font-size: 15px;
+
+    @media (max-width: 600px) {
+      padding: 12px 16px;
+      font-size: 14px;
+    }
   }
 `;
 
@@ -311,6 +348,8 @@ const StepsBox = styled.div`
   padding: 16px;
   border: 1px solid #e2e8f0;
   margin-top: 20px;
+  box-sizing: border-box;
+  width: 100%;
 `;
 
 const StepsList = styled.div`
@@ -502,161 +541,80 @@ const Billing = () => {
           </Card>
         )}
 
-        {!loading && orders.map((order) => {
-          const ref = formatTransferRef(order.id);
-          const isPaypal = order.payment?.method === 'paypal';
-          const orderTotal = order.total ? Number(order.total).toFixed(2) : '0.00';
-
-          return (
-            <Card key={order.id}>
-              <OrderHeader>
-                <div>
-                  <OrderRef>
-                    <span>Commande</span>
-                    <span className="ref-badge">{ref}</span>
-                  </OrderRef>
-                  <div style={{ fontSize: '12px', color: '#64748b', marginTop: '3px' }}>
-                    {order.items?.length || 1} article(s) • Passée le {order.createdAt?.seconds ? new Date(order.createdAt.seconds * 1000).toLocaleDateString('fr-FR') : 'récemment'}
-                  </div>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <Badge>
-                    <FiClock size={13} /> En attente de virement
-                  </Badge>
-                  <OrderAmount>
-                    <span className="lbl">À régler :</span>
-                    <span>{orderTotal} €</span>
-                  </OrderAmount>
-                </div>
-              </OrderHeader>
-
-              {/* Instructions RIB ou WhatsApp */}
-              {(!rib.enabled || rib.enabled === 'false') ? (
-                <div style={{ background: '#f0fdf4', border: '1.5px solid #22c55e', borderRadius: '12px', padding: '16px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: '#166534', fontWeight: 800, fontSize: '15px' }}>
-                    <FaWhatsapp size={20} color="#25D366" />
-                    Transmission officielle du RIB sur WhatsApp
-                  </div>
-                  <p style={{ fontSize: '13px', color: '#334155', margin: '0 0 12px 0', lineHeight: 1.5 }}>
-                    Pour sécuriser votre transaction et planifier l'accès de votre allée pour notre <strong>chariot embarqué tout-terrain</strong>, nos coordonnées bancaires vous sont envoyées directement via notre compte WhatsApp Pro vérifié.
-                  </p>
+        {!loading && orders.length > 0 && (
+          <>
+            {/* Bloc WhatsApp Unique et Centralisé */}
+            <div style={{ background: '#f0fdf4', border: '1px solid #86efac', borderRadius: '14px', padding: '24px', textAlign: 'center', margin: '0 0 24px 0', boxShadow: '0 4px 12px rgba(22, 163, 74, 0.08)' }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '56px', height: '56px', borderRadius: '50%', background: '#dcfce7', color: '#16a34a', marginBottom: '16px' }}>
+                <FaShieldAlt size={28} />
+              </div>
+              <h3 style={{ margin: '0 0 10px 0', fontSize: '18px', color: '#166534', fontWeight: 800 }}>
+                Obtenir les coordonnées bancaires
+              </h3>
+              <p style={{ margin: '0 0 20px 0', fontSize: '14px', color: '#334155', lineHeight: 1.5, maxWidth: '500px', marginLeft: 'auto', marginRight: 'auto' }}>
+                Pour garantir la sécurité de votre transaction, notre RIB/IBAN officiel vous sera communiqué exclusivement via notre canal WhatsApp vérifié. Cliquez ci-dessous pour le demander.
+              </p>
+              {(() => {
+                const totalAmount = orders.reduce((sum, o) => sum + (o.total || 0), 0).toFixed(2);
+                const refs = orders.map(o => formatTransferRef(o.id)).join(', ');
+                const message = `Bonjour, je souhaite obtenir le RIB officiel pour régler ma/mes commande(s) en attente : ${refs} pour un montant total de ${totalAmount} €.\nMerci !`;
+                
+                return (
                   <WhatsAppBtn
-                    href={`https://wa.me/${whatsappNum}?text=${encodeURIComponent(
-                      `Bonjour Brennholzkaufen,
-
-Je vous contacte pour ma commande #${ref} d'un montant de ${orderTotal} €.
-Pourriez-vous me transmettre votre RIB / IBAN officiel afin que j'effectue le virement pour la livraison chariot tout-terrain ?
-Merci !`
-                    )}`}
+                    className="big-btn"
+                    href={`https://wa.me/${whatsappNum}?text=${encodeURIComponent(message)}`}
                     target="_blank"
                     rel="noopener noreferrer"
+                    style={{ width: '100%', justifyContent: 'center', maxWidth: '350px' }}
                   >
-                    <FaWhatsapp size={18} />
-                    <span>Obtenir le RIB sur WhatsApp Pro →</span>
+                    <FaWhatsapp size={20} />
+                    <span>Demander le RIB sur WhatsApp</span>
                   </WhatsAppBtn>
-                </div>
-              ) : isPaypal ? (
-                <>
-                  <div style={{ fontWeight: 700, fontSize: '13.5px', color: '#1e3a22', marginBottom: '6px' }}>
-                    Coordonnées de règlement PayPal :
-                  </div>
-                  <RIBGrid>
-                    <RIBField>
-                      <span className="label">Email de paiement</span>
-                      <div className="val-row">
-                        <span className="val-text">{paypalInfo.email}</span>
-                        <CopyButton onClick={() => copy(paypalInfo.email, 'Email PayPal')}><FaCopy /> Copier</CopyButton>
-                      </div>
-                    </RIBField>
-                    <RIBField className="highlight">
-                      <span className="label">Référence obligatoire à joindre</span>
-                      <div className="val-row">
-                        <span className="val-text" style={{ color: '#166534' }}>{ref}</span>
-                        <CopyButton onClick={() => copy(ref, 'Référence')}><FaCopy /> Copier</CopyButton>
-                      </div>
-                    </RIBField>
-                  </RIBGrid>
-                </>
-              ) : (
-                <>
-                  <div style={{ fontWeight: 700, fontSize: '13.5px', color: '#1e3a22', marginBottom: '4px' }}>
-                    Coordonnées bancaires pour effectuer le virement :
-                  </div>
-                  <RIBGrid>
-                    <RIBField>
-                      <span className="label">Titulaire du compte</span>
-                      <div className="val-row">
-                        <span className="val-text">{rib.holder || 'Brennholzkaufen SAS'}</span>
-                        <CopyButton onClick={() => copy(rib.holder, 'Titulaire')}><FaCopy /> Copier</CopyButton>
-                      </div>
-                    </RIBField>
-                    <RIBField>
-                      <span className="label">Établissement bancaire</span>
-                      <div className="val-row">
-                        <span className="val-text">{rib.bank || 'Banque'}</span>
-                        <CopyButton onClick={() => copy(rib.bank, 'Banque')}><FaCopy /> Copier</CopyButton>
-                      </div>
-                    </RIBField>
-                    <RIBField className="highlight">
-                      <span className="label">IBAN Officiel</span>
-                      <div className="val-row">
-                        <span className="val-text" style={{ letterSpacing: '0.5px' }}>{rib.iban}</span>
-                        <CopyButton onClick={() => copy(rib.iban, 'IBAN')}><FaCopy /> Copier</CopyButton>
-                      </div>
-                    </RIBField>
-                    <RIBField>
-                      <span className="label">Code BIC / SWIFT</span>
-                      <div className="val-row">
-                        <span className="val-text">{rib.bic}</span>
-                        <CopyButton onClick={() => copy(rib.bic, 'BIC')}><FaCopy /> Copier</CopyButton>
-                      </div>
-                    </RIBField>
-                    <RIBField className="highlight">
-                      <span className="label">Libellé / Motif obligatoire du virement</span>
-                      <div className="val-row">
-                        <span className="val-text" style={{ color: '#166534', fontSize: '15px' }}>{ref}</span>
-                        <CopyButton onClick={() => copy(ref, 'Référence de virement')}><FaCopy /> Copier le code</CopyButton>
-                      </div>
-                    </RIBField>
-                    <RIBField>
-                      <span className="label">Montant exact à virer</span>
-                      <div className="val-row">
-                        <span className="val-text" style={{ color: '#166534', fontSize: '15px' }}>{orderTotal} €</span>
-                        <CopyButton onClick={() => copy(orderTotal, 'Montant')}><FaCopy /> Copier</CopyButton>
-                      </div>
-                    </RIBField>
-                  </RIBGrid>
-                </>
-              )}
+                );
+              })()}
+            </div>
 
-              {/* Actions rapides pour cette commande */}
-              <ActionRow>
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                  <PrimaryLink to={`/dashboard/suivi/${order.id}`}>
-                    <FaTruck size={14} /> Suivre l'avancement
-                  </PrimaryLink>
-                  <PrimaryLink to={`/dashboard/orders/${order.id}`} style={{ background: '#f8fafc', color: '#1e293b', border: '1px solid #cbd5e1' }}>
-                    Voir le récapitulatif
-                  </PrimaryLink>
-                </div>
-                <WhatsAppBtn
-                  href={`https://wa.me/${whatsappNum}?text=${encodeURIComponent(
-                    `Bonjour Brennholzkaufen,
+            {/* Liste des commandes simplifiées */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {orders.map((order) => {
+                const ref = formatTransferRef(order.id);
+                const orderTotal = order.total ? Number(order.total).toFixed(2) : '0.00';
 
-Je viens d'initier le virement bancaire pour ma commande #${ref} d'un montant de ${orderTotal} €.
-Voici mon justificatif de virement.
-Merci de me confirmer la prise en compte pour la livraison !`
-                  )}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <FaWhatsapp size={16} />
-                  <span>Envoyer mon justificatif sur WhatsApp</span>
-                </WhatsAppBtn>
-              </ActionRow>
-            </Card>
-          );
-        })}
+                return (
+                  <Card key={order.id} style={{ marginBottom: 0 }}>
+                    <OrderHeader style={{ borderBottom: 'none', paddingBottom: 0, marginBottom: 0 }}>
+                      <div>
+                        <OrderRef>
+                          <span>Commande</span>
+                          <span className="ref-badge">{ref}</span>
+                        </OrderRef>
+                        <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
+                          {order.items?.length || 1} article(s) • Passée le {order.createdAt?.seconds ? new Date(order.createdAt.seconds * 1000).toLocaleDateString('fr-FR') : 'récemment'}
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <OrderAmount>
+                          <span className="lbl">À régler :</span>
+                          <span>{orderTotal} €</span>
+                        </OrderAmount>
+                      </div>
+                    </OrderHeader>
+
+                    {/* Actions rapides pour cette commande (centrées ou empilées selon la taille) */}
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', width: '100%', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #f1f5f9' }}>
+                      <PrimaryLink to={`/dashboard/suivi/${order.id}`} style={{ flex: 1, justifyContent: 'center' }}>
+                        <FaTruck size={14} /> Suivre
+                      </PrimaryLink>
+                      <PrimaryLink to={`/dashboard/orders/${order.id}`} style={{ flex: 1, justifyContent: 'center', background: '#f8fafc', color: '#1e293b', border: '1px solid #cbd5e1' }}>
+                        Détails
+                      </PrimaryLink>
+                    </div>
+                  </Card>
+                );
+              })}
+            </div>
+          </>
+        )}
 
         {/* Étapes du processus de commande & livraison */}
         <StepsBox>
