@@ -7,15 +7,14 @@ import {
   FiEye, 
   FiEyeOff, 
   FiCheck, 
-  FiChevronDown, 
-  FiChevronUp, 
   FiTag, 
   FiShield, 
   FiLock,
   FiCheckCircle, 
-  FiShoppingBag,
   FiArrowRight,
-  FiX
+  FiX,
+  FiEdit2,
+  FiArrowLeft
 } from 'react-icons/fi';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -36,29 +35,29 @@ const PageContainer = styled.div`
   padding: 32px 16px 80px;
 
   @media (max-width: 768px) {
-    padding: 16px 12px 90px;
+    padding: 16px 12px 60px;
   }
 `;
 
 const PageHeader = styled.div`
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   text-align: center;
 
   @media (max-width: 768px) {
-    margin-bottom: 16px;
+    margin-bottom: 14px;
     text-align: left;
   }
 `;
 
 const Title = styled.h1`
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 800;
   color: #142618;
   margin: 0 0 6px 0;
   letter-spacing: -0.5px;
 
   @media (max-width: 768px) {
-    font-size: 22px;
+    font-size: 21px;
   }
 `;
 
@@ -109,41 +108,59 @@ const LoginAccordion = styled.div`
   }
 `;
 
-/* Mobile Summary Toggle Bar */
-const MobileSummaryBar = styled.div`
+/* Stepper Mobile Uniquement (2 Étapes) */
+const MobileStepper = styled.div`
   display: none;
 
-  @media (max-width: 900px) {
+  @media (max-width: 768px) {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: #f3f6f4;
+    background: #ffffff;
     border: 1px solid #e1ebe3;
-    border-radius: 10px;
-    padding: 12px 14px;
+    border-radius: 12px;
+    padding: 10px 16px;
     margin-bottom: 16px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 600;
-    color: #1e3d22;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.02);
   }
 `;
 
-const MobileSummaryDropdown = styled.div`
-  display: none;
+const StepItem = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  opacity: ${props => (props.$active || props.$done ? 1 : 0.45)};
+  transition: opacity 0.2s;
 
-  @media (max-width: 900px) {
-    display: ${props => props.$isOpen ? 'block' : 'none'};
-    background: #fff;
-    border: 1px solid #e1ebe3;
-    border-radius: 10px;
-    padding: 16px;
-    margin-bottom: 20px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  .step-num {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: ${props => (props.$done ? '#27ae60' : props.$active ? '#2c5530' : '#e2e8e4')};
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .step-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: ${props => (props.$active ? '#142618' : '#55695a')};
   }
 `;
 
-/* Layout 2 Colonnes */
+const StepDivider = styled.div`
+  flex: 1;
+  height: 2px;
+  background: ${props => (props.$done ? '#27ae60' : '#e2e8e4')};
+  margin: 0 12px;
+`;
+
+/* Layout 2 Colonnes Desktop */
 const CheckoutGrid = styled.div`
   display: grid;
   grid-template-columns: 1fr 400px;
@@ -155,9 +172,9 @@ const CheckoutGrid = styled.div`
     gap: 20px;
   }
 
-  @media (max-width: 900px) {
+  @media (max-width: 768px) {
     grid-template-columns: 1fr;
-    gap: 20px;
+    gap: 16px;
   }
 `;
 
@@ -165,17 +182,52 @@ const FormColumn = styled.div`
   display: flex;
   flex-direction: column;
   gap: 20px;
+
+  @media (max-width: 768px) {
+    gap: 16px;
+  }
+`;
+
+/* Wrappers conditionnels Mobile vs Desktop */
+const Step1Wrapper = styled.div`
+  @media (max-width: 768px) {
+    display: ${props => (props.$active ? 'block' : 'none')};
+  }
+`;
+
+const Step2Wrapper = styled.div`
+  @media (max-width: 768px) {
+    display: ${props => (props.$active ? 'block' : 'none')};
+  }
+`;
+
+const DesktopSummaryWrapper = styled.div`
+  position: sticky;
+  top: 80px;
+
+  @media (max-width: 768px) {
+    display: none;
+  }
+`;
+
+const MobileSummaryWrapper = styled.div`
+  display: none;
+
+  @media (max-width: 768px) {
+    display: block;
+    margin-top: 16px;
+  }
 `;
 
 const Card = styled.div`
   background: #ffffff;
   border: 1px solid #e8eee9;
   border-radius: 12px;
-  padding: 24px;
+  padding: 22px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
 
   @media (max-width: 600px) {
-    padding: 18px 14px;
+    padding: 16px 12px;
     border-radius: 10px;
   }
 `;
@@ -183,30 +235,73 @@ const Card = styled.div`
 const CardHeader = styled.div`
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 18px;
-  padding-bottom: 12px;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
   border-bottom: 1px solid #edf2ee;
 
+  .left-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
   h2 {
-    font-size: 17px;
+    font-size: 16px;
     font-weight: 700;
     color: #1e3d22;
     margin: 0;
   }
 
   .step-badge {
-    width: 26px;
-    height: 26px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
     background: #2c5530;
     color: #fff;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 700;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+  }
+`;
+
+/* Chip de récapitulatif adresse pour l'étape 2 sur mobile */
+const DeliveryRecapChip = styled.div`
+  display: none;
+
+  @media (max-width: 768px) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f4f8f5;
+    border: 1px solid #cfe0d3;
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 14px;
+    font-size: 13px;
+
+    .info {
+      color: #1e3d22;
+      line-height: 1.4;
+      strong { color: #142618; }
+    }
+
+    button {
+      background: none;
+      border: none;
+      color: #2c5530;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      padding: 4px 6px;
+      border-radius: 6px;
+      &:hover { background: #e3ede5; }
+    }
   }
 `;
 
@@ -312,7 +407,7 @@ const StyledTextarea = styled.textarea`
   background: #ffffff;
   outline: none;
   box-sizing: border-box;
-  min-height: 60px;
+  min-height: 55px;
   resize: vertical;
   transition: border-color 0.2s, box-shadow 0.2s;
 
@@ -333,6 +428,10 @@ const PaymentBox = styled.div`
   border-radius: 10px;
   padding: 16px;
   position: relative;
+
+  @media (max-width: 600px) {
+    padding: 14px;
+  }
 `;
 
 const PaymentBoxHeader = styled.div`
@@ -396,27 +495,22 @@ const PaymentDetails = styled.div`
 `;
 
 /* Right Column: Order Summary (Sticky) */
-const SummaryColumn = styled.div`
-  position: sticky;
-  top: 80px;
-
-  @media (max-width: 900px) {
-    position: static;
-  }
-`;
-
 const SummaryCard = styled(Card)`
-  padding: 22px;
+  padding: 20px;
   border: 1px solid #d4dfd6;
   background: #fafcfa;
+
+  @media (max-width: 600px) {
+    padding: 16px 14px;
+  }
 `;
 
 const SummaryTitle = styled.h3`
   font-size: 16px;
   font-weight: 800;
   color: #142618;
-  margin: 0 0 16px 0;
-  padding-bottom: 10px;
+  margin: 0 0 14px 0;
+  padding-bottom: 8px;
   border-bottom: 1px solid #e1ebe3;
   display: flex;
   align-items: center;
@@ -424,9 +518,9 @@ const SummaryTitle = styled.h3`
 `;
 
 const ItemList = styled.div`
-  max-height: 240px;
+  max-height: 220px;
   overflow-y: auto;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
   padding-right: 4px;
 
   &::-webkit-scrollbar {
@@ -441,8 +535,8 @@ const ItemList = styled.div`
 const ItemRow = styled.div`
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 8px 0;
+  gap: 10px;
+  padding: 7px 0;
   border-bottom: 1px dashed #e8efe9;
 
   &:last-child {
@@ -452,8 +546,8 @@ const ItemRow = styled.div`
 
 const ItemThumb = styled.div`
   position: relative;
-  width: 44px;
-  height: 44px;
+  width: 42px;
+  height: 42px;
   border-radius: 6px;
   background: #fff;
   border: 1px solid #d4dfd6;
@@ -514,7 +608,7 @@ const ItemPrice = styled.div`
 const CouponBox = styled.div`
   display: flex;
   gap: 8px;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 `;
 
 const CouponInput = styled.input`
@@ -585,7 +679,7 @@ const LineRow = styled.div`
   justify-content: space-between;
   font-size: 13px;
   color: #4f6655;
-  margin-bottom: 8px;
+  margin-bottom: 7px;
 
   &.discount {
     color: #166534;
@@ -593,8 +687,8 @@ const LineRow = styled.div`
   }
 
   &.total {
-    margin-top: 12px;
-    padding-top: 12px;
+    margin-top: 10px;
+    padding-top: 10px;
     border-top: 2px solid #dce5de;
     font-size: 18px;
     font-weight: 800;
@@ -610,7 +704,7 @@ const TermsWrapper = styled.label`
   font-size: 12px;
   color: #4b5e50;
   line-height: 1.45;
-  margin: 16px 0;
+  margin: 14px 0;
   cursor: pointer;
 
   input[type="checkbox"] {
@@ -628,7 +722,7 @@ const TermsWrapper = styled.label`
   }
 `;
 
-/* Bouton Soumission */
+/* Boutons d'action */
 const SubmitButton = styled.button`
   width: 100%;
   height: 50px;
@@ -665,14 +759,67 @@ const SubmitButton = styled.button`
   }
 `;
 
+const NextStepButton = styled.button`
+  width: 100%;
+  height: 50px;
+  background: #2c5530;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  margin-top: 14px;
+  box-shadow: 0 4px 14px rgba(44, 85, 48, 0.25);
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #1b381e;
+    transform: translateY(-1px);
+  }
+
+  @media (min-width: 769px) {
+    display: none;
+  }
+`;
+
+const BackStepButton = styled.button`
+  display: none;
+
+  @media (max-width: 768px) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: none;
+    border: none;
+    color: #55695a;
+    font-size: 13px;
+    font-weight: 600;
+    margin-top: 14px;
+    width: 100%;
+    cursor: pointer;
+    padding: 6px;
+
+    &:hover {
+      color: #142618;
+      text-decoration: underline;
+    }
+  }
+`;
+
 /* Reassurance Badges */
 const TrustList = styled.div`
-  margin-top: 16px;
-  padding-top: 14px;
+  margin-top: 14px;
+  padding-top: 12px;
   border-top: 1px solid #edf2ee;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 7px;
 `;
 
 const TrustItem = styled.div`
@@ -698,6 +845,9 @@ const Checkout = () => {
   const { user, userData } = useAuth();
   const localizedNavigate = useLocalizedNavigate();
 
+  // Étape courante sur mobile (1: Livraison, 2: Paiement & Validation)
+  const [mobileStep, setMobileStep] = useState(1);
+
   // Formulaire d'expédition & facturation
   const [formData, setFormData] = useState({
     firstName: '',
@@ -718,6 +868,9 @@ const Checkout = () => {
   const [loginFields, setLoginFields] = useState({ email: '', password: '' });
   const [loginLoading, setLoginLoading] = useState(false);
 
+  // Accordéon instructions spécifiques chauffeur
+  const [showNotes, setShowNotes] = useState(false);
+
   // Création de compte facultative pour invité
   const [createAccount, setCreateAccount] = useState(false);
   const [password, setPassword] = useState('');
@@ -728,9 +881,6 @@ const Checkout = () => {
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [discount, setDiscount] = useState(0);
   const [applyingCoupon, setApplyingCoupon] = useState(false);
-
-  // Accordéon récapitulatif mobile
-  const [isMobileSummaryOpen, setIsMobileSummaryOpen] = useState(false);
 
   // Conditions & validation
   const [acceptTerms, setAcceptTerms] = useState(true);
@@ -770,6 +920,30 @@ const Checkout = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  // Passer à l'étape 2 sur mobile
+  const handleProceedToPayment = () => {
+    if (!formData.firstName.trim() || !formData.lastName.trim()) {
+      return toast.error('Veuillez renseigner vos prénom et nom.');
+    }
+    if (!formData.email.trim() || !formData.email.includes('@')) {
+      return toast.error('Veuillez renseigner une adresse email valide.');
+    }
+    if (!formData.phone.trim()) {
+      return toast.error('Veuillez renseigner votre numéro de téléphone.');
+    }
+    if (!formData.address.trim()) {
+      return toast.error('Veuillez renseigner votre adresse de livraison complète.');
+    }
+    if (!formData.postalCode.trim() || !formData.city.trim()) {
+      return toast.error('Veuillez renseigner votre code postal et ville.');
+    }
+
+    setMobileStep(2);
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
   // Connexion rapide en accordéon
   const handleQuickLogin = async (e) => {
     e.preventDefault();
@@ -788,7 +962,7 @@ const Checkout = () => {
       toast.success('Connexion réussie ! Vos données ont été chargées.');
       setIsLoginOpen(false);
       setLoginLoading(false);
-    } catch (err) {
+    } catch {
       toast.error('Erreur lors de la connexion');
       setLoginLoading(false);
     }
@@ -830,7 +1004,7 @@ const Checkout = () => {
     toast.success('Code promo retiré');
   };
 
-  // Validation & Enregistrement de commande
+  // Validation finale & Enregistrement de commande
   const handleSubmit = async (e) => {
     if (e && typeof e.preventDefault === 'function') {
       e.preventDefault();
@@ -842,15 +1016,19 @@ const Checkout = () => {
 
     // Validation des champs essentiels
     if (!formData.firstName.trim() || !formData.lastName.trim()) {
-      return toast.error('Veuillez renseigner vos nom et prénom.');
+      setMobileStep(1);
+      return toast.error('Veuillez renseigner vos prénom et nom.');
     }
     if (!formData.email.trim() || !formData.email.includes('@')) {
+      setMobileStep(1);
       return toast.error('Veuillez renseigner une adresse email valide.');
     }
     if (!formData.address.trim()) {
+      setMobileStep(1);
       return toast.error('Veuillez renseigner votre adresse de livraison complète.');
     }
     if (!formData.postalCode.trim() || !formData.city.trim()) {
+      setMobileStep(1);
       return toast.error('Veuillez renseigner votre code postal et ville.');
     }
 
@@ -864,6 +1042,7 @@ const Checkout = () => {
       if (!currentUser && createAccount) {
         if (!password || password.length < 6) {
           setIsSubmitting(false);
+          setMobileStep(1);
           return toast.error('Le mot de passe doit comporter au moins 6 caractères.');
         }
         const displayName = `${formData.firstName} ${formData.lastName}`.trim();
@@ -897,7 +1076,7 @@ const Checkout = () => {
         },
         delivery: {
           method: 'standard',
-          label: 'Livraison spécialisée avec chariot tout-terrain',
+          label: 'Livraison soignée avec chariot tout-terrain',
           cost: shipping
         },
         payment: {
@@ -945,7 +1124,7 @@ const Checkout = () => {
       } else {
         toast.error(result.error || 'Erreur lors de la validation de la commande');
       }
-    } catch (err) {
+    } catch {
       toast.error('Une erreur inattendue est survenue.');
     } finally {
       setIsSubmitting(false);
@@ -981,6 +1160,142 @@ const Checkout = () => {
       </PageContainer>
     );
   }
+
+  // Bloc réutilisable pour le récapitulatif de commande (utilisé sur desktop sticky & mobile étape 2)
+  const renderOrderSummaryContent = () => (
+    <SummaryCard>
+      <SummaryTitle>
+        <span>Récapitulatif de la commande</span>
+        <span style={{ fontSize: 13, fontWeight: 600, color: '#4a6150' }}>{totalItemsCount} article{totalItemsCount > 1 ? 's' : ''}</span>
+      </SummaryTitle>
+
+      {/* Liste des articles */}
+      <ItemList>
+        {cartItems.map((item) => (
+          <ItemRow key={item.id}>
+            <ItemThumb>
+              <img src={item.image || 'https://picsum.photos/seed/wood/100/100'} alt={item.name} />
+              <span className="qty-badge">{item.quantity}</span>
+            </ItemThumb>
+            <ItemDetails>
+              <div className="name" title={item.name}>{item.name}</div>
+              <div className="meta">Qté : {item.quantity} × {Number(item.price || 0).toFixed(2)} €</div>
+            </ItemDetails>
+            <ItemPrice>{(Number(item.price || 0) * (item.quantity || 1)).toFixed(2)} €</ItemPrice>
+          </ItemRow>
+        ))}
+      </ItemList>
+
+      {/* Code promo compact */}
+      {appliedCoupon ? (
+        <AppliedCouponBadge>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <FiTag size={14} />
+            Code <strong>{appliedCoupon.code}</strong> (-{discount.toFixed(2)} €)
+          </span>
+          <button type="button" onClick={handleRemoveCoupon} title="Supprimer le code">
+            <FiX />
+          </button>
+        </AppliedCouponBadge>
+      ) : (
+        <CouponBox>
+          <CouponInput
+            type="text"
+            placeholder="Code promo"
+            value={couponCode}
+            onChange={(e) => setCouponCode(e.target.value)}
+          />
+          <CouponButton 
+            type="button" 
+            onClick={handleApplyCoupon}
+            disabled={applyingCoupon || !couponCode.trim()}
+          >
+            {applyingCoupon ? '...' : 'Appliquer'}
+          </CouponButton>
+        </CouponBox>
+      )}
+
+      {/* Lignes de décompte */}
+      <LineRow>
+        <span>Sous-total articles</span>
+        <span>{subtotal.toFixed(2)} €</span>
+      </LineRow>
+
+      <LineRow>
+        <span>Livraison tout-terrain sous abri</span>
+        <span>
+          {shipping === 0 ? (
+            <strong style={{ color: '#27ae60' }}>Offerte</strong>
+          ) : (
+            `${shipping.toFixed(2)} €`
+          )}
+        </span>
+      </LineRow>
+
+      {discount > 0 && (
+        <LineRow className="discount">
+          <span>Remise coupon</span>
+          <span>-{discount.toFixed(2)} €</span>
+        </LineRow>
+      )}
+
+      <LineRow className="total">
+        <span>Total TTC</span>
+        <span>{total.toFixed(2)} €</span>
+      </LineRow>
+
+      {/* Conditions Générales */}
+      <TermsWrapper>
+        <input
+          type="checkbox"
+          checked={acceptTerms}
+          onChange={(e) => setAcceptTerms(e.target.checked)}
+          required
+        />
+        <span>
+          J'accepte les <Link to="/terms" target="_blank">Conditions Générales de Vente</Link> et la <Link to="/privacy" target="_blank">Politique de Confidentialité</Link>. <span style={{ color: '#dc2626' }}>*</span>
+        </span>
+      </TermsWrapper>
+
+      {/* Bouton de confirmation principal */}
+      <SubmitButton
+        type="button"
+        onClick={handleSubmit}
+        disabled={isSubmitting}
+      >
+        {isSubmitting ? (
+          <>Validation en cours...</>
+        ) : (
+          <>
+            <span>Confirmer la commande ({total.toFixed(2)} €)</span>
+            <FiArrowRight size={18} />
+          </>
+        )}
+      </SubmitButton>
+
+      {/* Bouton retour étape 1 sur mobile */}
+      <BackStepButton type="button" onClick={() => setMobileStep(1)}>
+        <FiArrowLeft size={14} />
+        <span>Modifier mes coordonnées & adresse</span>
+      </BackStepButton>
+
+      {/* Badges de réassurance */}
+      <TrustList>
+        <TrustItem>
+          <FiTruck size={15} />
+          <span>Livraison directe sous abri par camion avec chariot</span>
+        </TrustItem>
+        <TrustItem>
+          <FiShield size={15} />
+          <span>Virement bancaire sécurisé sans transmission de données bancaires</span>
+        </TrustItem>
+        <TrustItem>
+          <FiCheckCircle size={15} />
+          <span>Bois 100% fendu prêt à l'emploi & granulés certifiés DINplus</span>
+        </TrustItem>
+      </TrustList>
+    </SummaryCard>
+  );
 
   return (
     <PageContainer>
@@ -1069,431 +1384,335 @@ const Checkout = () => {
         )}
       </PageHeader>
 
-      {/* Accordéon mobile récapitulatif synthétique */}
-      <MobileSummaryBar onClick={() => setIsMobileSummaryOpen(!isMobileSummaryOpen)}>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <FiShoppingBag color="#2c5530" size={18} />
-          <span>Panier ({totalItemsCount} articles) • <strong>{total.toFixed(2)} €</strong></span>
-        </span>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#2c5530' }}>
-          {isMobileSummaryOpen ? 'Masquer' : 'Voir détail'}
-          {isMobileSummaryOpen ? <FiChevronUp /> : <FiChevronDown />}
-        </span>
-      </MobileSummaryBar>
+      {/* STEPPER SUR MOBILE UNIQUEMENT (2 ÉTAPES) */}
+      <MobileStepper>
+        <StepItem 
+          $active={mobileStep === 1} 
+          $done={mobileStep > 1}
+          onClick={() => setMobileStep(1)}
+        >
+          <div className="step-num">{mobileStep > 1 ? <FiCheck size={12} /> : '1'}</div>
+          <span className="step-label">1. Livraison</span>
+        </StepItem>
 
-      <MobileSummaryDropdown $isOpen={isMobileSummaryOpen}>
-        <ItemList>
-          {cartItems.map((item) => (
-            <ItemRow key={item.id}>
-              <ItemThumb>
-                <img src={item.image || 'https://picsum.photos/seed/wood/100/100'} alt={item.name} />
-                <span className="qty-badge">{item.quantity}</span>
-              </ItemThumb>
-              <ItemDetails>
-                <div className="name">{item.name}</div>
-                <div className="meta">Qté : {item.quantity} × {Number(item.price || 0).toFixed(2)} €</div>
-              </ItemDetails>
-              <ItemPrice>{(Number(item.price || 0) * (item.quantity || 1)).toFixed(2)} €</ItemPrice>
-            </ItemRow>
-          ))}
-        </ItemList>
-        <LineRow>
-          <span>Sous-total</span>
-          <span>{subtotal.toFixed(2)} €</span>
-        </LineRow>
-        <LineRow>
-          <span>Livraison</span>
-          <span>{shipping === 0 ? <strong style={{ color: '#27ae60' }}>Offerte</strong> : `${shipping.toFixed(2)} €`}</span>
-        </LineRow>
-        {discount > 0 && (
-          <LineRow className="discount">
-            <span>Remise appliquée</span>
-            <span>-{discount.toFixed(2)} €</span>
-          </LineRow>
-        )}
-        <LineRow className="total">
-          <span>Total</span>
-          <span>{total.toFixed(2)} €</span>
-        </LineRow>
-      </MobileSummaryDropdown>
+        <StepDivider $done={mobileStep > 1} />
+
+        <StepItem 
+          $active={mobileStep === 2} 
+          $done={false}
+          onClick={() => {
+            if (mobileStep === 1) handleProceedToPayment();
+          }}
+        >
+          <div className="step-num">2</div>
+          <span className="step-label">2. Paiement & Total</span>
+        </StepItem>
+      </MobileStepper>
 
       {/* Grille Principale Tout-en-un */}
       <CheckoutGrid>
         {/* Colonne Formulaire (Gauche) */}
         <FormColumn>
-          {/* Étape 1 : Coordonnées & Livraison */}
-          <Card>
-            <CardHeader>
-              <div className="step-badge">1</div>
-              <h2>Coordonnées & Adresse de livraison</h2>
-            </CardHeader>
 
-            {/* Prénom & Nom */}
-            <FormGroup $cols="1fr 1fr" $mobileCols="1fr 1fr">
-              <InputWrapper>
-                <label>Prénom <span className="req">*</span></label>
-                <StyledInput
-                  type="text"
-                  name="firstName"
-                  autoComplete="given-name"
-                  placeholder="Jean"
-                  value={formData.firstName}
-                  onChange={handleChange}
-                  required
-                />
-              </InputWrapper>
-              <InputWrapper>
-                <label>Nom <span className="req">*</span></label>
-                <StyledInput
-                  type="text"
-                  name="lastName"
-                  autoComplete="family-name"
-                  placeholder="Dupont"
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  required
-                />
-              </InputWrapper>
-            </FormGroup>
+          {/* ÉTAPE 1 : COORDONNÉES & ADRESSE DE LIVRAISON */}
+          <Step1Wrapper $active={mobileStep === 1}>
+            <Card>
+              <CardHeader>
+                <div className="left-head">
+                  <div className="step-badge">1</div>
+                  <h2>Coordonnées & Adresse de livraison</h2>
+                </div>
+              </CardHeader>
 
-            {/* Email & Téléphone */}
-            <FormGroup $cols="1.2fr 1fr" $mobileCols="1fr">
-              <InputWrapper>
-                <label>Adresse email <span className="req">*</span></label>
-                <StyledInput
-                  type="email"
-                  name="email"
-                  autoComplete="email"
-                  placeholder="jean.dupont@email.com"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                />
-              </InputWrapper>
-              <InputWrapper>
-                <label>Téléphone <span className="req">*</span></label>
-                <StyledInput
-                  type="tel"
-                  name="phone"
-                  autoComplete="tel"
-                  placeholder="06 12 34 56 78"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  required
-                />
-              </InputWrapper>
-            </FormGroup>
-
-            {/* Adresse */}
-            <FormGroup $cols="1fr">
-              <InputWrapper>
-                <label>Adresse de livraison complète <span className="req">*</span></label>
-                <StyledInput
-                  type="text"
-                  name="address"
-                  autoComplete="street-address"
-                  placeholder="Numéro et nom de rue"
-                  value={formData.address}
-                  onChange={handleChange}
-                  required
-                />
-              </InputWrapper>
-            </FormGroup>
-
-            {/* Complément d'adresse */}
-            <FormGroup $cols="1fr">
-              <InputWrapper>
-                <label>Complément d'adresse <span className="opt">(Bâtiment, étage, etc.)</span></label>
-                <StyledInput
-                  type="text"
-                  name="address2"
-                  placeholder="Appartement, lieu-dit, digicode..."
-                  value={formData.address2}
-                  onChange={handleChange}
-                />
-              </InputWrapper>
-            </FormGroup>
-
-            {/* Code Postal, Ville & Pays */}
-            <FormGroup $cols="1fr 1.5fr 1fr" $mobileCols="1fr 1fr">
-              <InputWrapper>
-                <label>Code postal <span className="req">*</span></label>
-                <StyledInput
-                  type="text"
-                  name="postalCode"
-                  autoComplete="postal-code"
-                  placeholder="67000"
-                  value={formData.postalCode}
-                  onChange={handleChange}
-                  required
-                />
-              </InputWrapper>
-              <InputWrapper>
-                <label>Ville <span className="req">*</span></label>
-                <StyledInput
-                  type="text"
-                  name="city"
-                  autoComplete="address-level2"
-                  placeholder="Strasbourg"
-                  value={formData.city}
-                  onChange={handleChange}
-                  required
-                />
-              </InputWrapper>
-              <InputWrapper style={{ gridColumn: 'span 1' }}>
-                <label>Pays <span className="req">*</span></label>
-                <StyledSelect
-                  name="country"
-                  value={formData.country}
-                  onChange={handleChange}
-                >
-                  <option value="France">France</option>
-                  <option value="Allemagne">Allemagne</option>
-                  <option value="Belgique">Belgique</option>
-                  <option value="Luxembourg">Luxembourg</option>
-                  <option value="Suisse">Suisse</option>
-                </StyledSelect>
-              </InputWrapper>
-            </FormGroup>
-
-            {/* Instructions de livraison */}
-            <div style={{ marginTop: 10 }}>
-              <InputWrapper>
-                <label>Instructions spécifiques pour le chauffeur <span className="opt">(facultatif)</span></label>
-                <StyledTextarea
-                  name="notes"
-                  placeholder="Ex : Accès facile sous abri, largeur portail 3m, déposer le long du garage..."
-                  value={formData.notes}
-                  onChange={handleChange}
-                />
-              </InputWrapper>
-            </div>
-
-            {/* Création de compte facultative pour invité */}
-            {!user && (
-              <div style={{ marginTop: 14, paddingTop: 12, borderTop: '1px solid #edf2ee' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#334d3a', cursor: 'pointer', fontWeight: 600 }}>
-                  <input
-                    type="checkbox"
-                    checked={createAccount}
-                    onChange={(e) => setCreateAccount(e.target.checked)}
-                    style={{ accentColor: '#2c5530', width: 16, height: 16 }}
+              {/* Prénom & Nom */}
+              <FormGroup $cols="1fr 1fr" $mobileCols="1fr 1fr">
+                <InputWrapper>
+                  <label>Prénom <span className="req">*</span></label>
+                  <StyledInput
+                    type="text"
+                    name="firstName"
+                    autoComplete="given-name"
+                    placeholder="Jean"
+                    value={formData.firstName}
+                    onChange={handleChange}
+                    required
                   />
-                  <span>Créer un compte pour suivre mes futures commandes plus tard</span>
-                </label>
+                </InputWrapper>
+                <InputWrapper>
+                  <label>Nom <span className="req">*</span></label>
+                  <StyledInput
+                    type="text"
+                    name="lastName"
+                    autoComplete="family-name"
+                    placeholder="Dupont"
+                    value={formData.lastName}
+                    onChange={handleChange}
+                    required
+                  />
+                </InputWrapper>
+              </FormGroup>
 
-                {createAccount && (
-                  <div style={{ marginTop: 10, maxWidth: 320, animation: 'fadeIn 0.2s ease-in-out' }}>
-                    <InputWrapper>
-                      <label>Mot de passe souhaité <span className="req">*</span></label>
-                      <div style={{ position: 'relative' }}>
-                        <StyledInput
-                          type={showPassword ? 'text' : 'password'}
-                          placeholder="6 caractères minimum"
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          style={{ paddingRight: 40 }}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          style={{
-                            position: 'absolute',
-                            right: 10,
-                            top: '50%',
-                            transform: 'translateY(-50%)',
-                            background: 'none',
-                            border: 'none',
-                            color: '#667c6c',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center'
-                          }}
-                        >
-                          {showPassword ? <FiEyeOff size={16} /> : <FiEye size={16} />}
-                        </button>
-                      </div>
-                    </InputWrapper>
-                  </div>
+              {/* Email & Téléphone */}
+              <FormGroup $cols="1.2fr 1fr" $mobileCols="1fr">
+                <InputWrapper>
+                  <label>Adresse email <span className="req">*</span></label>
+                  <StyledInput
+                    type="email"
+                    name="email"
+                    autoComplete="email"
+                    placeholder="jean.dupont@email.com"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                  />
+                </InputWrapper>
+                <InputWrapper>
+                  <label>Téléphone <span className="req">*</span></label>
+                  <StyledInput
+                    type="tel"
+                    name="phone"
+                    autoComplete="tel"
+                    placeholder="06 12 34 56 78"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    required
+                  />
+                </InputWrapper>
+              </FormGroup>
+
+              {/* Adresse */}
+              <FormGroup $cols="1fr">
+                <InputWrapper>
+                  <label>Adresse de livraison complète <span className="req">*</span></label>
+                  <StyledInput
+                    type="text"
+                    name="address"
+                    autoComplete="street-address"
+                    placeholder="Numéro et nom de rue"
+                    value={formData.address}
+                    onChange={handleChange}
+                    required
+                  />
+                </InputWrapper>
+              </FormGroup>
+
+              {/* Complément d'adresse */}
+              <FormGroup $cols="1fr">
+                <InputWrapper>
+                  <label>Complément d'adresse <span className="opt">(Bâtiment, étage, etc.)</span></label>
+                  <StyledInput
+                    type="text"
+                    name="address2"
+                    placeholder="Appartement, lieu-dit, digicode..."
+                    value={formData.address2}
+                    onChange={handleChange}
+                  />
+                </InputWrapper>
+              </FormGroup>
+
+              {/* Code Postal, Ville & Pays */}
+              <FormGroup $cols="1fr 1.5fr 1fr" $mobileCols="1fr 1fr">
+                <InputWrapper>
+                  <label>Code postal <span className="req">*</span></label>
+                  <StyledInput
+                    type="text"
+                    name="postalCode"
+                    autoComplete="postal-code"
+                    placeholder="67000"
+                    value={formData.postalCode}
+                    onChange={handleChange}
+                    required
+                  />
+                </InputWrapper>
+                <InputWrapper>
+                  <label>Ville <span className="req">*</span></label>
+                  <StyledInput
+                    type="text"
+                    name="city"
+                    autoComplete="address-level2"
+                    placeholder="Strasbourg"
+                    value={formData.city}
+                    onChange={handleChange}
+                    required
+                  />
+                </InputWrapper>
+                <InputWrapper style={{ gridColumn: 'span 1' }}>
+                  <label>Pays <span className="req">*</span></label>
+                  <StyledSelect
+                    name="country"
+                    value={formData.country}
+                    onChange={handleChange}
+                  >
+                    <option value="France">France</option>
+                    <option value="Allemagne">Allemagne</option>
+                    <option value="Belgique">Belgique</option>
+                    <option value="Luxembourg">Luxembourg</option>
+                    <option value="Suisse">Suisse</option>
+                  </StyledSelect>
+                </InputWrapper>
+              </FormGroup>
+
+              {/* Accordéon instructions chauffeur (replié par défaut pour gagner de la place) */}
+              <div style={{ marginTop: 8 }}>
+                {!showNotes ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowNotes(true)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#2c5530',
+                      fontSize: 13,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      padding: '4px 0',
+                      textDecoration: 'underline'
+                    }}
+                  >
+                    + Ajouter une instruction pour le chauffeur (optionnel)
+                  </button>
+                ) : (
+                  <InputWrapper>
+                    <label>Instructions spécifiques chauffeur <span className="opt">(accès, portail...)</span></label>
+                    <StyledTextarea
+                      name="notes"
+                      placeholder="Ex : Accès facile sous abri, largeur portail 3m, déposer le long du garage..."
+                      value={formData.notes}
+                      onChange={handleChange}
+                    />
+                  </InputWrapper>
                 )}
               </div>
-            )}
-          </Card>
 
-          {/* Étape 2 : Mode de Paiement Unique (Virement Bancaire) */}
-          <Card>
-            <CardHeader>
-              <div className="step-badge">2</div>
-              <h2>Mode de paiement</h2>
-            </CardHeader>
+              {/* Création de compte facultative pour invité */}
+              {!user && (
+                <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid #edf2ee' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#334d3a', cursor: 'pointer', fontWeight: 600 }}>
+                    <input
+                      type="checkbox"
+                      checked={createAccount}
+                      onChange={(e) => setCreateAccount(e.target.checked)}
+                      style={{ accentColor: '#2c5530', width: 16, height: 16 }}
+                    />
+                    <span>Créer un compte pour suivre mes commandes plus tard</span>
+                  </label>
 
-            <PaymentBox>
-              <PaymentBoxHeader>
-                <PaymentOptionTitle>
-                  <span className="radio-check">
-                    <FiCheck size={12} />
-                  </span>
-                  <span>Virement bancaire (SEPA)</span>
-                </PaymentOptionTitle>
-                <SecurityBadge>
-                  <FiShield size={12} />
-                  100% Sécurisé
-                </SecurityBadge>
-              </PaymentBoxHeader>
+                  {createAccount && (
+                    <div style={{ marginTop: 10, maxWidth: 320, animation: 'fadeIn 0.2s ease-in-out' }}>
+                      <InputWrapper>
+                        <label>Mot de passe souhaité <span className="req">*</span></label>
+                        <div style={{ position: 'relative' }}>
+                          <StyledInput
+                            type={showPassword ? 'text' : 'password'}
+                            placeholder="6 caractères minimum"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            style={{ paddingRight: 40 }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            style={{
+                              position: 'absolute',
+                              right: 10,
+                              top: '50%',
+                              transform: 'translateY(-50%)',
+                              background: 'none',
+                              border: 'none',
+                              color: '#667c6c',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center'
+                            }}
+                          >
+                            {showPassword ? <FiEyeOff size={16} /> : <FiEye size={16} />}
+                          </button>
+                        </div>
+                      </InputWrapper>
+                    </div>
+                  )}
+                </div>
+              )}
 
-              <PaymentDetails>
-                <p>
-                  <strong>Procédure simple et sécurisée :</strong> Vous effectuerez le virement directement depuis l'application de votre banque sans transmettre vos identifiants.
-                </p>
-                <p style={{ marginTop: 6 }}>
-                  Nos coordonnées bancaires officielles (<strong>IBAN, BIC, Titulaire</strong>) et votre <strong>référence de virement unique</strong> vous seront affichées dès la confirmation ci-dessous.
-                </p>
-                <p style={{ marginTop: 6, color: '#166534', fontWeight: 600 }}>
-                  ✓ Vos produits sont immédiatement réservés et l'expédition est enclenchée dès réception.
-                </p>
-              </PaymentDetails>
+              {/* Bouton de passage à l'étape 2 (VISIBLE SUR MOBILE UNIQUEMENT) */}
+              <NextStepButton type="button" onClick={handleProceedToPayment}>
+                <span>Passer au paiement (Étape 2/2)</span>
+                <FiArrowRight size={18} />
+              </NextStepButton>
+            </Card>
+          </Step1Wrapper>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 12, color: '#4a6150', fontSize: 12 }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <FiLock size={13} color="#2c5530" /> Chiffrement SSL 256-bit
-                </span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <FiCheckCircle size={13} color="#27ae60" /> Sans frais additionnels
-                </span>
+          {/* ÉTAPE 2 : PAIEMENT (SUR MOBILE S'AFFICHE QUAND mobileStep === 2, SUR DESKTOP TOUJOURS VISIBLE) */}
+          <Step2Wrapper $active={mobileStep === 2}>
+            {/* Sur mobile, rappel de l'adresse choisie avec bouton modifier */}
+            <DeliveryRecapChip>
+              <div className="info">
+                <div>Livraison : <strong>{formData.firstName || 'Client'} {formData.lastName}</strong></div>
+                <div style={{ color: '#55695a', fontSize: 12 }}>{formData.address || 'Adresse renseignée'}, {formData.postalCode} {formData.city}</div>
               </div>
-            </PaymentBox>
-          </Card>
+              <button type="button" onClick={() => setMobileStep(1)}>
+                <FiEdit2 size={13} />
+                <span>Modifier</span>
+              </button>
+            </DeliveryRecapChip>
+
+            <Card>
+              <CardHeader>
+                <div className="left-head">
+                  <div className="step-badge">2</div>
+                  <h2>Mode de paiement</h2>
+                </div>
+              </CardHeader>
+
+              <PaymentBox>
+                <PaymentBoxHeader>
+                  <PaymentOptionTitle>
+                    <span className="radio-check">
+                      <FiCheck size={12} />
+                    </span>
+                    <span>Virement bancaire (SEPA)</span>
+                  </PaymentOptionTitle>
+                  <SecurityBadge>
+                    <FiShield size={12} />
+                    100% Sécurisé
+                  </SecurityBadge>
+                </PaymentBoxHeader>
+
+                <PaymentDetails>
+                  <p>
+                    <strong>Simple et sans risque :</strong> Vous effectuerez le virement depuis votre application bancaire sans jamais transmettre vos identifiants bancaires sur Internet.
+                  </p>
+                  <p style={{ marginTop: 6 }}>
+                    Nos coordonnées officielles (<strong>IBAN, BIC et Titulaire</strong>) ainsi que votre <strong>référence de virement</strong> s'afficheront sur la page suivante immédiatement après confirmation.
+                  </p>
+                  <p style={{ marginTop: 6, color: '#166534', fontWeight: 600 }}>
+                    ✓ Vos produits sont réservés immédiatement et l'expédition s'enclenche dès validation bancaire.
+                  </p>
+                </PaymentDetails>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 12, color: '#4a6150', fontSize: 12, flexWrap: 'wrap' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <FiLock size={13} color="#2c5530" /> Chiffrement SSL 256-bit
+                  </span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <FiCheckCircle size={13} color="#27ae60" /> Aucun frais additionnel
+                  </span>
+                </div>
+              </PaymentBox>
+            </Card>
+
+            {/* SUR MOBILE : le récapitulatif avec total et bouton de confirmation est directement dans l'étape 2 */}
+            <MobileSummaryWrapper>
+              {renderOrderSummaryContent()}
+            </MobileSummaryWrapper>
+          </Step2Wrapper>
+
         </FormColumn>
 
-        {/* Colonne Récapitulatif Sticky (Droite) */}
-        <SummaryColumn>
-          <SummaryCard>
-            <SummaryTitle>
-              <span>Récapitulatif de la commande</span>
-              <span style={{ fontSize: 13, fontWeight: 600, color: '#4a6150' }}>{totalItemsCount} article{totalItemsCount > 1 ? 's' : ''}</span>
-            </SummaryTitle>
-
-            {/* Liste des articles */}
-            <ItemList>
-              {cartItems.map((item) => (
-                <ItemRow key={item.id}>
-                  <ItemThumb>
-                    <img src={item.image || 'https://picsum.photos/seed/wood/100/100'} alt={item.name} />
-                    <span className="qty-badge">{item.quantity}</span>
-                  </ItemThumb>
-                  <ItemDetails>
-                    <div className="name" title={item.name}>{item.name}</div>
-                    <div className="meta">Qté : {item.quantity} × {Number(item.price || 0).toFixed(2)} €</div>
-                  </ItemDetails>
-                  <ItemPrice>{(Number(item.price || 0) * (item.quantity || 1)).toFixed(2)} €</ItemPrice>
-                </ItemRow>
-              ))}
-            </ItemList>
-
-            {/* Code promo compact */}
-            {appliedCoupon ? (
-              <AppliedCouponBadge>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <FiTag size={14} />
-                  Code <strong>{appliedCoupon.code}</strong> (-{discount.toFixed(2)} €)
-                </span>
-                <button type="button" onClick={handleRemoveCoupon} title="Supprimer le code">
-                  <FiX />
-                </button>
-              </AppliedCouponBadge>
-            ) : (
-              <CouponBox>
-                <CouponInput
-                  type="text"
-                  placeholder="Code promo"
-                  value={couponCode}
-                  onChange={(e) => setCouponCode(e.target.value)}
-                />
-                <CouponButton 
-                  type="button" 
-                  onClick={handleApplyCoupon}
-                  disabled={applyingCoupon || !couponCode.trim()}
-                >
-                  {applyingCoupon ? '...' : 'Appliquer'}
-                </CouponButton>
-              </CouponBox>
-            )}
-
-            {/* Lignes de décompte */}
-            <LineRow>
-              <span>Sous-total articles</span>
-              <span>{subtotal.toFixed(2)} €</span>
-            </LineRow>
-
-            <LineRow>
-              <span>Frais de livraison</span>
-              <span>
-                {shipping === 0 ? (
-                  <strong style={{ color: '#27ae60' }}>Offerte</strong>
-                ) : (
-                  `${shipping.toFixed(2)} €`
-                )}
-              </span>
-            </LineRow>
-
-            {discount > 0 && (
-              <LineRow className="discount">
-                <span>Remise coupon</span>
-                <span>-{discount.toFixed(2)} €</span>
-              </LineRow>
-            )}
-
-            <LineRow className="total">
-              <span>Total TTC</span>
-              <span>{total.toFixed(2)} €</span>
-            </LineRow>
-
-            {/* Conditions Générales */}
-            <TermsWrapper>
-              <input
-                type="checkbox"
-                checked={acceptTerms}
-                onChange={(e) => setAcceptTerms(e.target.checked)}
-                required
-              />
-              <span>
-                J'accepte les <Link to="/terms" target="_blank">Conditions Générales de Vente</Link> et reconnais avoir pris connaissance de la <Link to="/privacy" target="_blank">Politique de Confidentialité</Link>. <span style={{ color: '#dc2626' }}>*</span>
-              </span>
-            </TermsWrapper>
-
-            {/* Bouton de confirmation principal */}
-            <SubmitButton
-              type="button"
-              onClick={handleSubmit}
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? (
-                <>Validation en cours...</>
-              ) : (
-                <>
-                  <span>Confirmer la commande</span>
-                  <FiArrowRight size={18} />
-                </>
-              )}
-            </SubmitButton>
-
-            {/* Badges de réassurance */}
-            <TrustList>
-              <TrustItem>
-                <FiTruck size={15} />
-                <span>Livraison soignée avec chariot tout-terrain directement sous abri</span>
-              </TrustItem>
-              <TrustItem>
-                <FiShield size={15} />
-                <span>Paiement sécurisé par virement bancaire garanti</span>
-              </TrustItem>
-              <TrustItem>
-                <FiCheckCircle size={15} />
-                <span>Bois 100% sec haute performance & granulés certifiés DINplus</span>
-              </TrustItem>
-            </TrustList>
-          </SummaryCard>
-        </SummaryColumn>
+        {/* Colonne Récapitulatif Sticky (SUR DESKTOP UNIQUEMENT) */}
+        <DesktopSummaryWrapper>
+          {renderOrderSummaryContent()}
+        </DesktopSummaryWrapper>
       </CheckoutGrid>
     </PageContainer>
   );
