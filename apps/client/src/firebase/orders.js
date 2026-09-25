@@ -10,7 +10,8 @@ import {
   updateDoc,
   
 } from 'firebase/firestore';
-import { db } from './config';
+import { db, auth } from './config';
+import { signInAnonymously } from 'firebase/auth';
 
 // Remove unsupported Firestore values: undefined/NaN; clean nested objects/arrays
 const sanitizeForFirestore = (input) => {
@@ -38,10 +39,24 @@ const sanitizeForFirestore = (input) => {
 // Créer une commande
 export const createOrder = async (orderData) => {
   try {
+    // Si l'utilisateur n'est pas connecté (invité), tenter une session anonyme si les règles Firebase l'exigent
+    if (!auth.currentUser) {
+      try {
+        await signInAnonymously(auth);
+      } catch (anonErr) {
+        // Si anonymous auth n'est pas activé dans la console Firebase, continuer en direct
+      }
+    }
+
     const cleaned = sanitizeForFirestore(orderData);
     const now = new Date();
+    const effectiveUserId = auth.currentUser 
+      ? auth.currentUser.uid 
+      : (cleaned.userId || `guest_${Date.now()}`);
+
     const payload = {
       ...cleaned,
+      userId: effectiveUserId,
       status: 'pending',
       createdAt: now,
       updatedAt: now,
@@ -50,7 +65,16 @@ export const createOrder = async (orderData) => {
     
     return { success: true, id: orderRef.id };
   } catch (error) {
-    return { success: false, error: error.message };
+    console.error('Erreur createOrder Firestore:', error);
+    const isPerm = error.code === 'permission-denied' || 
+      String(error?.message || '').toLowerCase().includes('permissions');
+    return { 
+      success: false, 
+      error: isPerm 
+        ? "Permissions Firestore insuffisantes : la règle Firebase actuelle requiert une authentification. Veuillez activer la création invité dans la console Firebase ou vous connecter."
+        : (error.message || 'Erreur lors de la création de la commande'),
+      isPermissionError: isPerm
+    };
   }
 };
 

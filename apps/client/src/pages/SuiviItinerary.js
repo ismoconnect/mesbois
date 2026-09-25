@@ -7,6 +7,7 @@ import autoTable from 'jspdf-autotable';
 import { useAuth } from '../contexts/AuthContext';
 import DashboardLayout from '../components/Layout/DashboardLayout';
 import { getOrderById } from '../firebase/orders';
+import { formatTransferRef } from '../utils/ref';
 
 const Container = styled.div`
   max-width: 900px;
@@ -292,11 +293,11 @@ const SuiviItinerary = () => {
     // En-tête
     doc.setFontSize(20);
     doc.setTextColor(44, 85, 48); // #2c5530
-    doc.text('MES BOIS', 14, 22);
+    doc.text('Brennholzkaufen - Mes Bois', 14, 22);
 
     doc.setFontSize(10);
     doc.setTextColor(100);
-    doc.text(`Commande #${order.id.slice(-8)}`, 14, 30);
+    doc.text(`Commande ${formatTransferRef(order.id)}`, 14, 30);
     doc.text(`Date: ${new Date(order.createdAt.seconds * 1000).toLocaleDateString('fr-FR')}`, 14, 35);
     doc.text(`Statut: ${getStatusText(order.status)}`, 14, 40);
 
@@ -354,9 +355,9 @@ const SuiviItinerary = () => {
     doc.setFont(undefined, 'normal');
     doc.setTextColor(150);
     doc.text('Merci de votre confiance.', 14, finalY + 30);
-    doc.text('Document généré automatiquement par MesBois.', 14, finalY + 35);
+    doc.text('Document généré automatiquement par Brennholzkaufen.', 14, finalY + 35);
 
-    doc.save(`facture_${order.id.slice(-8)}.pdf`);
+    doc.save(`facture_${formatTransferRef(order.id).replace('#', '')}.pdf`);
   };
 
   useEffect(() => {
@@ -379,7 +380,7 @@ const SuiviItinerary = () => {
   return (
     <DashboardLayout>
       <Container>
-        <BackLink to="/suivi">
+        <BackLink to="/dashboard/suivi">
           <FiArrowLeft /> Retour au suivi
         </BackLink>
 
@@ -398,7 +399,7 @@ const SuiviItinerary = () => {
               <OrderInfo>
                 <InfoRow>
                   <Label>Numéro de commande</Label>
-                  <Value>#{order.id.slice(-8)}</Value>
+                  <Value>{formatTransferRef(order.id)}</Value>
                 </InfoRow>
                 <InfoRow>
                   <Label>Date de commande</Label>

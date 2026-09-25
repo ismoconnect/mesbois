@@ -907,7 +907,7 @@ const OrderDetail = () => {
   };
 
   const handlePayment = () => {
-    navigate('/billing');
+    navigate('/dashboard/billing');
   };
 
   const confirmCancelOrder = async () => {
@@ -974,7 +974,7 @@ const OrderDetail = () => {
       <OrderDetailContainer>
         {/* Mobile Header Sticky */}
         <MobileHeader>
-          <BackButton onClick={() => navigate('/orders')}>
+          <BackButton onClick={() => navigate('/dashboard/orders')}>
             <FiArrowLeft size={18} />
             Retour
           </BackButton>
@@ -1003,7 +1003,7 @@ const OrderDetail = () => {
 
         {/* Desktop Header (caché sur mobile) */}
         <DesktopHeader>
-          <BackButton onClick={() => navigate('/orders')}>
+          <BackButton onClick={() => navigate('/dashboard/orders')}>
             <FiArrowLeft size={20} />
             Retour aux commandes
           </BackButton>

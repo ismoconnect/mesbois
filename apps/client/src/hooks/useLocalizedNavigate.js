@@ -6,7 +6,7 @@ export const useLocalizedNavigate = () => {
   const navigate = useNavigate();
   const { i18n } = useTranslation();
 
-  const localizedNavigate = (routeKey, params = '', search = '') => {
+  const localizedNavigate = (routeKey, params = '', search = '', options = {}) => {
     const lang = i18n.language || 'fr';
     const pathSlug = routeMapping[routeKey]?.[lang] ?? routeKey;
     
@@ -23,7 +23,7 @@ export const useLocalizedNavigate = () => {
       path += search;
     }
     
-    navigate(path);
+    navigate(path, options);
   };
 
   return localizedNavigate;

@@ -2,9 +2,18 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { useCart } from '../../contexts/CartContext';
 import { useSiteSettings } from '../../contexts/SiteSettingsContext';
-import { FiHome, FiShoppingBag, FiShoppingCart, FiUser, FiSettings, FiLogOut, FiMenu, FiActivity } from 'react-icons/fi';
+import { 
+  FiHome, 
+  FiPackage, 
+  FiTruck, 
+  FiFileText, 
+  FiUser, 
+  FiSettings, 
+  FiLogOut, 
+  FiMenu, 
+  FiShoppingBag 
+} from 'react-icons/fi';
 
 const Shell = styled.div`
   width: 100%;
@@ -95,9 +104,49 @@ const NavItem = styled(Link)`
   border-radius: 10px;
   text-decoration: none;
   color: #1f2d1f;
+  font-weight: 500;
   transition: background .15s ease, transform .15s ease;
 
   &:hover { background: #f3f5f4; transform: translateX(1px); }
+
+  svg {
+    font-size: 18px;
+    color: #2c5530;
+    flex-shrink: 0;
+  }
+`;
+
+const NavDivider = styled.div`
+  height: 1px;
+  background: #d4e3db;
+  margin: 6px 0;
+`;
+
+const BoutiqueNavItem = styled(Link)`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: #166534;
+  background: #ffffff;
+  border: 1px solid #bbf7d0;
+  font-weight: 700;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  transition: all .15s ease;
+
+  &:hover {
+    background: #f0fdf4;
+    border-color: #86efac;
+    transform: translateX(1px);
+  }
+
+  svg {
+    font-size: 18px;
+    color: #166534;
+    flex-shrink: 0;
+  }
 `;
 
 const LogoutButton = styled.button`
@@ -215,19 +264,17 @@ const Burger = styled.button`
 
 const DashboardLayout = ({ children }) => {
   const { user, userData, logout } = useAuth();
-  const { getCartItemsCount } = useCart();
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const { settings } = useSiteSettings();
   const appName = settings.siteName || 'Bois de Chauffage';
   const displayName = userData?.displayName || appName;
-  const headerInitial = displayName?.charAt(0)?.toUpperCase() || '';
-  const cartCount = typeof getCartItemsCount === 'function' ? getCartItemsCount() : 0;
+  const headerInitial = displayName?.charAt(0)?.toUpperCase() || 'C';
 
   return (
     <>
       <Sidebar $open={open}>
-        <UserCard to="/" onClick={() => setOpen(false)}>
+        <UserCard to="/dashboard" onClick={() => setOpen(false)}>
           <Avatar>🌲</Avatar>
           <UserInfo>
             <strong>{appName}</strong>
@@ -238,32 +285,35 @@ const DashboardLayout = ({ children }) => {
         <Nav>
           <NavItem to="/dashboard" onClick={() => setOpen(false)}>
             <FiHome />
-            Mon Espace Client
+            <span>Mon Espace Client</span>
           </NavItem>
-          <NavItem to="/dashboard/cart" onClick={() => setOpen(false)}>
-            <FiShoppingCart />
-            Panier
+          <NavItem to="/dashboard/orders" onClick={() => setOpen(false)}>
+            <FiPackage />
+            <span>Mes commandes</span>
           </NavItem>
-          <NavItem to="/orders" onClick={() => setOpen(false)}>
-            <FiShoppingBag />
-            Mes commandes
+          <NavItem to="/dashboard/suivi" onClick={() => setOpen(false)}>
+            <FiTruck />
+            <span>Suivi livraison</span>
           </NavItem>
-          <NavItem to="/billing" onClick={() => setOpen(false)}>
-            <FiShoppingBag />
-            Facturation
+          <NavItem to="/dashboard/billing" onClick={() => setOpen(false)}>
+            <FiFileText />
+            <span>Facturation &amp; RIB</span>
           </NavItem>
-          <NavItem to="/suivi" onClick={() => setOpen(false)}>
-            <FiActivity />
-            Suivi
-          </NavItem>
-          <NavItem to="/profile" onClick={() => setOpen(false)}>
+          <NavItem to="/dashboard/profile" onClick={() => setOpen(false)}>
             <FiUser />
-            Profil
+            <span>Mon profil</span>
           </NavItem>
-          <NavItem to="/settings" onClick={() => setOpen(false)}>
+          <NavItem to="/dashboard/settings" onClick={() => setOpen(false)}>
             <FiSettings />
-            Réglages
+            <span>Réglages</span>
           </NavItem>
+
+          <NavDivider />
+
+          <BoutiqueNavItem to="/products" onClick={() => setOpen(false)}>
+            <FiShoppingBag />
+            <span>Commander du bois</span>
+          </BoutiqueNavItem>
         </Nav>
 
         <LogoutButton onClick={async () => {
@@ -288,19 +338,18 @@ const DashboardLayout = ({ children }) => {
           <span className="header-name">Bienvenue, {displayName}</span>
         </HeaderTitle>
         <HeaderActions>
-          <Link to="/dashboard/cart" style={{ textDecoration: 'none' }}>
-            <HeaderButton>
-              <FiShoppingCart /> <span className="label">Panier</span>
-              {cartCount > 0 && <CountBubble>{cartCount > 99 ? '99+' : cartCount}</CountBubble>}
+          <Link to="/products" style={{ textDecoration: 'none' }}>
+            <HeaderButton title="Commander du bois">
+              <FiShoppingBag /> <span className="label">Boutique</span>
             </HeaderButton>
           </Link>
-          <Link to="/profile" style={{ textDecoration: 'none' }}>
-            <HeaderButton>
+          <Link to="/dashboard/profile" style={{ textDecoration: 'none' }}>
+            <HeaderButton title="Mon profil">
               <FiUser /> <span className="label">Profil</span>
             </HeaderButton>
           </Link>
           <Link to="/dashboard" style={{ textDecoration: 'none' }}>
-            <Avatar style={{ width: 32, height: 32 }}>{headerInitial}</Avatar>
+            <Avatar style={{ width: 32, height: 32, fontSize: 13 }}>{headerInitial}</Avatar>
           </Link>
         </HeaderActions>
       </HeaderBar>

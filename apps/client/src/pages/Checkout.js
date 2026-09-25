@@ -14,13 +14,15 @@ import {
   FiArrowRight,
   FiX,
   FiEdit2,
-  FiArrowLeft
+  FiArrowLeft,
+  FiUser,
+  FiMail
 } from 'react-icons/fi';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { createOrder } from '../firebase/orders';
-import { createUser, signInUser } from '../firebase/auth';
+import { createUser, signInUser, resetPassword, getUserData } from '../firebase/auth';
 import { sendEmailVerification } from 'firebase/auth';
 import toast from 'react-hot-toast';
 import { getCouponByCode, validateAndComputeDiscount } from '../firebase/coupons';
@@ -31,39 +33,45 @@ import { getCouponByCode, validateAndComputeDiscount } from '../firebase/coupons
 
 const PageContainer = styled.div`
   max-width: 1140px;
+  width: 100%;
   margin: 0 auto;
   padding: 32px 16px 80px;
+  box-sizing: border-box;
 
   @media (max-width: 768px) {
     padding: 16px 12px 60px;
+    overflow-x: hidden;
   }
 `;
 
 const PageHeader = styled.div`
   margin-bottom: 20px;
   text-align: center;
+  width: 100%;
+  box-sizing: border-box;
 
   @media (max-width: 768px) {
-    margin-bottom: 14px;
+    margin-bottom: 10px;
     text-align: left;
   }
 `;
 
 const Title = styled.h1`
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 800;
   color: #142618;
-  margin: 0 0 6px 0;
-  letter-spacing: -0.5px;
+  margin: 0 0 5px 0;
+  letter-spacing: -0.4px;
 
   @media (max-width: 768px) {
-    font-size: 21px;
+    font-size: 18px;
+    margin-bottom: 3px;
   }
 `;
 
 const Subtitle = styled.div`
   color: #55695a;
-  font-size: 14px;
+  font-size: 13.5px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -72,7 +80,9 @@ const Subtitle = styled.div`
 
   @media (max-width: 768px) {
     justify-content: flex-start;
-    font-size: 13px;
+    font-size: 12px;
+    gap: 5px;
+    line-height: 1.35;
   }
 `;
 
@@ -91,20 +101,302 @@ const LoginPromptButton = styled.button`
   }
 `;
 
-/* Accordeon de connexion compact */
-const LoginAccordion = styled.div`
-  max-width: 480px;
-  margin: 14px auto 0;
-  background: #f8faf8;
-  border: 1px solid #d4dfd6;
-  border-radius: 10px;
-  padding: 16px;
-  text-align: left;
-  animation: fadeIn 0.2s ease-in-out;
+/* ==========================================================================
+   DEDICATED PRO LOGIN VIEW
+   ========================================================================== */
+
+const LoginViewContainer = styled.div`
+  max-width: 440px;
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+  animation: fadeIn 0.25s ease-out;
 
   @media (max-width: 768px) {
-    margin: 12px 0 0;
     max-width: 100%;
+  }
+`;
+
+const BackToGuestBar = styled.div`
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+`;
+
+const BackToGuestLink = styled.button`
+  background: none;
+  border: none;
+  color: #2c5530;
+  font-size: 12.5px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  padding: 4px 0;
+  transition: color 0.15s;
+
+  &:hover {
+    color: #142618;
+    text-decoration: underline;
+  }
+`;
+
+const CartBadgePill = styled.div`
+  background: #f0f5f1;
+  border: 1px solid #d2ded5;
+  color: #254629;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+`;
+
+const DedicatedLoginCard = styled.div`
+  background: #ffffff;
+  border: 1.5px solid #dce6de;
+  border-radius: 12px;
+  padding: 22px 20px;
+  box-shadow: 0 4px 16px rgba(20, 38, 24, 0.04);
+  box-sizing: border-box;
+  width: 100%;
+
+  @media (max-width: 600px) {
+    padding: 16px 14px;
+    border-radius: 10px;
+  }
+`;
+
+const LoginCardHeader = styled.div`
+  text-align: center;
+  margin-bottom: 14px;
+
+  .icon-circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #edf5ef;
+    color: #2c5530;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 8px;
+    box-shadow: 0 2px 6px rgba(44, 85, 48, 0.1);
+  }
+
+  h2 {
+    font-size: 17px;
+    font-weight: 800;
+    color: #142618;
+    margin: 0 0 3px 0;
+    letter-spacing: -0.3px;
+  }
+
+  p {
+    font-size: 12px;
+    color: #55695a;
+    margin: 0;
+    line-height: 1.35;
+  }
+`;
+
+const LoginInputGroup = styled.div`
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+
+  .label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 3px;
+
+    label {
+      font-size: 12px;
+      font-weight: 700;
+      color: #273e2d;
+      margin: 0;
+    }
+
+    button.forgot-btn {
+      background: none;
+      border: none;
+      color: #2c5530;
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 0;
+      text-decoration: underline;
+
+      &:hover {
+        color: #142618;
+      }
+    }
+  }
+
+  .input-with-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+
+    .field-icon {
+      position: absolute;
+      left: 10px;
+      color: #6d8573;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      z-index: 1;
+    }
+
+    input {
+      height: 38px;
+      font-size: 13px;
+      padding-left: 34px;
+      padding-right: ${props => (props.$hasPasswordToggle ? '38px' : '10px')};
+      border-radius: 7px;
+    }
+
+    .eye-btn {
+      position: absolute;
+      right: 6px;
+      background: none;
+      border: none;
+      color: #6d8573;
+      cursor: pointer;
+      padding: 4px 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      z-index: 1;
+
+      &:hover {
+        color: #142618;
+      }
+    }
+  }
+`;
+
+const LoginSubmitButton = styled.button`
+  width: 100%;
+  height: 40px;
+  background: #2c5530;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  margin-top: 4px;
+  box-shadow: 0 3px 10px rgba(44, 85, 48, 0.2);
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background: #1e3d22;
+  }
+
+  &:disabled {
+    background: #9ab49f;
+    cursor: not-allowed;
+  }
+`;
+
+const LoginDivider = styled.div`
+  display: flex;
+  align-items: center;
+  margin: 12px 0 10px;
+  text-align: center;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #dce4de;
+  }
+
+  span {
+    padding: 0 10px;
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #839788;
+  }
+`;
+
+const GuestActionButton = styled.button`
+  width: 100%;
+  padding: 10px 12px;
+  background: #f7faf7;
+  border: 1.5px solid #cfe0d3;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  transition: all 0.2s ease;
+  text-align: left;
+  box-sizing: border-box;
+
+  .btn-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+
+    .main {
+      font-size: 13px;
+      font-weight: 700;
+      color: #1e3d22;
+      white-space: nowrap;
+    }
+
+    .sub {
+      font-size: 11px;
+      color: #5c7462;
+      white-space: nowrap;
+    }
+  }
+
+  svg {
+    color: #2c5530;
+    flex-shrink: 0;
+  }
+
+  &:hover {
+    background: #edf5ef;
+    border-color: #2c5530;
+  }
+`;
+
+const LoginSecurityNote = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid #edf2ee;
+  color: #667c6c;
+  font-size: 11px;
+  flex-wrap: wrap;
+
+  span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
   }
 `;
 
@@ -118,46 +410,52 @@ const MobileStepper = styled.div`
     justify-content: space-between;
     background: #ffffff;
     border: 1px solid #e1ebe3;
-    border-radius: 12px;
-    padding: 10px 16px;
-    margin-bottom: 16px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+    border-radius: 9px;
+    padding: 7px 10px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+    width: 100%;
+    box-sizing: border-box;
   }
 `;
 
 const StepItem = styled.div`
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 5px;
   cursor: pointer;
   opacity: ${props => (props.$active || props.$done ? 1 : 0.45)};
   transition: opacity 0.2s;
+  flex-shrink: 0;
 
   .step-num {
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
     background: ${props => (props.$done ? '#27ae60' : props.$active ? '#2c5530' : '#e2e8e4')};
     color: #ffffff;
-    font-size: 12px;
+    font-size: 10.5px;
     font-weight: 700;
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
   }
 
   .step-label {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 700;
     color: ${props => (props.$active ? '#142618' : '#55695a')};
+    white-space: nowrap;
   }
 `;
 
 const StepDivider = styled.div`
   flex: 1;
+  min-width: 8px;
   height: 2px;
   background: ${props => (props.$done ? '#27ae60' : '#e2e8e4')};
-  margin: 0 12px;
+  margin: 0 8px;
 `;
 
 /* Layout 2 Colonnes Desktop */
@@ -166,6 +464,8 @@ const CheckoutGrid = styled.div`
   grid-template-columns: 1fr 400px;
   gap: 28px;
   align-items: start;
+  width: 100%;
+  box-sizing: border-box;
 
   @media (max-width: 992px) {
     grid-template-columns: 1fr 360px;
@@ -173,8 +473,11 @@ const CheckoutGrid = styled.div`
   }
 
   @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-    gap: 16px;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
   }
 `;
 
@@ -182,22 +485,36 @@ const FormColumn = styled.div`
   display: flex;
   flex-direction: column;
   gap: 20px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 
   @media (max-width: 768px) {
-    gap: 16px;
+    gap: 14px;
+    max-width: 100%;
   }
 `;
 
 /* Wrappers conditionnels Mobile vs Desktop */
 const Step1Wrapper = styled.div`
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+
   @media (max-width: 768px) {
     display: ${props => (props.$active ? 'block' : 'none')};
+    max-width: 100%;
   }
 `;
 
 const Step2Wrapper = styled.div`
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+
   @media (max-width: 768px) {
     display: ${props => (props.$active ? 'block' : 'none')};
+    max-width: 100%;
   }
 `;
 
@@ -215,7 +532,10 @@ const MobileSummaryWrapper = styled.div`
 
   @media (max-width: 768px) {
     display: block;
-    margin-top: 16px;
+    margin-top: 14px;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
   }
 `;
 
@@ -223,12 +543,16 @@ const Card = styled.div`
   background: #ffffff;
   border: 1px solid #e8eee9;
   border-radius: 12px;
-  padding: 22px;
+  padding: 20px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 
   @media (max-width: 600px) {
-    padding: 16px 12px;
-    border-radius: 10px;
+    padding: 12px 10px;
+    border-radius: 9px;
+    max-width: 100%;
   }
 `;
 
@@ -236,30 +560,34 @@ const CardHeader = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
-  padding-bottom: 10px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
   border-bottom: 1px solid #edf2ee;
 
   .left-head {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
   }
 
   h2 {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 700;
     color: #1e3d22;
     margin: 0;
+
+    @media (max-width: 600px) {
+      font-size: 13.5px;
+    }
   }
 
   .step-badge {
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
     background: #2c5530;
     color: #fff;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 700;
     display: flex;
     align-items: center;
@@ -278,44 +606,126 @@ const DeliveryRecapChip = styled.div`
     justify-content: space-between;
     background: #f4f8f5;
     border: 1px solid #cfe0d3;
-    border-radius: 10px;
-    padding: 12px 14px;
-    margin-bottom: 14px;
-    font-size: 13px;
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin-bottom: 10px;
+    font-size: 12px;
+    width: 100%;
+    box-sizing: border-box;
+    gap: 8px;
 
     .info {
       color: #1e3d22;
-      line-height: 1.4;
-      strong { color: #142618; }
+      line-height: 1.35;
+      flex: 1;
+      min-width: 0;
+      word-break: break-word;
+      strong { color: #142618; font-weight: 700; }
     }
 
     button {
-      background: none;
-      border: none;
+      background: #ffffff;
+      border: 1px solid #cfe0d3;
       color: #2c5530;
       font-weight: 700;
       display: flex;
       align-items: center;
-      gap: 4px;
+      gap: 3px;
       cursor: pointer;
-      padding: 4px 6px;
-      border-radius: 6px;
+      padding: 4px 7px;
+      border-radius: 5px;
+      flex-shrink: 0;
+      font-size: 11px;
+      white-space: nowrap;
       &:hover { background: #e3ede5; }
     }
   }
 `;
 
-/* Formulaire Compact */
+/* Carte adresse enregistrée intelligente */
+const SavedAddressCard = styled.div`
+  background: #f7faf7;
+  border: 1.5px solid #cfe0d3;
+  border-radius: 9px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  .saved-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #2c5530;
+    }
+
+    button.edit-btn {
+      background: #ffffff;
+      border: 1px solid #cfe0d3;
+      color: #2c5530;
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 5px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+
+      &:hover {
+        background: #eaf3ec;
+      }
+    }
+  }
+
+  .saved-info {
+    font-size: 12.5px;
+    line-height: 1.4;
+    color: #3b5240;
+
+    .name {
+      font-weight: 800;
+      color: #142618;
+      font-size: 13.5px;
+      margin-bottom: 2px;
+    }
+
+    .address-line {
+      color: #1b381e;
+    }
+
+    .city-line {
+      color: #2f4a34;
+    }
+
+    .contact-line {
+      font-size: 11.5px;
+      color: #55695a;
+      margin-top: 3px;
+    }
+  }
+`;
+
+/* Formulaire Compact & Intelligent */
 const FormGroup = styled.div`
   display: grid;
   grid-template-columns: ${props => props.$cols || '1fr'};
-  gap: 12px;
-  margin-bottom: 12px;
+  gap: 10px;
+  margin-bottom: 10px;
 
   @media (max-width: 600px) {
     grid-template-columns: ${props => props.$mobileCols || '1fr'};
-    gap: 10px;
-    margin-bottom: 10px;
+    gap: 8px;
+    margin-bottom: 8px;
   }
 `;
 
@@ -328,29 +738,45 @@ const InputWrapper = styled.div`
     font-size: 12px;
     font-weight: 600;
     color: #3b5240;
-    margin-bottom: 4px;
+    margin-bottom: 3px;
     display: flex;
-    justify-content: space-between;
+    align-items: center;
+    gap: 4px;
+
+    @media (max-width: 600px) {
+      font-size: 11.5px;
+      margin-bottom: 2px;
+    }
 
     span.req {
       color: #dc2626;
-      margin-left: 2px;
+      font-weight: 700;
+      font-size: 12px;
+      line-height: 1;
     }
 
     span.opt {
       color: #88998c;
       font-weight: 400;
+      margin-left: auto;
+      font-size: 10.5px;
     }
+  }
+`;
+
+const CountryInputWrapper = styled(InputWrapper)`
+  @media (max-width: 600px) {
+    grid-column: 1 / -1;
   }
 `;
 
 const StyledInput = styled.input`
   width: 100%;
-  height: 42px;
+  height: 40px;
   padding: 8px 12px;
   border: 1.5px solid #d2ddd4;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 13.5px;
   color: #142618;
   background: #ffffff;
   outline: none;
@@ -363,22 +789,25 @@ const StyledInput = styled.input`
   }
 
   &::placeholder {
-    color: #9eb0a1;
+    color: #a4b3a7;
+    font-size: 13px;
   }
 
   @media (max-width: 600px) {
-    font-size: 14px;
-    height: 40px;
+    font-size: 13px;
+    height: 38px;
+    padding: 6px 10px;
+    border-radius: 7px;
   }
 `;
 
 const StyledSelect = styled.select`
   width: 100%;
-  height: 42px;
+  height: 40px;
   padding: 8px 12px;
   border: 1.5px solid #d2ddd4;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 13.5px;
   color: #142618;
   background: #ffffff;
   outline: none;
@@ -392,22 +821,24 @@ const StyledSelect = styled.select`
   }
 
   @media (max-width: 600px) {
-    font-size: 14px;
-    height: 40px;
+    font-size: 13px;
+    height: 38px;
+    padding: 6px 10px;
+    border-radius: 7px;
   }
 `;
 
 const StyledTextarea = styled.textarea`
   width: 100%;
-  padding: 10px 12px;
+  padding: 8px 10px;
   border: 1.5px solid #d2ddd4;
-  border-radius: 8px;
-  font-size: 14px;
+  border-radius: 7px;
+  font-size: 13px;
   color: #142618;
   background: #ffffff;
   outline: none;
   box-sizing: border-box;
-  min-height: 55px;
+  min-height: 48px;
   resize: vertical;
   transition: border-color 0.2s, box-shadow 0.2s;
 
@@ -417,20 +848,24 @@ const StyledTextarea = styled.textarea`
   }
 
   &::placeholder {
-    color: #9eb0a1;
+    color: #a4b3a7;
+    font-size: 12.5px;
   }
 `;
 
 /* Bloc Virement Bancaire Unique */
 const PaymentBox = styled.div`
-  border: 2px solid #2c5530;
+  border: 1.5px solid #2c5530;
   background: #f4f8f5;
-  border-radius: 10px;
-  padding: 16px;
+  border-radius: 9px;
+  padding: 14px;
   position: relative;
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
 
   @media (max-width: 600px) {
-    padding: 14px;
+    padding: 10px;
   }
 `;
 
@@ -438,54 +873,63 @@ const PaymentBoxHeader = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+  gap: 6px;
 `;
 
 const PaymentOptionTitle = styled.div`
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 7px;
   font-weight: 700;
-  font-size: 15px;
+  font-size: 13.5px;
   color: #142618;
+  flex-shrink: 0;
 
   .radio-check {
-    width: 20px;
-    height: 20px;
+    width: 17px;
+    height: 17px;
     border-radius: 50%;
     background: #2c5530;
     display: flex;
     align-items: center;
     justify-content: center;
     color: #fff;
-    font-size: 12px;
+    font-size: 10px;
+    flex-shrink: 0;
   }
 `;
 
 const SecurityBadge = styled.span`
   background: #dcfce7;
   color: #166534;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
-  padding: 3px 8px;
+  padding: 2px 6px;
   border-radius: 999px;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
+  flex-shrink: 0;
+  white-space: nowrap;
 `;
 
 const PaymentDetails = styled.div`
-  font-size: 13px;
-  line-height: 1.55;
+  font-size: 12px;
+  line-height: 1.45;
   color: #3b5240;
   background: #ffffff;
   border: 1px solid #d9e4db;
-  border-radius: 8px;
-  padding: 12px 14px;
-  margin-top: 10px;
+  border-radius: 7px;
+  padding: 8px 10px;
+  margin-top: 6px;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  box-sizing: border-box;
 
   p {
-    margin: 0 0 6px 0;
+    margin: 0 0 4px 0;
     &:last-child { margin-bottom: 0; }
   }
 
@@ -499,9 +943,12 @@ const SummaryCard = styled(Card)`
   padding: 20px;
   border: 1px solid #d4dfd6;
   background: #fafcfa;
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
 
   @media (max-width: 600px) {
-    padding: 16px 14px;
+    padding: 14px 12px;
   }
 `;
 
@@ -700,18 +1147,19 @@ const LineRow = styled.div`
 const TermsWrapper = styled.label`
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  font-size: 12px;
+  gap: 8px;
+  font-size: 11.5px;
   color: #4b5e50;
-  line-height: 1.45;
-  margin: 14px 0;
+  line-height: 1.4;
+  margin: 12px 0;
   cursor: pointer;
+  word-break: break-word;
 
   input[type="checkbox"] {
     margin-top: 2px;
     accent-color: #2c5530;
-    width: 16px;
-    height: 16px;
+    width: 15px;
+    height: 15px;
     flex-shrink: 0;
   }
 
@@ -725,25 +1173,27 @@ const TermsWrapper = styled.label`
 /* Boutons d'action */
 const SubmitButton = styled.button`
   width: 100%;
-  height: 50px;
+  height: 46px;
   background: #27ae60;
   color: #ffffff;
   border: none;
-  border-radius: 10px;
-  font-size: 16px;
-  font-weight: 800;
+  border-radius: 9px;
+  font-size: 13.5px;
+  font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 6px;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(39, 174, 96, 0.3);
+  box-shadow: 0 3px 12px rgba(39, 174, 96, 0.28);
   transition: all 0.2s ease;
+  box-sizing: border-box;
+  white-space: nowrap;
 
   &:hover:not(:disabled) {
     background: #219653;
     transform: translateY(-1px);
-    box-shadow: 0 6px 18px rgba(39, 174, 96, 0.38);
+    box-shadow: 0 5px 15px rgba(39, 174, 96, 0.35);
   }
 
   &:disabled {
@@ -754,32 +1204,53 @@ const SubmitButton = styled.button`
   }
 
   @media (max-width: 600px) {
-    height: 48px;
-    font-size: 15px;
+    height: 42px;
+    font-size: 13px;
+    padding: 0 8px;
+  }
+
+  @media (max-width: 380px) {
+    font-size: 12px;
+    height: 40px;
+    gap: 4px;
   }
 `;
 
 const NextStepButton = styled.button`
   width: 100%;
-  height: 50px;
+  height: 42px;
   background: #2c5530;
   color: #ffffff;
   border: none;
-  border-radius: 10px;
-  font-size: 15px;
+  border-radius: 8px;
+  font-size: 13.5px;
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 6px;
   cursor: pointer;
-  margin-top: 14px;
-  box-shadow: 0 4px 14px rgba(44, 85, 48, 0.25);
+  margin-top: 10px;
+  box-shadow: 0 3px 10px rgba(44, 85, 48, 0.2);
   transition: all 0.2s ease;
+  box-sizing: border-box;
+  white-space: nowrap;
 
   &:hover {
     background: #1b381e;
     transform: translateY(-1px);
+  }
+
+  @media (max-width: 600px) {
+    height: 40px;
+    font-size: 13px;
+    padding: 0 8px;
+  }
+
+  @media (max-width: 380px) {
+    font-size: 12px;
+    height: 38px;
+    gap: 4px;
   }
 
   @media (min-width: 769px) {
@@ -835,9 +1306,20 @@ const TrustItem = styled.div`
   }
 `;
 
-/* ==========================================================================
-   COMPONENT
-   ========================================================================== */
+// Helper d'extraction des prénom & nom
+const parseCustomerNames = (data, authUser) => {
+  let first = (data?.firstName || '').trim();
+  let last = (data?.lastName || '').trim();
+  if (!first && !last) {
+    const full = (data?.displayName || authUser?.displayName || '').trim();
+    if (full) {
+      const parts = full.split(/\s+/);
+      first = parts[0] || '';
+      last = parts.slice(1).join(' ') || '';
+    }
+  }
+  return { firstName: first, lastName: last };
+};
 
 const Checkout = () => {
   const { t } = useTranslation();
@@ -863,10 +1345,14 @@ const Checkout = () => {
     paymentMethod: 'bank' // STRICTEMENT Virement Bancaire
   });
 
-  // Gestion accordéon connexion & coupon
+  // Gestion connexion client & mot de passe
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [loginFields, setLoginFields] = useState({ email: '', password: '' });
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [loginLoading, setLoginLoading] = useState(false);
+
+  // Mode modification d'adresse pour utilisateur déjà connecté
+  const [isEditingAddress, setIsEditingAddress] = useState(false);
 
   // Accordéon instructions spécifiques chauffeur
   const [showNotes, setShowNotes] = useState(false);
@@ -889,13 +1375,15 @@ const Checkout = () => {
   // Pré-remplissage si utilisateur connecté
   useEffect(() => {
     if (user) {
+      const { firstName: fName, lastName: lName } = parseCustomerNames(userData, user);
       setFormData(prev => ({
         ...prev,
-        firstName: userData?.firstName || prev.firstName || '',
-        lastName: userData?.lastName || prev.lastName || '',
+        firstName: fName || prev.firstName || '',
+        lastName: lName || prev.lastName || '',
         email: user.email || prev.email || '',
         phone: userData?.phone || prev.phone || '',
         address: userData?.address || prev.address || '',
+        address2: userData?.address2 || prev.address2 || '',
         postalCode: userData?.postalCode || prev.postalCode || '',
         city: userData?.city || prev.city || '',
         country: userData?.country || prev.country || 'France'
@@ -944,7 +1432,7 @@ const Checkout = () => {
     }
   };
 
-  // Connexion rapide en accordéon
+  // Connexion rapide client
   const handleQuickLogin = async (e) => {
     e.preventDefault();
     if (!loginFields.email || !loginFields.password) {
@@ -959,12 +1447,67 @@ const Checkout = () => {
         setLoginLoading(false);
         return;
       }
-      toast.success('Connexion réussie ! Vos données ont été chargées.');
+
+      // 1. Récupérer immédiatement le profil Firestore
+      const userDoc = await getUserData(res.user.uid);
+      const data = userDoc.success ? userDoc.data : null;
+
+      const { firstName: fName, lastName: lName } = parseCustomerNames(data, res.user);
+
+      const updatedCustomerInfo = {
+        firstName: fName,
+        lastName: lName,
+        email: res.user.email || loginFields.email,
+        phone: data?.phone || '',
+        address: data?.address || '',
+        address2: data?.address2 || '',
+        postalCode: data?.postalCode || '',
+        city: data?.city || '',
+        country: data?.country || 'France'
+      };
+
+      // 2. Définir l'étape cible AVANT de fermer la vue pour éviter tout flash d'étape
+      const hasSavedAddress = Boolean(updatedCustomerInfo.address && (updatedCustomerInfo.city || updatedCustomerInfo.postalCode));
+      if (hasSavedAddress) {
+        setMobileStep(2);
+      } else {
+        setMobileStep(1);
+      }
+
+      // 3. Charger les données dans le formulaire
+      setFormData(prev => ({ ...prev, ...updatedCustomerInfo }));
+
+      // 4. Fermer la vue de connexion EN DERNIER (garantit 0 flash de l'étape 1)
       setIsLoginOpen(false);
       setLoginLoading(false);
+
+      if (hasSavedAddress) {
+        toast.success(`Ravi de vous revoir ${fName ? fName : ''} ! Vos coordonnées sont prêtes.`);
+      } else {
+        toast.success('Connexion réussie ! Veuillez vérifier votre adresse de livraison.');
+      }
     } catch {
       toast.error('Erreur lors de la connexion');
       setLoginLoading(false);
+    }
+  };
+
+  // Réinitialisation mot de passe
+  const handleForgotPassword = async () => {
+    const emailToReset = (loginFields.email || '').trim();
+    if (!emailToReset || !emailToReset.includes('@')) {
+      toast.error('Veuillez renseigner une adresse email valide ci-dessus pour réinitialiser votre mot de passe.');
+      return;
+    }
+    try {
+      const res = await resetPassword(emailToReset);
+      if (res.success) {
+        toast.success(`Un email de réinitialisation a été envoyé à ${emailToReset}. Vérifiez vos courriers indésirables.`);
+      } else {
+        toast.error(res.error || 'Erreur lors de l\'envoi du lien de réinitialisation');
+      }
+    } catch {
+      toast.error('Impossible d\'envoyer l\'email de réinitialisation.');
     }
   };
 
@@ -1120,7 +1663,13 @@ const Checkout = () => {
 
         // Vider le panier et rediriger vers la page de virement bancaire avec coordonnées
         clearCart();
-        localizedNavigate('bankTransfer', '', `?orderId=${result.id}`);
+        localizedNavigate('bankTransfer', '', `?orderId=${result.id}`, {
+          state: {
+            orderId: result.id,
+            orderData: orderData,
+            wasGuest: wasGuest && !createAccount
+          }
+        });
       } else {
         toast.error(result.error || 'Erreur lors de la validation de la commande');
       }
@@ -1157,6 +1706,132 @@ const Checkout = () => {
             </button>
           </div>
         </PageHeader>
+      </PageContainer>
+    );
+  }
+
+  // Écran dédié de connexion (reste actif tant que isLoginOpen est vrai pour éliminer tout flash d'étape)
+  if (isLoginOpen) {
+    return (
+      <PageContainer>
+        <LoginViewContainer>
+          <BackToGuestBar>
+            <BackToGuestLink type="button" onClick={() => setIsLoginOpen(false)}>
+              <FiArrowLeft size={15} />
+              <span>Retour à la commande</span>
+            </BackToGuestLink>
+            <CartBadgePill>
+              Panier : <strong>{total.toFixed(2)} €</strong> ({totalItemsCount} art.)
+            </CartBadgePill>
+          </BackToGuestBar>
+
+          <PageHeader style={{ marginBottom: 10, textAlign: 'center' }}>
+            <Title style={{ fontSize: 18 }}>Connexion client</Title>
+            <Subtitle style={{ justifyContent: 'center', fontSize: 12 }}>
+              <span>Retrouvez vos adresses et vos informations en toute sécurité.</span>
+            </Subtitle>
+          </PageHeader>
+
+          <DedicatedLoginCard>
+            <LoginCardHeader>
+              <div className="icon-circle">
+                <FiUser size={24} />
+              </div>
+              <h2>Identifiez-vous</h2>
+              <p>Saisissez vos identifiants pour accéder à votre compte client.</p>
+            </LoginCardHeader>
+
+            <form onSubmit={handleQuickLogin}>
+              <LoginInputGroup>
+                <div className="label-row">
+                  <label htmlFor="login-email">Adresse email</label>
+                </div>
+                <div className="input-with-icon">
+                  <span className="field-icon">
+                    <FiMail size={16} />
+                  </span>
+                  <StyledInput
+                    id="login-email"
+                    type="email"
+                    autoComplete="email"
+                    placeholder="jean.dupont@email.com"
+                    value={loginFields.email}
+                    onChange={(e) => setLoginFields(prev => ({ ...prev, email: e.target.value }))}
+                    required
+                    autoFocus
+                  />
+                </div>
+              </LoginInputGroup>
+
+              <LoginInputGroup $hasPasswordToggle>
+                <div className="label-row">
+                  <label htmlFor="login-password">Mot de passe</label>
+                  <button
+                    type="button"
+                    className="forgot-btn"
+                    onClick={handleForgotPassword}
+                  >
+                    Mot de passe oublié ?
+                  </button>
+                </div>
+                <div className="input-with-icon">
+                  <span className="field-icon">
+                    <FiLock size={16} />
+                  </span>
+                  <StyledInput
+                    id="login-password"
+                    type={showLoginPassword ? 'text' : 'password'}
+                    autoComplete="current-password"
+                    placeholder="Votre mot de passe"
+                    value={loginFields.password}
+                    onChange={(e) => setLoginFields(prev => ({ ...prev, password: e.target.value }))}
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="eye-btn"
+                    onClick={() => setShowLoginPassword(!showLoginPassword)}
+                    title={showLoginPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                  >
+                    {showLoginPassword ? <FiEyeOff size={16} /> : <FiEye size={16} />}
+                  </button>
+                </div>
+              </LoginInputGroup>
+
+              <LoginSubmitButton type="submit" disabled={loginLoading}>
+                {loginLoading ? (
+                  'Connexion en cours...'
+                ) : (
+                  <>
+                    <span>Se connecter et continuer</span>
+                    <FiArrowRight size={15} />
+                  </>
+                )}
+              </LoginSubmitButton>
+            </form>
+
+            <LoginDivider>
+              <span>ou</span>
+            </LoginDivider>
+
+            <GuestActionButton type="button" onClick={() => setIsLoginOpen(false)}>
+              <div className="btn-text">
+                <span className="main">Commander sans compte</span>
+                <span className="sub">Achat direct rapide sans mot de passe</span>
+              </div>
+              <FiArrowRight size={15} />
+            </GuestActionButton>
+
+            <LoginSecurityNote>
+              <span>
+                <FiShield size={13} color="#27ae60" /> Connexion sécurisée SSL
+              </span>
+              <span>
+                <FiLock size={13} color="#2c5530" /> Données protégées
+              </span>
+            </LoginSecurityNote>
+          </DedicatedLoginCard>
+        </LoginViewContainer>
       </PageContainer>
     );
   }
@@ -1267,8 +1942,8 @@ const Checkout = () => {
           <>Validation en cours...</>
         ) : (
           <>
-            <span>Confirmer la commande ({total.toFixed(2)} €)</span>
-            <FiArrowRight size={18} />
+            <span>Confirmer la commande ({total.toFixed(2)}&nbsp;€)</span>
+            <FiArrowRight size={15} />
           </>
         )}
       </SubmitButton>
@@ -1310,78 +1985,18 @@ const Checkout = () => {
                 Déjà client ?{' '}
                 <LoginPromptButton 
                   type="button" 
-                  onClick={() => setIsLoginOpen(!isLoginOpen)}
+                  onClick={() => setIsLoginOpen(true)}
                 >
-                  {isLoginOpen ? 'Fermer la connexion' : 'Se connecter'}
+                  Se connecter
                 </LoginPromptButton>
               </span>
             </>
           ) : (
-            <span style={{ color: '#27ae60', fontWeight: 600 }}>
-              ✓ Connecté en tant que {userData?.firstName || user.email}
+            <span style={{ color: '#27ae60', fontWeight: 600, fontSize: 12 }}>
+              ✓ Connecté en tant que {formData.firstName ? `${formData.firstName} ${formData.lastName}` : (userData?.displayName || user.email)}
             </span>
           )}
         </Subtitle>
-
-        {/* Volet compact de connexion optionnelle */}
-        {!user && isLoginOpen && (
-          <LoginAccordion>
-            <div style={{ fontWeight: 700, fontSize: 14, color: '#142618', marginBottom: 10 }}>
-              Connexion à votre compte client
-            </div>
-            <form onSubmit={handleQuickLogin}>
-              <FormGroup $cols="1fr 1fr" $mobileCols="1fr">
-                <StyledInput
-                  type="email"
-                  placeholder="Votre adresse email"
-                  value={loginFields.email}
-                  onChange={(e) => setLoginFields({ ...loginFields, email: e.target.value })}
-                  required
-                />
-                <StyledInput
-                  type="password"
-                  placeholder="Votre mot de passe"
-                  value={loginFields.password}
-                  onChange={(e) => setLoginFields({ ...loginFields, password: e.target.value })}
-                  required
-                />
-              </FormGroup>
-              <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
-                <button
-                  type="submit"
-                  disabled={loginLoading}
-                  style={{
-                    padding: '8px 16px',
-                    borderRadius: 6,
-                    border: 'none',
-                    background: '#2c5530',
-                    color: '#fff',
-                    fontWeight: 700,
-                    fontSize: 13,
-                    cursor: 'pointer'
-                  }}
-                >
-                  {loginLoading ? 'Connexion...' : 'Se connecter'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsLoginOpen(false)}
-                  style={{
-                    padding: '8px 12px',
-                    borderRadius: 6,
-                    border: '1px solid #d4dfd6',
-                    background: '#fff',
-                    color: '#4a6150',
-                    fontSize: 13,
-                    cursor: 'pointer'
-                  }}
-                >
-                  Annuler
-                </button>
-              </div>
-            </form>
-          </LoginAccordion>
-        )}
       </PageHeader>
 
       {/* STEPPER SUR MOBILE UNIQUEMENT (2 ÉTAPES) */}
@@ -1424,12 +2039,71 @@ const Checkout = () => {
                 </div>
               </CardHeader>
 
-              {/* Prénom & Nom */}
-              <FormGroup $cols="1fr 1fr" $mobileCols="1fr 1fr">
-                <InputWrapper>
-                  <label>Prénom <span className="req">*</span></label>
-                  <StyledInput
-                    type="text"
+              {user && formData.address && !isEditingAddress ? (
+                <SavedAddressCard>
+                  <div className="saved-header">
+                    <span className="badge">
+                      <FiCheckCircle size={15} color="#27ae60" />
+                      <span>Adresse de livraison enregistrée</span>
+                    </span>
+                    <button 
+                      type="button" 
+                      className="edit-btn" 
+                      onClick={() => setIsEditingAddress(true)}
+                    >
+                      <FiEdit2 size={12} />
+                      <span>Modifier</span>
+                    </button>
+                  </div>
+
+                  <div className="saved-info">
+                    <div className="name">
+                      {formData.firstName} {formData.lastName}
+                    </div>
+                    <div className="address-line">
+                      {formData.address}{formData.address2 ? `, ${formData.address2}` : ''}
+                    </div>
+                    <div className="city-line">
+                      {formData.postalCode} {formData.city} ({formData.country})
+                    </div>
+                    <div className="contact-line">
+                      <span>{formData.phone}</span> • <span>{formData.email}</span>
+                    </div>
+                  </div>
+
+                  <NextStepButton type="button" onClick={handleProceedToPayment}>
+                    <span>Continuer vers le paiement (Étape 2/2)</span>
+                    <FiArrowRight size={14} />
+                  </NextStepButton>
+                </SavedAddressCard>
+              ) : (
+                <>
+                  {user && formData.address && (
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+                      <button
+                        type="button"
+                        onClick={() => setIsEditingAddress(false)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#2c5530',
+                          fontSize: 11.5,
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          textDecoration: 'underline'
+                        }}
+                      >
+                        ✓ Conserver cette adresse
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Prénom & Nom */}
+                  <FormGroup $cols="1fr 1fr" $mobileCols="1fr 1fr">
+                    <InputWrapper>
+                      <label><span className="req">*</span> Prénom</label>
+                      <StyledInput
+                        type="text"
                     name="firstName"
                     autoComplete="given-name"
                     placeholder="Jean"
@@ -1439,7 +2113,7 @@ const Checkout = () => {
                   />
                 </InputWrapper>
                 <InputWrapper>
-                  <label>Nom <span className="req">*</span></label>
+                  <label><span className="req">*</span> Nom</label>
                   <StyledInput
                     type="text"
                     name="lastName"
@@ -1455,7 +2129,7 @@ const Checkout = () => {
               {/* Email & Téléphone */}
               <FormGroup $cols="1.2fr 1fr" $mobileCols="1fr">
                 <InputWrapper>
-                  <label>Adresse email <span className="req">*</span></label>
+                  <label><span className="req">*</span> Adresse email</label>
                   <StyledInput
                     type="email"
                     name="email"
@@ -1467,7 +2141,7 @@ const Checkout = () => {
                   />
                 </InputWrapper>
                 <InputWrapper>
-                  <label>Téléphone <span className="req">*</span></label>
+                  <label><span className="req">*</span> Téléphone</label>
                   <StyledInput
                     type="tel"
                     name="phone"
@@ -1483,7 +2157,7 @@ const Checkout = () => {
               {/* Adresse */}
               <FormGroup $cols="1fr">
                 <InputWrapper>
-                  <label>Adresse de livraison complète <span className="req">*</span></label>
+                  <label><span className="req">*</span> Adresse de livraison complète</label>
                   <StyledInput
                     type="text"
                     name="address"
@@ -1513,7 +2187,7 @@ const Checkout = () => {
               {/* Code Postal, Ville & Pays */}
               <FormGroup $cols="1fr 1.5fr 1fr" $mobileCols="1fr 1fr">
                 <InputWrapper>
-                  <label>Code postal <span className="req">*</span></label>
+                  <label><span className="req">*</span> Code postal</label>
                   <StyledInput
                     type="text"
                     name="postalCode"
@@ -1525,7 +2199,7 @@ const Checkout = () => {
                   />
                 </InputWrapper>
                 <InputWrapper>
-                  <label>Ville <span className="req">*</span></label>
+                  <label><span className="req">*</span> Ville</label>
                   <StyledInput
                     type="text"
                     name="city"
@@ -1536,8 +2210,8 @@ const Checkout = () => {
                     required
                   />
                 </InputWrapper>
-                <InputWrapper style={{ gridColumn: 'span 1' }}>
-                  <label>Pays <span className="req">*</span></label>
+                <CountryInputWrapper>
+                  <label><span className="req">*</span> Pays</label>
                   <StyledSelect
                     name="country"
                     value={formData.country}
@@ -1547,9 +2221,11 @@ const Checkout = () => {
                     <option value="Allemagne">Allemagne</option>
                     <option value="Belgique">Belgique</option>
                     <option value="Luxembourg">Luxembourg</option>
+                    <option value="Pays-Bas">Pays-Bas</option>
+                    <option value="Autriche">Autriche</option>
                     <option value="Suisse">Suisse</option>
                   </StyledSelect>
-                </InputWrapper>
+                </CountryInputWrapper>
               </FormGroup>
 
               {/* Accordéon instructions chauffeur (replié par défaut pour gagner de la place) */}
@@ -1573,7 +2249,27 @@ const Checkout = () => {
                   </button>
                 ) : (
                   <InputWrapper>
-                    <label>Instructions spécifiques chauffeur <span className="opt">(accès, portail...)</span></label>
+                    <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span>
+                        Instructions spécifiques chauffeur <span className="opt">(accès, portail...)</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setShowNotes(false)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#2c5530',
+                          fontSize: 12,
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          textDecoration: 'underline',
+                          padding: '0 4px'
+                        }}
+                      >
+                        − Refermer
+                      </button>
+                    </label>
                     <StyledTextarea
                       name="notes"
                       placeholder="Ex : Accès facile sous abri, largeur portail 3m, déposer le long du garage..."
@@ -1587,20 +2283,34 @@ const Checkout = () => {
               {/* Création de compte facultative pour invité */}
               {!user && (
                 <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid #edf2ee' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#334d3a', cursor: 'pointer', fontWeight: 600 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: '#3b5240' }}>Compte client</span>
+                    <span style={{ fontSize: 11, color: '#88998c', fontWeight: 500 }}>(Optionnel)</span>
+                  </div>
+                  <label style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 8, 
+                    fontSize: 'clamp(11.5px, 2.9vw, 12.5px)', 
+                    color: '#1e3d22', 
+                    cursor: 'pointer', 
+                    fontWeight: 600,
+                    whiteSpace: 'nowrap',
+                    userSelect: 'none'
+                  }}>
                     <input
                       type="checkbox"
                       checked={createAccount}
                       onChange={(e) => setCreateAccount(e.target.checked)}
-                      style={{ accentColor: '#2c5530', width: 16, height: 16 }}
+                      style={{ accentColor: '#2c5530', width: 15, height: 15, flexShrink: 0, margin: 0 }}
                     />
-                    <span>Créer un compte pour suivre mes commandes plus tard</span>
+                    <span>Créer un compte pour suivre mes commandes</span>
                   </label>
 
                   {createAccount && (
                     <div style={{ marginTop: 10, maxWidth: 320, animation: 'fadeIn 0.2s ease-in-out' }}>
                       <InputWrapper>
-                        <label>Mot de passe souhaité <span className="req">*</span></label>
+                        <label><span className="req">*</span> Mot de passe souhaité</label>
                         <div style={{ position: 'relative' }}>
                           <StyledInput
                             type={showPassword ? 'text' : 'password'}
@@ -1637,10 +2347,12 @@ const Checkout = () => {
               {/* Bouton de passage à l'étape 2 (VISIBLE SUR MOBILE UNIQUEMENT) */}
               <NextStepButton type="button" onClick={handleProceedToPayment}>
                 <span>Passer au paiement (Étape 2/2)</span>
-                <FiArrowRight size={18} />
+                <FiArrowRight size={15} />
               </NextStepButton>
-            </Card>
-          </Step1Wrapper>
+            </>
+          )}
+        </Card>
+      </Step1Wrapper>
 
           {/* ÉTAPE 2 : PAIEMENT (SUR MOBILE S'AFFICHE QUAND mobileStep === 2, SUR DESKTOP TOUJOURS VISIBLE) */}
           <Step2Wrapper $active={mobileStep === 2}>
@@ -1682,20 +2394,20 @@ const Checkout = () => {
                   <p>
                     <strong>Simple et sans risque :</strong> Vous effectuerez le virement depuis votre application bancaire sans jamais transmettre vos identifiants bancaires sur Internet.
                   </p>
-                  <p style={{ marginTop: 6 }}>
-                    Nos coordonnées officielles (<strong>IBAN, BIC et Titulaire</strong>) ainsi que votre <strong>référence de virement</strong> s'afficheront sur la page suivante immédiatement après confirmation.
+                  <p style={{ marginTop: 5 }}>
+                    Nos coordonnées officielles (<strong>IBAN, BIC et Titulaire</strong>) ainsi que votre <strong>numéro de commande</strong> s'afficheront sur la page suivante immédiatement après confirmation.
                   </p>
-                  <p style={{ marginTop: 6, color: '#166534', fontWeight: 600 }}>
-                    ✓ Vos produits sont réservés immédiatement et l'expédition s'enclenche dès validation bancaire.
+                  <p style={{ marginTop: 5, color: '#166534', fontWeight: 600 }}>
+                    ✓ Vos articles sont immédiatement réservés pour votre livraison.
                   </p>
                 </PaymentDetails>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 12, color: '#4a6150', fontSize: 12, flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 10, color: '#4a6150', fontSize: 11.5, flexWrap: 'wrap' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <FiLock size={13} color="#2c5530" /> Chiffrement SSL 256-bit
+                    <FiLock size={12} color="#2c5530" /> Chiffrement SSL 256-bit
                   </span>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <FiCheckCircle size={13} color="#27ae60" /> Aucun frais additionnel
+                    <FiCheckCircle size={12} color="#27ae60" /> Aucun frais additionnel
                   </span>
                 </div>
               </PaymentBox>

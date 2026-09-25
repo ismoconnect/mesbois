@@ -7,6 +7,10 @@ const LayoutContainer = styled.div`
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  width: 100%;
+  max-width: 100vw;
+  box-sizing: border-box;
+  overflow-x: hidden;
   
   /* Desktop: offset for fixed TopBar + Header */
   @media (min-width: 769px) {
@@ -46,6 +50,9 @@ const MainContent = styled.main`
   flex: 1;
   background: #f8f9fa;
   padding-bottom: 56px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   
   @media (max-width: 768px) {
     padding-bottom: 44px;

@@ -37,12 +37,14 @@ const HeaderContainer = styled.header`
   top: 52px; /* increased offset below the fixed TopBar on desktop */
   left: 0;
   right: 0;
-  width: 100vw;
+  width: 100%;
+  box-sizing: border-box;
   z-index: 1000;
   
   @media (max-width: 768px) {
     top: 0 !important;
-    width: 100vw !important;
+    width: 100% !important;
+    max-width: 100% !important;
     height: 64px !important;
     z-index: 9999 !important;
     transform: translateZ(0) !important;
@@ -1004,7 +1006,7 @@ const Header = () => {
               <FiPhone /> <span>{headerPhone}</span>
             </InfoItem>
             <InfoItem>
-              <FiClock /> <span>Lunâ€“Sam 9hâ€“18h</span>
+              <FiClock /> <span>Lun - Sam : 9h - 18h</span>
             </InfoItem>
           </InfoGroup>
 
@@ -1016,8 +1018,8 @@ const Header = () => {
                 title="Changer la langue"
                 style={{ backgroundColor: '#f3f6f4', padding: '2px 20px 2px 6px', fontSize: '12px' }}
               >
-                <option value="fr">ðŸ‡«ðŸ‡· FR</option>
-                <option value="de">ðŸ‡©ðŸ‡ª DE</option>
+                <option value="fr">🇫🇷 FR</option>
+                <option value="de">🇩🇪 DE</option>
               </LangSelect>
               {!user && (
                 <>

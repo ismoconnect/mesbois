@@ -1,317 +1,461 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
-import { FiPackage, FiTruck, FiCheckCircle, FiClock, FiXCircle, FiCreditCard } from 'react-icons/fi';
+import { 
+  FiPackage, 
+  FiTruck, 
+  FiCheckCircle, 
+  FiClock, 
+  FiXCircle, 
+  FiCreditCard, 
+  FiArrowRight, 
+  FiFileText,
+  FiShoppingBag,
+  FiChevronRight
+} from 'react-icons/fi';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserOrders, cancelOrder } from '../firebase/orders';
+import { formatTransferRef } from '../utils/ref';
 import DashboardLayout from '../components/Layout/DashboardLayout';
 import toast from 'react-hot-toast';
 
+// ========================================================
+// STYLED COMPONENTS (RESPONSIVE & ADAPTÉ AU BOIS)
+// ========================================================
+
 const OrdersContainer = styled.div`
-  max-width: 1200px;
+  max-width: 1000px;
   margin: 0 auto;
-  padding: 40px 20px;
-  word-break: break-word;
-  overflow-wrap: break-word;
-  @media (max-width: 600px) { padding: 20px 12px; }
+  padding: 0 16px 32px;
+  box-sizing: border-box;
+
+  @media (max-width: 640px) { 
+    padding: 0 8px 24px; 
+  }
 `;
 
-const OrdersHeader = styled.div`
-  margin-bottom: 40px;
+const HeaderCard = styled.div`
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+  padding: 20px 22px;
+  margin-bottom: 14px;
+
+  @media (max-width: 640px) {
+    border-radius: 12px;
+    padding: 14px 12px;
+    margin-bottom: 10px;
+  }
+`;
+
+const WoodTag = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #ecfdf5;
+  color: #166534;
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  margin-bottom: 8px;
+
+  @media (max-width: 640px) {
+    font-size: 10.5px;
+    padding: 2px 8px;
+    margin-bottom: 6px;
+  }
 `;
 
 const OrdersTitle = styled.h1`
-  font-size: 32px;
-  font-weight: 700;
-  color: #2c5530;
-  margin-bottom: 10px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  font-size: 24px;
+  font-weight: 800;
+  color: #1b4332;
+  margin: 0 0 4px 0;
+  letter-spacing: -0.3px;
+
+  @media (max-width: 640px) { 
+    font-size: 18px; 
+  }
 `;
 
 const OrdersSubtitle = styled.p`
-  color: #666;
-  font-size: 16px;
+  color: #64748b;
+  font-size: 13.5px;
+  margin: 0;
+  line-height: 1.45;
+
+  @media (max-width: 640px) { 
+    font-size: 11.5px; 
+  }
 `;
 
 const OrdersList = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 12px;
   min-width: 0;
+
+  @media (max-width: 640px) {
+    gap: 8px;
+  }
 `;
 
 const OrderCard = styled.div`
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  padding: 30px;
-  transition: transform 0.3s ease;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+  padding: 18px 20px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
   min-width: 0;
   overflow: hidden;
-  
+
   &:hover {
-    transform: translateY(-2px);
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
   }
-  
-  @media (max-width: 600px) {
-    padding: 18px;
-    min-width: 0;
+
+  @media (max-width: 640px) {
+    padding: 12px 10px;
+    border-radius: 12px;
   }
 `;
 
 const OrderHeader = styled.div`
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 20px;
-  
-  @media (max-width: 768px) {
-    flex-direction: column;
-    gap: 15px;
-  }
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #f1f5f9;
+  margin-bottom: 10px;
 `;
 
 const OrderInfo = styled.div`
-  h3 {
-    font-size: 18px;
-    font-weight: 600;
-    color: #2c5530;
-    margin-bottom: 5px;
+  min-width: 0;
+
+  .order-ref {
+    font-size: 15px;
+    font-weight: 800;
+    color: #166534;
+    display: flex;
+    align-items: center;
+    gap: 6px;
   }
-  
+
   .order-date {
-    color: #666;
-    font-size: 14px;
+    color: #64748b;
+    font-size: 11.5px;
+    margin-top: 2px;
+  }
+
+  @media (max-width: 640px) {
+    .order-ref { font-size: 13px; }
+    .order-date { font-size: 10.5px; }
   }
 `;
 
-const OrderStatus = styled.div`
+const StatusPill = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 700;
+  background: ${props => props.bg || '#f1f5f9'};
+  color: ${props => props.color || '#334155'};
+  border: 1px solid ${props => props.border || '#cbd5e1'};
+  white-space: nowrap;
+
+  @media (max-width: 640px) {
+    font-size: 10px;
+    padding: 2px 7px;
+  }
+`;
+
+// Notice Virement bancaire pro
+const PayNotice = styled.div`
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  border: 1px solid #fde68a;
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-size: 14px;
+  flex-wrap: wrap;
+
+  .notice-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #92400e;
+    font-weight: 600;
+
+    .icon {
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+  }
+
+  @media (max-width: 640px) {
+    padding: 8px 10px;
+    .notice-left { font-size: 11px; }
+  }
+`;
+
+const PayNoticeButton = styled(Link)`
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #2c5530;
+  color: #ffffff;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  &:hover {
+    background: #1e3a22;
+  }
+
+  @media (max-width: 640px) {
+    padding: 5px 10px;
+    font-size: 10.5px;
+  }
+`;
+
+const DeliveryBadge = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 11.5px;
+  color: #166534;
   font-weight: 600;
-  background: ${props => {
-    switch (props.status) {
-      case 'pending': return '#fff3cd';
-      case 'processing': return '#d1ecf1';
-      case 'shipped': return '#d4edda';
-      case 'delivered': return '#d4edda';
-      case 'cancelled': return '#f8d7da';
-      default: return '#e2e3e5';
-    }
-  }};
-  color: ${props => {
-    switch (props.status) {
-      case 'pending': return '#856404';
-      case 'processing': return '#0c5460';
-      case 'shipped': return '#155724';
-      case 'delivered': return '#155724';
-      case 'cancelled': return '#721c24';
-      default: return '#6c757d';
-    }
-  }};
+  margin-bottom: 10px;
+
+  svg {
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 640px) {
+    font-size: 10.5px;
+    padding: 5px 8px;
+  }
 `;
 
 const OrderItems = styled.div`
-  margin-bottom: 20px;
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 `;
 
 const OrderItem = styled.div`
   display: flex;
   align-items: center;
-  gap: 15px;
-  padding: 15px 0;
-  border-bottom: 1px solid #f0f0f0;
-  
-  &:last-child {
-    border-bottom: none;
-  }
+  justify-content: space-between;
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+  border-radius: 8px;
+  padding: 8px 10px;
+  gap: 8px;
 `;
 
-const ItemImage = styled.img`
-  width: 60px;
-  height: 60px;
-  object-fit: cover;
-  border-radius: 6px;
-`;
-
-const ItemInfo = styled.div`
+const ItemLeft = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
   flex: 1;
-  
-  h4 {
-    font-size: 16px;
-    font-weight: 600;
-    color: #2c5530;
-    margin-bottom: 5px;
+
+  .item-qty {
+    background: #ecfdf5;
+    color: #166534;
+    font-weight: 800;
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    flex-shrink: 0;
   }
-  
-  .item-quantity {
-    color: #666;
-    font-size: 14px;
+
+  .item-title {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #1e293b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  @media (max-width: 640px) {
+    .item-title { font-size: 11px; }
   }
 `;
 
 const ItemPrice = styled.div`
-  font-weight: 600;
-  color: #2c5530;
+  font-weight: 700;
+  font-size: 12.5px;
+  color: #334155;
+  flex-shrink: 0;
+
+  @media (max-width: 640px) {
+    font-size: 11.5px;
+  }
 `;
 
-const OrderTotal = styled.div`
+const OrderTotalRow = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 20px;
-  border-top: 2px solid #f0f0f0;
-  font-size: 18px;
-  font-weight: 700;
-  color: #2c5530;
-  
-  @media (max-width: 600px) {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #f1f5f9;
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: #64748b;
+
+  .total-amount {
+    font-size: 16px;
+    font-weight: 800;
+    color: #1b4332;
+  }
+
+  @media (max-width: 640px) {
+    font-size: 11.5px;
+    .total-amount { font-size: 14px; }
+    margin-bottom: 10px;
   }
 `;
 
 const OrderActions = styled.div`
   display: flex;
-  gap: 15px;
-  margin-top: 20px;
-  
-  @media (max-width: 768px) {
-    flex-direction: column;
-  }
-`;
-
-const PayNotice = styled.div`
-  display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  background: #fff8e1;
-  border: 1px solid #ffe7a3;
-  color: #8a6d3b;
-  border-radius: 10px;
-  padding: 12px 14px;
-  margin: 12px 0 16px 0;
-  font-size: 14px;
-  font-weight: 600;
-  
-  @media (max-width: 600px) {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
-  }
-`;
+  gap: 8px;
+  flex-wrap: wrap;
 
-const PayNoticeButton = styled(Link)`
-  flex: 0 0 auto;
-  background: #2c5530;
-  color: #fff;
-  text-decoration: none;
-  padding: 8px 12px;
-  border-radius: 8px;
-  font-weight: 700;
-  &:hover { background: #1e3a22; }
-  
-  @media (max-width: 600px) {
-    width: 100%;
-    text-align: center;
+  @media (max-width: 640px) {
+    gap: 6px;
   }
 `;
 
 const ActionButton = styled(Link)`
-  padding: 10px 20px;
-  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 700;
   text-decoration: none;
-  font-weight: 600;
-  font-size: 14px;
-  transition: all 0.3s ease;
-  display: inline-block;
-  text-align: center;
-  border: none;
-  cursor: pointer;
-  
+  transition: all 0.15s ease;
+
   &.primary {
     background: #2c5530;
-    color: white;
-    
-    &:hover {
-      background: #1e3a22;
-    }
+    color: #ffffff;
+    &:hover { background: #1e3a22; }
   }
-  
+
   &.secondary {
-    background: #f8f9fa;
+    background: #ffffff;
     color: #2c5530;
-    border: 2px solid #e0e0e0;
-    
-    &:hover {
-      background: #e9ecef;
-    }
+    border: 1px solid #86efac;
+    &:hover { background: #f0fdf4; }
+  }
+
+  @media (max-width: 640px) {
+    padding: 7px 10px;
+    font-size: 11px;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 `;
 
 const CancelButton = styled.button`
-  padding: 10px 20px;
-  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 12px;
   font-weight: 600;
-  font-size: 14px;
-  transition: all 0.3s ease;
-  background: #fff;
-  color: #dc3545;
-  border: 2px solid #dc3545;
+  background: #ffffff;
+  color: #dc2626;
+  border: 1px solid #fecaca;
   cursor: pointer;
-  
+  transition: all 0.15s ease;
+
   &:hover {
-    background: #dc3545;
-    color: #fff;
+    background: #fee2e2;
   }
-  
+
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
   }
+
+  @media (max-width: 640px) {
+    padding: 7px 8px;
+    font-size: 10.5px;
+  }
 `;
 
 const EmptyOrders = styled.div`
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
   text-align: center;
-  padding: 60px 20px;
-  color: #666;
-  
-  svg {
-    font-size: 64px;
-    color: #ccc;
-    margin-bottom: 20px;
-  }
-  
-  h3 {
-    font-size: 24px;
-    margin-bottom: 10px;
+  padding: 40px 20px;
+  color: #64748b;
+
+  .empty-icon {
+    font-size: 48px;
     color: #2c5530;
+    margin-bottom: 10px;
   }
-  
+
+  h3 {
+    font-size: 18px;
+    font-weight: 800;
+    color: #1b4332;
+    margin: 0 0 6px 0;
+  }
+
   p {
-    font-size: 16px;
-    margin-bottom: 30px;
+    font-size: 13.5px;
+    margin: 0 0 16px 0;
   }
 `;
 
 const ShopButton = styled(Link)`
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   background: #2c5530;
-  color: white;
-  padding: 15px 30px;
+  color: #ffffff;
+  padding: 10px 20px;
   border-radius: 8px;
   text-decoration: none;
-  font-weight: 600;
-  transition: background-color 0.3s ease;
-  
+  font-weight: 700;
+  font-size: 13px;
+  transition: background-color 0.15s ease;
+
   &:hover {
     background: #1e3a22;
   }
@@ -319,32 +463,69 @@ const ShopButton = styled(Link)`
 
 const LoadingSpinner = styled.div`
   text-align: center;
-  padding: 60px 20px;
-  font-size: 18px;
-  color: #2c5530;
+  padding: 40px 20px;
+  font-size: 14px;
+  color: #64748b;
 `;
 
-const getStatusIcon = (status) => {
+// Helper de statut adapté à la réalité du bois
+function getStatusDetails(status) {
   switch (status) {
-    case 'pending': return <FiClock size={16} />;
-    case 'processing': return <FiPackage size={16} />;
-    case 'shipped': return <FiTruck size={16} />;
-    case 'delivered': return <FiCheckCircle size={16} />;
-    case 'cancelled': return <FiXCircle size={16} />;
-    default: return <FiClock size={16} />;
+    case 'pending':
+    case 'awaiting_payment':
+      return { 
+        text: 'En attente virement', 
+        bg: '#fef3c7', 
+        color: '#92400e', 
+        border: '#fde68a',
+        icon: <FiClock size={13} />
+      };
+    case 'processing':
+      return { 
+        text: 'En préparation palette', 
+        bg: '#e0f2fe', 
+        color: '#0369a1', 
+        border: '#bae6fd',
+        icon: <FiPackage size={13} />
+      };
+    case 'shipped':
+      return { 
+        text: 'En livraison chariot', 
+        bg: '#ecfdf5', 
+        color: '#15803d', 
+        border: '#bbf7d0',
+        icon: <FiTruck size={13} />
+      };
+    case 'delivered':
+      return { 
+        text: 'Livrée avec chariot', 
+        bg: '#f0fdf4', 
+        color: '#166534', 
+        border: '#86efac',
+        icon: <FiCheckCircle size={13} />
+      };
+    case 'cancelled':
+      return { 
+        text: 'Annulée', 
+        bg: '#fee2e2', 
+        color: '#991b1b', 
+        border: '#fecaca',
+        icon: <FiXCircle size={13} />
+      };
+    default:
+      return { 
+        text: 'Enregistrée', 
+        bg: '#f1f5f9', 
+        color: '#334155', 
+        border: '#cbd5e1',
+        icon: <FiClock size={13} />
+      };
   }
-};
+}
 
-const getStatusText = (status) => {
-  switch (status) {
-    case 'pending': return 'En attente';
-    case 'processing': return 'En cours de traitement';
-    case 'shipped': return 'Expédié';
-    case 'delivered': return 'Livré';
-    case 'cancelled': return 'Annulé';
-    default: return 'Inconnu';
-  }
-};
+// ========================================================
+// COMPOSANT ORDERS
+// ========================================================
 
 const Orders = () => {
   const { user } = useAuth();
@@ -422,7 +603,7 @@ const Orders = () => {
       const result = await getUserOrders(user.uid);
 
       if (result.success) {
-        setOrders(result.data);
+        setOrders(result.data || []);
       } else {
         setError(result.error);
       }
@@ -444,7 +625,6 @@ const Orders = () => {
 
     if (result.success) {
       showCenterAlert('Commande annulée avec succès');
-      // Recharger les commandes
       fetchOrders();
     } else {
       showCenterAlert("Erreur lors de l'annulation de la commande", 'error');
@@ -455,141 +635,149 @@ const Orders = () => {
 
   if (!user) return null;
 
-  if (loading) {
-    return (
-      <DashboardLayout>
-        <OrdersContainer>
-          <LoadingSpinner>Chargement de vos commandes...</LoadingSpinner>
-        </OrdersContainer>
-      </DashboardLayout>
-    );
-  }
-
-  if (error) {
-    return (
-      <DashboardLayout>
-        <OrdersContainer>
-          <EmptyOrders>
-            <FiXCircle size={64} />
-            <h3>Erreur</h3>
-            <p>{error}</p>
-          </EmptyOrders>
-        </OrdersContainer>
-      </DashboardLayout>
-    );
-  }
-
-  if (orders.length === 0) {
-    return (
-      <DashboardLayout>
-        <OrdersContainer>
-          <OrdersHeader>
-            <OrdersTitle>
-              <FiPackage size={32} />
-              Mes Commandes
-            </OrdersTitle>
-            <OrdersSubtitle>Historique de vos commandes</OrdersSubtitle>
-          </OrdersHeader>
-
-          <EmptyOrders>
-            <FiPackage size={64} />
-            <h3>Aucune commande</h3>
-            <p>Vous n'avez pas encore passé de commande</p>
-            <ShopButton to="/dashboard/products">Commencer mes achats</ShopButton>
-          </EmptyOrders>
-        </OrdersContainer>
-      </DashboardLayout>
-    );
-  }
-
   return (
     <DashboardLayout>
       <OrdersContainer>
-        <OrdersHeader>
-          <OrdersTitle>
-            <FiPackage size={32} />
-            Mes Commandes
-          </OrdersTitle>
-          <OrdersSubtitle>Historique de vos commandes</OrdersSubtitle>
-        </OrdersHeader>
+        <HeaderCard>
+          <WoodTag>🪵 Espace Bois de Chauffage</WoodTag>
+          <OrdersTitle>Mes Commandes</OrdersTitle>
+          <OrdersSubtitle>Consultez l'historique et le suivi de vos livraisons de bois.</OrdersSubtitle>
+        </HeaderCard>
 
-        <OrdersList>
-          {orders.map(order => (
-            <OrderCard key={order.id}>
-              <OrderHeader>
-                <OrderInfo>
-                  <h3>Commande #{order.id.slice(-8)}</h3>
-                  <div className="order-date">
-                    {new Date(order.createdAt.seconds * 1000).toLocaleDateString('fr-FR', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
-                  </div>
-                </OrderInfo>
+        {loading && <LoadingSpinner>Chargement de vos commandes...</LoadingSpinner>}
 
-                <OrderStatus status={order.status}>
-                  {getStatusIcon(order.status)}
-                  {getStatusText(order.status)}
-                </OrderStatus>
-              </OrderHeader>
-              {(order?.payment?.method === 'bank') && (order.status !== 'paid' && order.status !== 'delivered') && (
-                <PayNotice>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                    <FiCreditCard /> Payez par virement: retrouvez le RIB dans Facturation pour valider votre commande.
-                  </span>
-                  <PayNoticeButton to="/billing">Aller au RIB</PayNoticeButton>
-                </PayNotice>
-              )}
+        {error && (
+          <EmptyOrders>
+            <FiXCircle className="empty-icon" style={{ color: '#dc2626' }} />
+            <h3>Erreur</h3>
+            <p>{error}</p>
+          </EmptyOrders>
+        )}
 
-              <OrderItems>
-                {order.items.map((item, index) => (
-                  <OrderItem key={index}>
-                    <ItemImage
-                      src={item.image || 'https://picsum.photos/seed/fallback/60/60'}
-                      alt={item.name}
-                      onError={(e) => {
-                        e.target.src = 'https://picsum.photos/seed/fallback/60/60';
-                      }}
-                    />
-                    <ItemInfo>
-                      <h4>{item.name}</h4>
-                      <div className="item-quantity">Quantité: {item.quantity}</div>
-                    </ItemInfo>
-                    <ItemPrice>{(item.price * item.quantity).toFixed(2)}€</ItemPrice>
-                  </OrderItem>
-                ))}
-              </OrderItems>
+        {!loading && !error && orders.length === 0 && (
+          <EmptyOrders>
+            <FiPackage className="empty-icon" />
+            <h3>Aucune commande pour le moment</h3>
+            <p>Retrouvez vos stères, palettes et granulés livrés avec chariot tout-terrain sur la boutique.</p>
+            <ShopButton to="/products">
+              <FiShoppingBag />
+              <span>Découvrir la boutique de bois</span>
+            </ShopButton>
+          </EmptyOrders>
+        )}
 
-              <OrderTotal>
-                <span>Total</span>
-                <span>{order.total.toFixed(2)}€</span>
-              </OrderTotal>
+        {!loading && !error && orders.length > 0 && (
+          <OrdersList>
+            {orders.map((order) => {
+              const s = getStatusDetails(order.status);
+              const orderRef = formatTransferRef(order.id);
+              const items = Array.isArray(order.items) ? order.items : [];
+              const isPendingPayment = order.status === 'pending' || order.status === 'awaiting_payment';
 
-              <OrderActions>
-                <ActionButton to={`/orders/${order.id}`} className="primary">
-                  Voir les détails
-                </ActionButton>
-                {order.status === 'delivered' && (
-                  <ActionButton to={`/orders/${order.id}/review`} className="secondary">
-                    Laisser un avis
-                  </ActionButton>
-                )}
-                {(order.status === 'pending' || order.status === 'processing') && (
-                  <CancelButton
-                    onClick={() => setConfirmId(order.id)}
-                    disabled={cancellingId === order.id}
-                  >
-                    {cancellingId === order.id ? 'Annulation...' : 'Annuler la commande'}
-                  </CancelButton>
-                )}
-              </OrderActions>
-            </OrderCard>
-          ))}
-        </OrdersList>
+              return (
+                <OrderCard key={order.id}>
+                  <OrderHeader>
+                    <OrderInfo>
+                      <div className="order-ref">
+                        <FiPackage />
+                        <span>Commande #{orderRef}</span>
+                      </div>
+                      <div className="order-date">
+                        {order.createdAt?.seconds 
+                          ? new Date(order.createdAt.seconds * 1000).toLocaleDateString('fr-FR', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })
+                          : 'Date non renseignée'}
+                      </div>
+                    </OrderInfo>
 
+                    <StatusPill bg={s.bg} color={s.color} border={s.border}>
+                      {s.icon}
+                      <span>{s.text}</span>
+                    </StatusPill>
+                  </OrderHeader>
+
+                  {/* Notice virement bancaire pour les commandes en attente */}
+                  {isPendingPayment && (
+                    <PayNotice>
+                      <div className="notice-left">
+                        <span className="icon">🏦</span>
+                        <span>Virement en attente : vos coordonnées bancaires officielles sont prêtes.</span>
+                      </div>
+                      <PayNoticeButton to={`/bank-transfer?orderId=${order.id}`}>
+                        Voir le RIB →
+                      </PayNoticeButton>
+                    </PayNotice>
+                  )}
+
+                  {/* Badge chariot tout-terrain */}
+                  <DeliveryBadge>
+                    <FiTruck />
+                    <span>Livraison avec chariot tout-terrain inclus jusqu'à l'abri</span>
+                  </DeliveryBadge>
+
+                  {/* Liste des articles */}
+                  <OrderItems>
+                    {items.map((item, idx) => (
+                      <OrderItem key={idx}>
+                        <ItemLeft>
+                          <span className="item-qty">{item.quantity || 1}x</span>
+                          <span className="item-title">{item.name || item.title || 'Bois de chauffage'}</span>
+                        </ItemLeft>
+                        <ItemPrice>
+                          {((item.price || 0) * (item.quantity || 1)).toFixed(2)} €
+                        </ItemPrice>
+                      </OrderItem>
+                    ))}
+                  </OrderItems>
+
+                  {/* Total TTC */}
+                  <OrderTotalRow>
+                    <span>Total TTC :</span>
+                    <span className="total-amount">{Number(order.total || 0).toFixed(2)} €</span>
+                  </OrderTotalRow>
+
+                  {/* Actions rapides */}
+                  <OrderActions>
+                    <ActionButton to={`/dashboard/orders/${order.id}`} className="primary">
+                      <FiPackage />
+                      <span>Voir les détails</span>
+                    </ActionButton>
+
+                    {(order.status === 'processing' || order.status === 'shipped') && (
+                      <ActionButton to={`/dashboard/suivi/${order.id}`} className="secondary">
+                        <FiTruck />
+                        <span>Suivre la livraison</span>
+                      </ActionButton>
+                    )}
+
+                    {order.status === 'delivered' && (
+                      <ActionButton to={`/dashboard/orders/${order.id}/review`} className="secondary">
+                        <span>Laisser un avis</span>
+                      </ActionButton>
+                    )}
+
+                    {isPendingPayment && (
+                      <CancelButton
+                        type="button"
+                        onClick={() => setConfirmId(order.id)}
+                        disabled={cancellingId === order.id}
+                      >
+                        {cancellingId === order.id ? 'Annulation...' : 'Annuler'}
+                      </CancelButton>
+                    )}
+                  </OrderActions>
+                </OrderCard>
+              );
+            })}
+          </OrdersList>
+        )}
+
+        {/* Modal d'annulation confirmation */}
         {confirmId && (
           <div
             style={{
@@ -606,8 +794,8 @@ const Orders = () => {
             <div
               style={{
                 background: '#fff',
-                borderRadius: 12,
-                padding: '18px 20px 16px',
+                borderRadius: 14,
+                padding: '20px 22px 18px',
                 maxWidth: '90vw',
                 width: 360,
                 boxShadow: '0 12px 40px rgba(0,0,0,0.25)',
@@ -615,11 +803,11 @@ const Orders = () => {
               }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 10 }}>
-                Êtes-vous sûr de vouloir annuler cette commande ?
+              <div style={{ fontSize: 16, fontWeight: 700, color: '#111827', marginBottom: 8 }}>
+                Annuler cette commande ?
               </div>
-              <div style={{ fontSize: 13, color: '#555', marginBottom: 16 }}>
-                Cette action est définitive. Votre commande passera en statut « Annulée ».
+              <div style={{ fontSize: 13, color: '#64748b', marginBottom: 18, lineHeight: 1.4 }}>
+                Cette action est définitive. Votre commande de bois passera en statut « Annulée ».
               </div>
               <div style={{ display: 'flex', justifyContent: 'center', gap: 10 }}>
                 <button
@@ -628,9 +816,9 @@ const Orders = () => {
                   disabled={!!cancellingId}
                   style={{
                     padding: '8px 16px',
-                    borderRadius: 999,
-                    border: '1px solid #e5e7eb',
-                    background: '#f9fafb',
+                    borderRadius: 8,
+                    border: '1px solid #e2e8f0',
+                    background: '#f8fafc',
                     fontSize: 13,
                     fontWeight: 600,
                     cursor: 'pointer'
@@ -644,12 +832,12 @@ const Orders = () => {
                   disabled={!!cancellingId}
                   style={{
                     padding: '8px 16px',
-                    borderRadius: 999,
+                    borderRadius: 8,
                     border: 'none',
                     background: '#dc2626',
                     color: '#fff',
                     fontSize: 13,
-                    fontWeight: 600,
+                    fontWeight: 700,
                     cursor: 'pointer'
                   }}
                 >
@@ -665,4 +853,3 @@ const Orders = () => {
 };
 
 export default Orders;
-

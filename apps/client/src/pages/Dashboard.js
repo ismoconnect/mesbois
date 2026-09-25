@@ -1,299 +1,646 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { useAuth } from '../contexts/AuthContext';
-import { useCart } from '../contexts/CartContext';
 import { Link } from 'react-router-dom';
-import { FiShoppingBag, FiPackage, FiTruck, FiUser, FiCreditCard, FiShoppingCart } from 'react-icons/fi';
-import DashboardLayout from '../components/Layout/DashboardLayout';
+import { useAuth } from '../contexts/AuthContext';
+import { useSiteSettings } from '../contexts/SiteSettingsContext';
 import { getUserOrders } from '../firebase/orders';
+import { getRIB } from '../firebase/rib';
+import { formatTransferRef } from '../utils/ref';
+import DashboardLayout from '../components/Layout/DashboardLayout';
+import { 
+  FiPackage, 
+  FiTruck, 
+  FiFileText, 
+  FiUser, 
+  FiShoppingBag, 
+  FiClock, 
+  FiCheckCircle, 
+  FiShield,
+  FiChevronRight
+} from 'react-icons/fi';
+import { FaWhatsapp } from 'react-icons/fa';
+
+// ========================================================
+// STYLED COMPONENTS (RESPONSIVE, MODERN & PROPRE)
+// ========================================================
 
 const Shell = styled.div`
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 20px 24px 20px;
-  @media (max-width: 600px) { 
-    padding: 0 16px 16px 16px; 
+  padding: 0 20px 30px;
+  box-sizing: border-box;
+
+  @media (max-width: 768px) { 
+    padding: 0 10px 24px; 
+  }
+`;
+
+// En-tête Espace Client
+const HeaderCard = styled.div`
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+  padding: 20px 22px;
+  margin-bottom: 14px;
+
+  @media (max-width: 640px) {
+    border-radius: 12px;
+    padding: 14px 12px;
+    margin-bottom: 10px;
+  }
+`;
+
+const WoodTag = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #ecfdf5;
+  color: #166534;
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  margin-bottom: 8px;
+
+  @media (max-width: 640px) {
+    font-size: 10.5px;
+    padding: 2px 8px;
+    margin-bottom: 6px;
   }
 `;
 
 const Title = styled.h1`
-  font-size: 32px;
-  margin-bottom: 8px;
-  color: #1f2d1f;
-  @media (max-width: 768px) { font-size: 26px; }
-  @media (max-width: 600px) { font-size: 22px; }
+  font-size: 24px;
+  font-weight: 800;
+  margin: 0 0 4px 0;
+  color: #1b4332;
+  letter-spacing: -0.3px;
+
+  @media (max-width: 640px) { 
+    font-size: 18px; 
+  }
 `;
 
 const Subtitle = styled.p`
-  color: #666;
-  font-size: 16px;
-  margin-bottom: 32px;
-  @media (max-width: 600px) { 
-    font-size: 14px;
-    margin-bottom: 24px;
+  color: #64748b;
+  font-size: 13.5px;
+  margin: 0;
+  line-height: 1.45;
+
+  @media (max-width: 640px) { 
+    font-size: 11.5px; 
   }
 `;
 
-// Sidebar/headers fournis par DashboardLayout
+// Bannière Commande Active / Suivi Chariot Tout-Terrain
+const ActiveOrderBanner = styled.div`
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border: 1.5px solid #86efac;
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin-bottom: 14px;
+  box-shadow: 0 3px 12px rgba(22, 101, 52, 0.06);
 
+  @media (max-width: 640px) {
+    border-radius: 12px;
+    padding: 12px 10px;
+    margin-bottom: 10px;
+  }
+`;
+
+const ActiveBannerHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 6px;
+`;
+
+const ActiveOrderRef = styled.div`
+  font-size: 14px;
+  font-weight: 800;
+  color: #166534;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  @media (max-width: 640px) {
+    font-size: 12.5px;
+  }
+`;
+
+const ActiveStatusBadge = styled.span`
+  background: ${props => props.bg || '#fef3c7'};
+  color: ${props => props.color || '#92400e'};
+  border: 1px solid ${props => props.border || '#fde68a'};
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 700;
+  white-space: nowrap;
+
+  @media (max-width: 640px) {
+    font-size: 10.5px;
+    padding: 2px 7px;
+  }
+`;
+
+const ActiveOrderInfo = styled.div`
+  font-size: 12.5px;
+  color: #374151;
+  margin-bottom: 10px;
+
+  strong {
+    color: #111827;
+  }
+
+  @media (max-width: 640px) {
+    font-size: 11px;
+    margin-bottom: 8px;
+  }
+`;
+
+const ActiveActionsRow = styled.div`
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+
+  @media (max-width: 640px) {
+    gap: 6px;
+  }
+`;
+
+const ActiveButton = styled(Link)`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: all 0.15s ease;
+
+  &.primary {
+    background: #2c5530;
+    color: #ffffff;
+    &:hover { background: #1e3a22; }
+  }
+
+  &.secondary {
+    background: #ffffff;
+    color: #2c5530;
+    border: 1px solid #86efac;
+    &:hover { background: #f0fdf4; }
+  }
+
+  @media (max-width: 640px) {
+    padding: 7px 6px;
+    font-size: 10.5px;
+  }
+`;
+
+// Grille de KPI / Statistiques
 const StatsGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 40px;
+  gap: 12px;
+  margin-bottom: 14px;
 
-  @media (max-width: 900px) {
+  @media (max-width: 860px) {
     grid-template-columns: repeat(2, 1fr);
-  }
-
-  @media (max-width: 600px) {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-    margin-bottom: 24px;
+    gap: 8px;
+    margin-bottom: 10px;
   }
 `;
 
 const StatCard = styled.div`
-  background: ${props => props.bg || '#f8faf9'};
-  border: 2px solid ${props => props.border || '#e6ebe8'};
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 12px;
-  padding: 20px;
-  color: ${props => props.color || '#1f2d1f'};
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-  transition: all 0.2s ease;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   }
 
-  @media (max-width: 600px) {
-    padding: 16px 12px;
+  @media (max-width: 640px) {
+    padding: 10px 10px;
+    border-radius: 10px;
+  }
+`;
+
+const StatTopRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+`;
+
+const StatLabel = styled.div`
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 600;
+
+  @media (max-width: 640px) {
+    font-size: 10.5px;
+  }
+`;
+
+const StatIcon = styled.div`
+  font-size: 16px;
+  color: ${props => props.color || '#2c5530'};
+  display: flex;
+  align-items: center;
+
+  @media (max-width: 640px) {
+    font-size: 14px;
   }
 `;
 
 const StatValue = styled.div`
-  font-size: 32px;
+  font-size: 22px;
   font-weight: 800;
-  margin-bottom: 4px;
-  color: ${props => props.color || 'inherit'};
-  @media (max-width: 768px) { font-size: 28px; }
-  @media (max-width: 600px) { font-size: 24px; }
-`;
+  color: ${props => props.color || '#1b4332'};
+  line-height: 1.1;
 
-const StatLabel = styled.div`
-  font-size: 13px;
-  opacity: 0.7;
-  font-weight: 500;
-  @media (max-width: 600px) { 
-    font-size: 11px;
-  }
-`;
-
-const QuickActions = styled.div`
-  background: #fff;
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
-  margin-bottom: 40px;
-  @media (max-width: 600px) {
-    padding: 20px 16px;
-    margin-bottom: 24px;
-  }
-`;
-
-const QuickActionsTitle = styled.h2`
-  font-size: 20px;
-  margin-bottom: 16px;
-  color: #1f2d1f;
-  @media (max-width: 600px) {
+  @media (max-width: 640px) {
     font-size: 18px;
-    margin-bottom: 12px;
   }
 `;
 
+// Carte de Section (Actions rapides, Commandes)
+const SectionCard = styled.div`
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 18px 20px;
+  margin-bottom: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+
+  @media (max-width: 640px) {
+    padding: 12px 10px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+  }
+`;
+
+const SectionHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+
+  h2 {
+    font-size: 16px;
+    font-weight: 800;
+    color: #1b4332;
+    margin: 0;
+  }
+
+  a.view-all {
+    font-size: 12px;
+    font-weight: 700;
+    color: #2c5530;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  @media (max-width: 640px) {
+    margin-bottom: 8px;
+    h2 { font-size: 13.5px; }
+    a.view-all { font-size: 10.5px; }
+  }
+`;
+
+// Grille des Actions Rapides (6 boutons, 0 Panier)
 const ActionGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 12px;
-  @media (max-width: 600px) {
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+
+  @media (max-width: 900px) {
     grid-template-columns: repeat(3, 1fr);
     gap: 8px;
   }
-  @media (max-width: 400px) {
-    grid-template-columns: repeat(2, 1fr);
+
+  @media (max-width: 480px) {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
   }
 `;
 
 const ActionButton = styled(Link)`
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px 6px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 16px;
-  border-radius: 12px;
-  background: #f8faf9;
-  border: 2px solid #e6ebe8;
+  justify-content: center;
   text-decoration: none;
-  color: #1f2d1f;
-  transition: all .2s ease;
+  color: #1e293b;
+  gap: 6px;
   text-align: center;
+  transition: all 0.15s ease;
 
   &:hover {
-    background: #eaf4ee;
-    border-color: #2c5530;
+    background: #f0fdf4;
+    border-color: #86efac;
     transform: translateY(-2px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
   }
 
-  svg {
-    font-size: 24px;
+  .act-icon {
+    font-size: 22px;
     color: #2c5530;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
-  span {
-    font-size: 13px;
-    font-weight: 600;
+  span.act-label {
+    font-size: 11.5px;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
   }
 
-  @media (max-width: 600px) {
-    padding: 12px 8px;
-    gap: 6px;
+  @media (max-width: 640px) {
+    padding: 10px 4px;
+    gap: 4px;
+    border-radius: 8px;
 
-    svg {
-      font-size: 20px;
+    .act-icon {
+      font-size: 18px;
     }
 
-    span {
-      font-size: 11px;
+    span.act-label {
+      font-size: 9.5px;
     }
   }
 `;
 
-const RecentOrders = styled.div`
-  background: #fff;
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
-  @media (max-width: 600px) {
-    padding: 20px 16px;
+const ActionAnchor = styled.a`
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  color: #1e293b;
+  gap: 6px;
+  text-align: center;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: #f0fdf4;
+    border-color: #25D366;
+    transform: translateY(-2px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+  }
+
+  .act-icon {
+    font-size: 22px;
+    color: #25D366;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  span.act-label {
+    font-size: 11.5px;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+
+  @media (max-width: 640px) {
+    padding: 10px 4px;
+    gap: 4px;
+    border-radius: 8px;
+
+    .act-icon {
+      font-size: 18px;
+    }
+
+    span.act-label {
+      font-size: 9.5px;
+    }
   }
 `;
 
-const RecentOrdersTitle = styled.h2`
-  font-size: 20px;
-  margin-bottom: 16px;
-  color: #1f2d1f;
-  @media (max-width: 600px) {
-    font-size: 18px;
-    margin-bottom: 12px;
-  }
-`;
-
-const OrderItem = styled(Link)`
+// Lignes de Commandes Récentes
+const OrderItemRow = styled(Link)`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px;
-  border-radius: 12px;
-  background: #f8faf9;
-  margin-bottom: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 11px 14px;
+  margin-bottom: 8px;
   text-decoration: none;
   color: inherit;
-  transition: all .2s ease;
+  transition: all 0.15s ease;
 
   &:hover {
-    background: #eaf4ee;
-    transform: translateX(4px);
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+    transform: translateX(2px);
   }
 
   &:last-child {
     margin-bottom: 0;
   }
 
-  @media (max-width: 600px) {
-    padding: 12px;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
+  @media (max-width: 640px) {
+    padding: 9px 10px;
+    margin-bottom: 6px;
   }
 `;
 
-const OrderInfo = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+const OrderRowLeft = styled.div`
+  min-width: 0;
+  flex: 1;
+
+  .order-ref {
+    font-size: 13.5px;
+    font-weight: 800;
+    color: #166534;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .order-meta {
+    font-size: 11.5px;
+    color: #64748b;
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  @media (max-width: 640px) {
+    .order-ref { font-size: 11.5px; }
+    .order-meta { font-size: 10px; }
+  }
 `;
 
-const OrderNumber = styled.div`
+const OrderRowRight = styled.div`
+  text-align: right;
+  flex-shrink: 0;
+  margin-left: 10px;
+
+  .order-price {
+    font-size: 14.5px;
+    font-weight: 800;
+    color: #111827;
+  }
+
+  @media (max-width: 640px) {
+    .order-price { font-size: 12.5px; }
+  }
+`;
+
+const OrderStatusPill = styled.span`
+  display: inline-block;
+  font-size: 10.5px;
   font-weight: 700;
-  font-size: 14px;
-  @media (max-width: 600px) {
-    font-size: 13px;
-  }
-`;
-
-const OrderDate = styled.div`
-  font-size: 12px;
-  color: #666;
-  @media (max-width: 600px) {
-    font-size: 11px;
-  }
-`;
-
-const OrderStatus = styled.span`
-  padding: 4px 12px;
+  padding: 2px 8px;
   border-radius: 999px;
-  font-size: 12px;
+  margin-top: 3px;
+  background: ${props => props.bg || '#f3f4f6'};
+  color: ${props => props.color || '#374151'};
+  border: 1px solid ${props => props.border || '#e5e7eb'};
+
+  @media (max-width: 640px) {
+    font-size: 9px;
+    padding: 1px 6px;
+  }
+`;
+
+// Bandeau de Confiance
+const TrustBar = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 6px;
+
+  @media (max-width: 640px) {
+    gap: 4px;
+    margin-top: 4px;
+  }
+`;
+
+const TrustItem = styled.div`
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 8px 4px;
+  text-align: center;
+  font-size: 11px;
   font-weight: 600;
-  background: ${props => {
-    switch (props.status) {
-      case 'pending': return '#fff3cd';
-      case 'processing': return '#d1ecf1';
-      case 'shipped': return '#d4edda';
-      case 'delivered': return '#d4edda';
-      case 'cancelled': return '#f8d7da';
-      default: return '#e2e3e5';
-    }
-  }};
-  color: ${props => {
-    switch (props.status) {
-      case 'pending': return '#856404';
-      case 'processing': return '#0c5460';
-      case 'shipped': return '#155724';
-      case 'delivered': return '#155724';
-      case 'cancelled': return '#721c24';
-      default: return '#6c757d';
-    }
-  }};
+  color: #374151;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  svg {
+    color: #166534;
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 640px) {
+    padding: 6px 2px;
+    font-size: 8.5px;
+    gap: 3px;
+  }
 `;
 
 const EmptyState = styled.div`
   text-align: center;
-  padding: 40px 20px;
-  color: #666;
-  font-size: 14px;
+  padding: 28px 16px;
+  color: #64748b;
+  font-size: 13.5px;
+
+  p { margin: 0 0 12px 0; }
+
+  a.shop-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #2c5530;
+    color: #ffffff;
+    padding: 8px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 12.5px;
+
+    &:hover { background: #1e3a22; }
+  }
+
+  @media (max-width: 640px) {
+    padding: 20px 10px;
+    font-size: 12px;
+  }
 `;
 
-function getStatusText(status) {
+// Helper de statut adapté à la réalité du bois
+function getStatusDetails(status) {
   switch (status) {
-    case 'pending': return 'En attente';
-    case 'processing': return 'En cours';
-    case 'shipped': return 'Expédié';
-    case 'delivered': return 'Livré';
-    case 'cancelled': return 'Annulé';
-    default: return 'Inconnu';
+    case 'pending':
+    case 'awaiting_payment':
+      return { text: 'En attente virement', bg: '#fef3c7', color: '#92400e', border: '#fde68a' };
+    case 'processing':
+      return { text: 'En préparation palette', bg: '#e0f2fe', color: '#0369a1', border: '#bae6fd' };
+    case 'shipped':
+      return { text: 'En livraison chariot', bg: '#ecfdf5', color: '#15803d', border: '#bbf7d0' };
+    case 'delivered':
+      return { text: 'Livrée avec chariot', bg: '#f0fdf4', color: '#166534', border: '#86efac' };
+    case 'cancelled':
+      return { text: 'Annulée', bg: '#fee2e2', color: '#991b1b', border: '#fecaca' };
+    default:
+      return { text: 'Commande enregistrée', bg: '#f1f5f9', color: '#334155', border: '#cbd5e1' };
   }
 }
 
-const Section = styled.div`
-  margin-bottom: 32px;
-`;
-
 const Dashboard = () => {
   const { user, userData } = useAuth();
-  const { getCartItemsCount } = useCart();
+  const { settings, loaded: settingsLoaded } = useSiteSettings();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [whatsappNumber, setWhatsappNumber] = useState('+49 1633637236');
   const [stats, setStats] = useState({
     totalOrders: 0,
     pendingOrders: 0,
@@ -301,137 +648,279 @@ const Dashboard = () => {
     totalSpent: 0
   });
 
-  const name = userData?.displayName || user?.email || '';
-  const cartCount = typeof getCartItemsCount === 'function' ? getCartItemsCount() : 0;
+  const displayName = userData?.displayName || user?.displayName || user?.email?.split('@')[0] || 'Client';
 
   useEffect(() => {
-    if (!user) return;
-    const loadOrders = async () => {
+    let isMounted = true;
+
+    async function fetchData() {
+      if (!user) return;
       setLoading(true);
-      const res = await getUserOrders(user.uid);
-      if (res.success) {
-        const ordersData = res.data || [];
-        setOrders(ordersData.slice(0, 3)); // Les 3 dernières commandes
-        
-        // Calculer les statistiques
-        const totalOrders = ordersData.length;
-        const pendingOrders = ordersData.filter(o => o.status === 'pending' || o.status === 'processing').length;
-        const deliveredOrders = ordersData.filter(o => o.status === 'delivered').length;
-        const totalSpent = ordersData.reduce((sum, o) => sum + (o.total || 0), 0);
-        
-        setStats({ totalOrders, pendingOrders, deliveredOrders, totalSpent });
+
+      try {
+        const [ordersRes, ribRes] = await Promise.all([
+          getUserOrders(user.uid),
+          getRIB()
+        ]);
+
+        if (isMounted) {
+          if (ribRes && ribRes.success && ribRes.data?.whatsappNumber) {
+            setWhatsappNumber(ribRes.data.whatsappNumber);
+          }
+
+          if (ordersRes.success) {
+            const ordersData = ordersRes.data || [];
+            setOrders(ordersData);
+
+            // Calculer les statistiques réelles
+            const totalOrders = ordersData.length;
+            const pendingOrders = ordersData.filter(o => 
+              o.status === 'pending' || 
+              o.status === 'awaiting_payment' || 
+              o.status === 'processing' || 
+              o.status === 'shipped'
+            ).length;
+            const deliveredOrders = ordersData.filter(o => o.status === 'delivered').length;
+            const totalSpent = ordersData.reduce((sum, o) => sum + (o.total || 0), 0);
+
+            setStats({ totalOrders, pendingOrders, deliveredOrders, totalSpent });
+          }
+        }
+      } catch (err) {
+        console.error('Erreur chargement Dashboard:', err);
+      } finally {
+        if (isMounted) setLoading(false);
       }
-      setLoading(false);
-    };
-    loadOrders();
+    }
+
+    fetchData();
+    return () => { isMounted = false; };
   }, [user]);
+
+  // Détection de la commande la plus récente active
+  const activeOrder = orders.find(o => 
+    o.status === 'pending' || 
+    o.status === 'awaiting_payment' || 
+    o.status === 'processing' || 
+    o.status === 'shipped'
+  ) || (orders.length > 0 && orders[0].status !== 'cancelled' ? orders[0] : null);
+
+  const cleanPhone = (whatsappNumber || '+49 1633637236').replace(/[^0-9]/g, '');
+  const targetWhatsAppUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(`Bonjour, je suis ${displayName} et je vous contacte depuis mon Espace Client Bois de Chauffage.`)}`;
 
   return (
     <DashboardLayout>
       <Shell>
-        <Section>
+        {/* 1. CARTE EN-TÊTE BIENVENUE */}
+        <HeaderCard>
+          <WoodTag>🪵 Espace Client Bois de Chauffage</WoodTag>
           <Title>Mon Espace Client</Title>
-          <Subtitle>Bienvenue {name} ! Gérez vos commandes, votre profil et plus encore.</Subtitle>
-        </Section>
+          <Subtitle>
+            Bienvenue {displayName} ! Suivez vos livraisons de bois de chauffage avec chariot tout-terrain et gérez vos commandes.
+          </Subtitle>
+        </HeaderCard>
 
-        {/* Statistiques */}
+        {/* 2. BANNIÈRE COMMANDE ACTIVE (si commande en cours ou récente) */}
+        {activeOrder && activeOrder.status !== 'cancelled' && (
+          <ActiveOrderBanner>
+            <ActiveBannerHeader>
+              <ActiveOrderRef>
+                <FiPackage />
+                <span>Commande #{formatTransferRef(activeOrder.id)}</span>
+              </ActiveOrderRef>
+              {(() => {
+                const s = getStatusDetails(activeOrder.status);
+                return (
+                  <ActiveStatusBadge bg={s.bg} color={s.color} border={s.border}>
+                    {s.text}
+                  </ActiveStatusBadge>
+                );
+              })()}
+            </ActiveBannerHeader>
+
+            <ActiveOrderInfo>
+              Montant : <strong>{Number(activeOrder.total || 0).toFixed(2)} €</strong> • 🚜 Chariot tout-terrain inclus jusqu'à l'abri
+            </ActiveOrderInfo>
+
+            <ActiveActionsRow>
+              <ActiveButton to={`/dashboard/suivi/${activeOrder.id}`} className="primary">
+                <FiTruck />
+                <span>Suivre ma livraison</span>
+              </ActiveButton>
+
+              {activeOrder.status === 'pending' || activeOrder.status === 'awaiting_payment' ? (
+                <ActiveButton to={`/bank-transfer?orderId=${activeOrder.id}`} className="secondary">
+                  <FiFileText />
+                  <span>Coordonnées RIB</span>
+                </ActiveButton>
+              ) : (
+                <ActiveButton to={`/dashboard/orders/${activeOrder.id}`} className="secondary">
+                  <FiPackage />
+                  <span>Détail commande</span>
+                </ActiveButton>
+              )}
+            </ActiveActionsRow>
+          </ActiveOrderBanner>
+        )}
+
+        {/* 3. STATISTIQUES / KPI CARDS */}
         <StatsGrid>
-          <StatCard bg="#f8faf9" border="#2c5530" color="#1f2d1f">
-            <StatValue color="#2c5530">{stats.totalOrders}</StatValue>
-            <StatLabel>Commandes totales</StatLabel>
+          <StatCard>
+            <StatTopRow>
+              <StatLabel>Commandes</StatLabel>
+              <StatIcon color="#2c5530"><FiPackage /></StatIcon>
+            </StatTopRow>
+            <StatValue color="#1b4332">{stats.totalOrders}</StatValue>
           </StatCard>
-          <StatCard bg="#ffffff" border="#e6ebe8" color="#1f2d1f">
-            <StatValue color="#1f2d1f">{stats.pendingOrders}</StatValue>
-            <StatLabel>En cours</StatLabel>
+
+          <StatCard>
+            <StatTopRow>
+              <StatLabel>En cours</StatLabel>
+              <StatIcon color="#d97706"><FiClock /></StatIcon>
+            </StatTopRow>
+            <StatValue color="#d97706">{stats.pendingOrders}</StatValue>
           </StatCard>
-          <StatCard bg="#ffffff" border="#e6ebe8" color="#1f2d1f">
-            <StatValue color="#1f2d1f">{stats.deliveredOrders}</StatValue>
-            <StatLabel>Livrées</StatLabel>
+
+          <StatCard>
+            <StatTopRow>
+              <StatLabel>Livrées</StatLabel>
+              <StatIcon color="#166534"><FiCheckCircle /></StatIcon>
+            </StatTopRow>
+            <StatValue color="#166534">{stats.deliveredOrders}</StatValue>
           </StatCard>
-          <StatCard bg="#2c5530" border="#2c5530" color="#ffffff">
-            <StatValue color="#ffffff">{stats.totalSpent.toFixed(0)} €</StatValue>
-            <StatLabel style={{ color: '#ffffff', opacity: 0.9 }}>Total dépensé</StatLabel>
+
+          <StatCard>
+            <StatTopRow>
+              <StatLabel>Total dépensé</StatLabel>
+              <StatIcon color="#2c5530">€</StatIcon>
+            </StatTopRow>
+            <StatValue color="#2c5530" style={{ fontSize: stats.totalSpent > 999 ? '18px' : '22px' }}>
+              {stats.totalSpent.toFixed(0)} €
+            </StatValue>
           </StatCard>
         </StatsGrid>
 
-        {/* Actions rapides */}
-        <QuickActions>
-          <QuickActionsTitle>Actions rapides</QuickActionsTitle>
-          <ActionGrid>
-            <ActionButton to="/dashboard/products">
-              <FiShoppingCart />
-              <span>Commander</span>
-            </ActionButton>
-            <ActionButton to="/dashboard/cart">
-              <FiShoppingBag />
-              <span>Panier {cartCount > 0 && `(${cartCount})`}</span>
-            </ActionButton>
-            <ActionButton to="/orders">
-              <FiPackage />
-              <span>Mes commandes</span>
-            </ActionButton>
-            <ActionButton to="/suivi">
-              <FiTruck />
-              <span>Suivi livraison</span>
-            </ActionButton>
-            <ActionButton to="/profile">
-              <FiUser />
-              <span>Mon profil</span>
-            </ActionButton>
-            <ActionButton to="/billing">
-              <FiCreditCard />
-              <span>Facturation</span>
-            </ActionButton>
-          </ActionGrid>
-        </QuickActions>
+        {/* 4. ACTIONS RAPIDES (SANS PANIER) */}
+        <SectionCard>
+          <SectionHeader>
+            <h2>Actions rapides</h2>
+          </SectionHeader>
 
-        {/* Commandes récentes */}
-        <RecentOrders>
-          <RecentOrdersTitle>Commandes récentes</RecentOrdersTitle>
-          {loading && <EmptyState>Chargement...</EmptyState>}
-          {!loading && orders.length === 0 && (
-            <EmptyState>Aucune commande pour le moment. Commencez vos achats !</EmptyState>
-          )}
-          {!loading && orders.length > 0 && (
-            <div>
-              {orders.map((order) => (
-                <OrderItem key={order.id} to={`/orders/${order.id}`}>
-                  <OrderInfo>
-                    <OrderNumber>Commande #{order.id.slice(-8)}</OrderNumber>
-                    <OrderDate>
-                      {order.createdAt 
-                        ? new Date(order.createdAt.seconds * 1000).toLocaleDateString('fr-FR')
-                        : 'N/A'}
-                    </OrderDate>
-                  </OrderInfo>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-                    <div style={{ fontWeight: '700', fontSize: '16px' }}>
-                      {order.total?.toFixed(2) || '0.00'} €
-                    </div>
-                    <OrderStatus status={order.status}>
-                      {getStatusText(order.status)}
-                    </OrderStatus>
-                  </div>
-                </OrderItem>
-              ))}
-              {orders.length >= 3 && (
-                <Link 
-                  to="/orders" 
-                  style={{ 
-                    display: 'block', 
-                    textAlign: 'center', 
-                    marginTop: '16px', 
-                    color: '#2c5530',
-                    fontWeight: '600',
-                    textDecoration: 'none'
-                  }}
-                >
-                  Voir toutes les commandes →
-                </Link>
-              )}
+          <ActionGrid>
+            <ActionButton to="/dashboard/orders">
+              <span className="act-icon"><FiPackage /></span>
+              <span className="act-label">Mes commandes</span>
+            </ActionButton>
+
+            <ActionButton to="/dashboard/suivi">
+              <span className="act-icon"><FiTruck /></span>
+              <span className="act-label">Suivi chariot</span>
+            </ActionButton>
+
+            <ActionButton to="/dashboard/billing">
+              <span className="act-icon"><FiFileText /></span>
+              <span className="act-label">Facturation</span>
+            </ActionButton>
+
+            <ActionButton to="/products">
+              <span className="act-icon"><FiShoppingBag /></span>
+              <span className="act-label">Boutique</span>
+            </ActionButton>
+
+            <ActionButton to="/dashboard/profile">
+              <span className="act-icon"><FiUser /></span>
+              <span className="act-label">Mon profil</span>
+            </ActionButton>
+
+            <ActionAnchor href={targetWhatsAppUrl} target="_blank" rel="noopener noreferrer">
+              <span className="act-icon"><FaWhatsapp /></span>
+              <span className="act-label">WhatsApp 7j/7</span>
+            </ActionAnchor>
+          </ActionGrid>
+        </SectionCard>
+
+        {/* 5. COMMANDES RÉCENTES */}
+        <SectionCard>
+          <SectionHeader>
+            <h2>Commandes récentes</h2>
+            {orders.length > 0 && (
+              <Link to="/dashboard/orders" className="view-all">
+                <span>Voir tout</span>
+                <FiChevronRight size={13} />
+              </Link>
+            )}
+          </SectionHeader>
+
+          {loading && (
+            <div style={{ textAlign: 'center', padding: '16px', color: '#64748b', fontSize: '13px' }}>
+              Chargement de vos commandes...
             </div>
           )}
-        </RecentOrders>
+
+          {!loading && orders.length === 0 && (
+            <EmptyState>
+              <p>Vous n'avez pas encore de commande enregistrée.</p>
+              <Link to="/products" className="shop-link">
+                <FiShoppingBag />
+                <span>Découvrir la boutique de bois</span>
+              </Link>
+            </EmptyState>
+          )}
+
+          {!loading && orders.length > 0 && (
+            <div>
+              {orders.slice(0, 3).map((order) => {
+                const s = getStatusDetails(order.status);
+                const orderRef = formatTransferRef(order.id);
+                const firstItem = Array.isArray(order.items) && order.items.length > 0 ? order.items[0] : null;
+                const itemsCount = Array.isArray(order.items) ? order.items.length : 0;
+                const itemLabel = firstItem
+                  ? `${firstItem.quantity || 1}x ${firstItem.name || firstItem.title || 'Bois de chauffage'}${itemsCount > 1 ? ` (+${itemsCount - 1})` : ''}`
+                  : 'Commande de bois de chauffage';
+
+                const dateStr = order.createdAt?.seconds 
+                  ? new Date(order.createdAt.seconds * 1000).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                  : 'Récente';
+
+                return (
+                  <OrderItemRow key={order.id} to={`/dashboard/orders/${order.id}`}>
+                    <OrderRowLeft>
+                      <div className="order-ref">#{orderRef}</div>
+                      <div className="order-meta">
+                        {itemLabel} • {dateStr}
+                      </div>
+                    </OrderRowLeft>
+
+                    <OrderRowRight>
+                      <div className="order-price">
+                        {Number(order.total || 0).toFixed(2)} €
+                      </div>
+                      <OrderStatusPill bg={s.bg} color={s.color} border={s.border}>
+                        {s.text}
+                      </OrderStatusPill>
+                    </OrderRowRight>
+                  </OrderItemRow>
+                );
+              })}
+            </div>
+          )}
+        </SectionCard>
+
+        {/* 6. BANDEAU DE CONFIANCE & ENGAGEMENTS */}
+        <TrustBar>
+          <TrustItem>
+            <FiTruck />
+            <span>Chariot tout-terrain inclus</span>
+          </TrustItem>
+          <TrustItem>
+            <FiShield />
+            <span>Bois sec garanti &lt; 20%</span>
+          </TrustItem>
+          <TrustItem>
+            <FiClock />
+            <span>Support &amp; WhatsApp 7j/7</span>
+          </TrustItem>
+        </TrustBar>
       </Shell>
     </DashboardLayout>
   );

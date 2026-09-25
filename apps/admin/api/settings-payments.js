@@ -57,7 +57,9 @@ module.exports = async function handler(req, res) {
           holder: rib.holder || '',
           iban: rib.iban || '',
           bic: rib.bic || '',
-          bank: rib.bank || ''
+          bank: rib.bank || '',
+          enabled: rib.enabled !== false,
+          whatsappNumber: rib.whatsappNumber || ''
         }, { merge: true }),
         db.collection('paypal').doc('default').set({
           email: paypal.email || '',
