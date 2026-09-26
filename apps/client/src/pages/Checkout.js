@@ -1876,7 +1876,7 @@ const Checkout = () => {
         <CouponBox>
           <CouponInput
             type="text"
-            placeholder="Code promo"
+            placeholder={t('checkout.promo_code', 'Code promo')}
             value={couponCode}
             onChange={(e) => setCouponCode(e.target.value)}
           />
@@ -1885,7 +1885,7 @@ const Checkout = () => {
             onClick={handleApplyCoupon}
             disabled={applyingCoupon || !couponCode.trim()}
           >
-            {applyingCoupon ? '...' : 'Appliquer'}
+            {applyingCoupon ? '...' : t('checkout.apply', 'Appliquer')}
           </CouponButton>
         </CouponBox>
       )}
@@ -1951,7 +1951,7 @@ const Checkout = () => {
       {/* Bouton retour étape 1 sur mobile */}
       <BackStepButton type="button" onClick={() => setMobileStep(1)}>
         <FiArrowLeft size={14} />
-        <span>Modifier mes coordonnées & adresse</span>
+        <span>{t('checkout.edit_address', 'Modifier mes coordonnées & adresse')}</span>
       </BackStepButton>
 
       {/* Badges de réassurance */}
@@ -1993,7 +1993,7 @@ const Checkout = () => {
             </>
           ) : (
             <span style={{ color: '#27ae60', fontWeight: 600, fontSize: 12 }}>
-              ✓ Connecté en tant que {formData.firstName ? `${formData.firstName} ${formData.lastName}` : (userData?.displayName || user.email)}
+              ✓ {t('checkout.logged_in_as', 'Connecté en tant que')} {formData.firstName ? `${formData.firstName} ${formData.lastName}` : (userData?.displayName || user.email)}
             </span>
           )}
         </Subtitle>
@@ -2044,7 +2044,7 @@ const Checkout = () => {
                   <div className="saved-header">
                     <span className="badge">
                       <FiCheckCircle size={15} color="#27ae60" />
-                      <span>Adresse de livraison enregistrée</span>
+                      <span>{t('checkout.registered_address', 'Adresse de livraison enregistrée')}</span>
                     </span>
                     <button 
                       type="button" 
@@ -2052,7 +2052,7 @@ const Checkout = () => {
                       onClick={() => setIsEditingAddress(true)}
                     >
                       <FiEdit2 size={12} />
-                      <span>Modifier</span>
+                      <span>{t('checkout.edit', 'Modifier')}</span>
                     </button>
                   </div>
 
@@ -2072,7 +2072,7 @@ const Checkout = () => {
                   </div>
 
                   <NextStepButton type="button" onClick={handleProceedToPayment}>
-                    <span>Continuer vers le paiement (Étape 2/2)</span>
+                    <span>{t('checkout.continue_to_payment', 'Continuer vers le paiement (Étape 2/2)')}</span>
                     <FiArrowRight size={14} />
                   </NextStepButton>
                 </SavedAddressCard>
@@ -2364,7 +2364,7 @@ const Checkout = () => {
               </div>
               <button type="button" onClick={() => setMobileStep(1)}>
                 <FiEdit2 size={13} />
-                <span>Modifier</span>
+                <span>{t('checkout.edit', 'Modifier')}</span>
               </button>
             </DeliveryRecapChip>
 

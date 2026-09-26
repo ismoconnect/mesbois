@@ -254,7 +254,7 @@
     "driver_instruction": "Zusätzliche Anweisung für den Fahrer (optional)",
     "client_account": "Kundenkonto",
     "summary_title": "Bestellübersicht",
-    "promo_code": "RABATTCODE",
+    "promo_code": "Gutscheincode",
     "apply": "Anwenden",
     "subtotal_items": "Zwischensumme Artikel",
     "delivery_offroad": "Geländelieferung unter Unterstand",
@@ -296,7 +296,12 @@
     "step1": "1. Lieferung",
     "step2": "2. Zahlung & Gesamtbetrag",
     "delivery": "Lieferung",
-    "logged_in_as": "Eingeloggt als"
+    "logged_in_as": "Eingeloggt als",
+    "edit_address": "Meine Kontaktdaten & Adresse bearbeiten",
+    "registered_address": "Gespeicherte Lieferadresse",
+    "edit": "Bearbeiten",
+    "continue_to_payment": "Weiter zur Zahlung (Schritt 2/2)",
+    "login_and_continue": "Einloggen und fortfahren"
   },
   "footer": {
     "about_title": "Mes Bois Brennholz",

@@ -247,7 +247,7 @@
     "driver_instruction": "Ajouter une instruction pour le chauffeur (optionnel)",
     "client_account": "Compte client",
     "summary_title": "Récapitulatif de la commande",
-    "promo_code": "CODE PROMO",
+    "promo_code": "Code promo",
     "apply": "Appliquer",
     "subtotal_items": "Sous-total articles",
     "delivery_offroad": "Livraison tout-terrain sous abri",
@@ -289,7 +289,12 @@
     "step1": "1. Livraison",
     "step2": "2. Paiement & Total",
     "delivery": "Livraison",
-    "logged_in_as": "Connecté en tant que"
+    "logged_in_as": "Connecté en tant que",
+    "edit_address": "Modifier mes coordonnées & adresse",
+    "registered_address": "Adresse de livraison enregistrée",
+    "edit": "Modifier",
+    "continue_to_payment": "Continuer vers le paiement (Étape 2/2)",
+    "login_and_continue": "Se connecter et continuer"
   },
   "footer": {
     "about_title": "Mes Bois de Chauffage",
