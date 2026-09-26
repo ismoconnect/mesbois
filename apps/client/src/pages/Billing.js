@@ -562,7 +562,7 @@ const Billing = () => {
               </p>
               {(() => {
                 const totalAmount = orders.reduce((sum, o) => sum + (o.total || 0), 0).toFixed(2);
-                const refs = orders.map(o => formatTransferRef(o.id)).join(', ');
+                const refs = orders.length > 1 ? t('billing.ribBlock.multiple_refs', 'Indiquez l\'une de vos références au choix') : (orders.length === 1 ? formatTransferRef(orders[0].id) : '');
                 const message = `${t('billing.whatsappCard.message.part1', 'Bonjour, je souhaite obtenir les coordonnées bancaires pour payer ma/mes commande(s) en attente :')} ${refs} ${t('billing.whatsappCard.message.part2', 'pour un montant total de')} ${totalAmount} €.\n${t('billing.whatsappCard.message.part3', 'Merci !')}`;
                 
                 return (
@@ -588,7 +588,7 @@ const Billing = () => {
                 </div>
                 {(() => {
                   const totalAmount = orders.reduce((sum, o) => sum + (o.total || 0), 0).toFixed(2);
-                  const refs = orders.map(o => formatTransferRef(o.id)).join(', ');
+                  const refs = orders.length > 1 ? t('billing.ribBlock.multiple_refs', 'Indiquez l\'une de vos références au choix') : (orders.length === 1 ? formatTransferRef(orders[0].id) : '');
                   return (
                     <RIBGrid>
                       <RIBField>

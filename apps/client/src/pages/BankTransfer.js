@@ -1103,7 +1103,7 @@ Merci !`;
             Validation de votre commande…
           </div>
           <div style={{ color: '#6b7280', fontSize: 13, marginTop: 4 }}>
-            Sécurisation des coordonnées et synchronisation logistique
+            {t('bank_transfer.securing_details', 'Sécurisation des coordonnées et synchronisation logistique')}
           </div>
         </div>
       </PageContainer>

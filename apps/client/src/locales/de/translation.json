@@ -432,6 +432,17 @@
         "title": "Lieferung mit Mitnahmestapler",
         "text": "Der Fahrer stellt Ihre Paletten so nah wie möglich an Ihrem Lagerplatz ab (Carport, Garage, Garten)."
       }
+    },
+    "ribBlock": {
+      "multiple_refs": "Geben Sie eine Ihrer Bestellnummern an",
+      "title": "Bankverbindung für die Überweisung",
+      "holder": "KONTOINHABER",
+      "bank": "BANKINSTITUT",
+      "iban": "OFFIZIELLE IBAN",
+      "bic": "BIC / SWIFT CODE",
+      "ref": "VERWENDUNGSZWECK",
+      "amount": "GENAUER ÜBERWEISUNGSBETRAG",
+      "copy": "Kopieren"
     }
   },
   "orders": {
@@ -900,6 +911,8 @@
     "view_in_client_area": "Meine Bestellung im Kundenbereich ansehen",
     "security_title": "Banksicherheit & Geländestapler-Zugang:",
     "security_text": "unsere Bankdaten werden Ihnen direkt über WhatsApp von unserem Berater übermittelt.",
-    "step_click": "1 Berater-Klick"
+    "step_click": "1 Berater-Klick",
+    "validating_order": "Überprüfung Ihrer Bestellung...",
+    "securing_details": "Sicherung der Daten und logistische Synchronisation"
   }
 }

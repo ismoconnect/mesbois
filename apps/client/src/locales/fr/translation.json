@@ -425,6 +425,17 @@
         "title": "Livraison avec chariot",
         "text": "Le chauffeur dépose vos palettes au plus près de votre lieu de stockage (carport, garage, jardin)."
       }
+    },
+    "ribBlock": {
+      "multiple_refs": "Indiquez l'une de vos références au choix",
+      "title": "Coordonnées bancaires pour le virement",
+      "holder": "TITULAIRE DU COMPTE",
+      "bank": "ÉTABLISSEMENT BANCAIRE",
+      "iban": "IBAN OFFICIEL",
+      "bic": "CODE BIC / SWIFT",
+      "ref": "RÉFÉRENCE DE VIREMENT",
+      "amount": "MONTANT EXACT À VIRER",
+      "copy": "Copier"
     }
   },
   "orders": {
@@ -827,6 +838,8 @@
     "view_in_client_area": "Consulter ma commande dans mon espace client",
     "security_title": "Sécurité bancaire & accès chariot tout-terrain :",
     "security_text": "nos coordonnées bancaires vous sont transmises directement sur WhatsApp par notre conseiller.",
-    "step_click": "1 clic conseiller"
+    "step_click": "1 clic conseiller",
+    "validating_order": "Validation de votre commande...",
+    "securing_details": "Sécurisation des coordonnées et synchronisation logistique"
   }
 }
