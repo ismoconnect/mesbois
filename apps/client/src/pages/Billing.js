@@ -593,18 +593,53 @@ const Billing = () => {
                       <>
                       <RIBGrid>
                       <RIBField>
-                          <span className="label">{t('billing.ribBlock.amount', 'Montant exact à virer')}</span>
+                        <span className="label">{t('billing.ribBlock.holder', 'Titulaire du compte')}</span>
+                        <div className="val-row">
+                          <span className="val-text">{rib.holder || 'Brennholzkaufen SAS'}</span>
+                          <CopyButton onClick={() => copy(rib.holder, t('billing.ribBlock.holder', 'Titulaire'))}><FaCopy /> {t('billing.ribBlock.copy', 'Copier')}</CopyButton>
+                        </div>
+                      </RIBField>
+                      <RIBField>
+                        <span className="label">{t('billing.ribBlock.bank', 'Établissement bancaire')}</span>
+                        <div className="val-row">
+                          <span className="val-text">{rib.bank || 'Banque'}</span>
+                          <CopyButton onClick={() => copy(rib.bank, t('billing.ribBlock.bank', 'Banque'))}><FaCopy /> {t('billing.ribBlock.copy', 'Copier')}</CopyButton>
+                        </div>
+                      </RIBField>
+                                              <RIBField className="highlight">
+                          <span className="label">{t('billing.ribBlock.ref', 'Référence de virement')}</span>
                           <div className="val-row">
                             <span className="val-text" style={{ color: '#166534', fontSize: orders.length > 1 ? '13px' : '15px', fontWeight: orders.length > 1 ? 500 : 800 }}>
-                              {orders.length > 1 ? t('billing.ribBlock.multiple_amounts_note', 'Consultez le montant de votre commande ci-dessous') : `${totalAmount} €`}
+                              {orders.length > 1 ? t('billing.ribBlock.multiple_refs_note', 'Veuillez utiliser la référence de la commande que vous souhaitez régler.') : formatTransferRef(orders[0].id)}
                             </span>
                             {orders.length === 1 && (
-                              <CopyButton onClick={() => copy(totalAmount, t('billing.ribBlock.amount', 'Montant'))}>
+                              <CopyButton onClick={() => copy(formatTransferRef(orders[0].id), t('billing.ribBlock.ref', 'Référence'))}>
                                 <FaCopy /> {t('billing.ribBlock.copy', 'Copier')}
                               </CopyButton>
                             )}
                           </div>
                         </RIBField>
+                      <RIBField>
+                        <span className="label">{t('billing.ribBlock.bic', 'Code BIC / SWIFT')}</span>
+                        <div className="val-row">
+                          <span className="val-text">{rib.bic}</span>
+                          <CopyButton onClick={() => copy(rib.bic, 'BIC')}><FaCopy /> {t('billing.ribBlock.copy', 'Copier')}</CopyButton>
+                        </div>
+                      </RIBField>
+                      <RIBField className="highlight">
+                        <span className="label">{t('billing.ribBlock.ref', 'Référence de virement')}</span>
+                        <div className="val-row">
+                          <span className="val-text" style={{ color: '#166534', fontSize: '15px', fontWeight: 800 }}>{refs}</span>
+                          <CopyButton onClick={() => copy(refs, t('billing.ribBlock.ref', 'Référence'))}><FaCopy /> {t('billing.ribBlock.copy', 'Copier')}</CopyButton>
+                        </div>
+                      </RIBField>
+                      <RIBField>
+                        <span className="label">{t('billing.ribBlock.amount', 'Montant exact à virer')}</span>
+                        <div className="val-row">
+                            <span className="val-text" style={{ color: '#166534', fontSize: orders.length > 1 ? '13px' : '15px', fontWeight: orders.length > 1 ? 500 : 800 }}>{orders.length > 1 ? t('billing.ribBlock.multiple_amounts_note', 'Consultez le montant de votre commande ci-dessous') : `${totalAmount} €`}</span>
+                            {orders.length === 1 && <CopyButton onClick={() => copy(totalAmount, t('billing.ribBlock.amount', 'Montant'))}><FaCopy /> {t('billing.ribBlock.copy', 'Copier')}</CopyButton>}
+                        </div>
+                      </RIBField>
                     
                       </RIBGrid>
                       <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'center' }}>
