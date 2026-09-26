@@ -802,7 +802,7 @@ const ProductDetail = () => {
                 ))}
               </div>
               <span className="rating-text">
-                {view.rating || 4.5} ({view.reviewCount || 0} avis)
+                {view.rating || 4.5} ({view.reviewCount || 0} {t('product.reviews', 'avis')})
               </span>
             </Rating>
             
@@ -852,7 +852,7 @@ const ProductDetail = () => {
               <QuantityButton
                 onClick={() => handleQuantityChange(quantity - 1)}
                 disabled={!product || quantity <= 1}
-                aria-label="Diminuer la quantité"
+                aria-label={t('product.decrease_quantity', 'Diminuer la quantité')}
               >
                 <FiMinus size={14} />
               </QuantityButton>
@@ -866,7 +866,7 @@ const ProductDetail = () => {
               <QuantityButton
                 onClick={() => handleQuantityChange(quantity + 1)}
                 disabled={!product || quantity >= (view.stock || 99)}
-                aria-label="Augmenter la quantité"
+                aria-label={t('product.increase_quantity', 'Augmenter la quantité')}
               >
                 <FiPlus size={14} />
               </QuantityButton>
@@ -888,16 +888,16 @@ const ProductDetail = () => {
             <Feature>
               <FiTruck size={20} />
               <div>
-                <h4>Livraison rapide</h4>
-                <p>Livraison en 24-48h</p>
+                <h4>{t('product.fast_delivery_title', 'Livraison rapide')}</h4>
+                <p>{t('product.fast_delivery_desc', 'Livraison en 24-48h')}</p>
               </div>
             </Feature>
             
             <Feature>
               <FiShield size={20} />
               <div>
-                <h4>Qualité garantie</h4>
-                <p>Produit 100% certifié</p>
+                <h4>{t('product.quality_guarantee_title', 'Qualité garantie')}</h4>
+                <p>{t('product.quality_guarantee_desc', 'Produit 100% certifié')}</p>
               </div>
             </Feature>
           </Features>

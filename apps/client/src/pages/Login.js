@@ -5,6 +5,7 @@ import { FiEye, FiEyeOff, FiMail, FiLock } from 'react-icons/fi';
 import { useAuth } from '../contexts/AuthContext';
 import { signInUser, resetPassword } from '../firebase/auth';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 
 const LoginContainer = styled.div`
   min-height: 80vh;
@@ -156,6 +157,7 @@ const ErrorMessage = styled.div`
 `;
 
 const Login = () => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -170,29 +172,29 @@ const Login = () => {
   const navigate = useNavigate();
 
   const mapAuthError = (raw) => {
-    if (!raw) return "Une erreur est survenue";
+    if (!raw) return t('login.error_occurred', 'Une erreur est survenue');
     const msg = String(raw).toLowerCase();
 
     if (msg.includes('auth/invalid-login-credentials') || msg.includes('auth/wrong-password')) {
-      return "Adresse e-mail ou mot de passe incorrect.";
+      return t('login.invalid_credentials', 'Adresse e-mail ou mot de passe incorrect.');
     }
     if (msg.includes('auth/user-not-found')) {
-      return "Aucun compte ne correspond à cette adresse e-mail.";
+      return t('login.user_not_found', 'Aucun compte ne correspond à cette adresse e-mail.');
     }
     if (msg.includes('auth/too-many-requests')) {
-      return "Trop de tentatives. Veuillez réessayer plus tard ou réinitialiser votre mot de passe.";
+      return t('login.too_many_requests', 'Trop de tentatives. Veuillez réessayer plus tard ou réinitialiser votre mot de passe.');
     }
     if (msg.includes('auth/network-request-failed')) {
-      return "Impossible de se connecter au serveur. Vérifiez votre connexion internet.";
+      return t('login.network_error', 'Impossible de se connecter au serveur. Vérifiez votre connexion internet.');
     }
     if (msg.includes('auth/user-disabled')) {
-      return "Ce compte est désactivé. Contactez le support si besoin.";
+      return t('login.user_disabled', 'Ce compte est désactivé. Contactez le support si besoin.');
     }
     if (msg.includes('auth/invalid-email')) {
-      return "Adresse e-mail invalide.";
+      return t('login.invalid_email', 'Adresse e-mail invalide.');
     }
 
-    return "Une erreur s'est produite lors de la connexion. Veuillez réessayer.";
+    return t('login.connection_error', "Une erreur s'est produite lors de la connexion. Veuillez réessayer.");
   };
 
   // Rediriger si déjà connecté (uniquement quand on est sur la page /login)
@@ -220,13 +222,13 @@ const Login = () => {
       const result = await signInUser(formData.email, formData.password);
       
       if (result.success) {
-        toast.success('Connexion réussie !');
+        toast.success(t('login.login_success', 'Connexion réussie !'));
         navigate('/dashboard', { replace: true });
       } else {
         setError(mapAuthError(result.error));
       }
     } catch (err) {
-      setError("Une erreur s'est produite lors de la connexion. Veuillez réessayer.");
+      setError(t('login.connection_error', "Une erreur s'est produite lors de la connexion. Veuillez réessayer."));
     } finally {
       setLoading(false);
     }
@@ -242,20 +244,20 @@ const Login = () => {
     try {
       const result = await resetPassword(emailToUse.trim());
       if (result.success) {
-        toast.success('Email de réinitialisation envoyé !');
+        toast.success(t('login.reset_email_sent', 'Email de réinitialisation envoyé !'));
         setShowReset(false);
       } else {
         toast.error(mapAuthError(result.error));
       }
     } catch (err) {
-      toast.error('Erreur lors de l\'envoi de l\'email');
+      toast.error(t('login.reset_email_error', "Erreur lors de l'envoi de l'email"));
     }
   };
 
   return (
     <LoginContainer>
       <LoginCard>
-        <LoginTitle>Connexion</LoginTitle>
+        <LoginTitle>{t('login.title', 'Connexion')}</LoginTitle>
         
         {error && <ErrorMessage>{error}</ErrorMessage>}
         
@@ -267,7 +269,7 @@ const Login = () => {
             <Input
               type="email"
               name="email"
-              placeholder="Adresse email"
+              placeholder={t('login.email_placeholder', 'Adresse email')}
               value={formData.email}
               onChange={handleChange}
               required
@@ -282,7 +284,7 @@ const Login = () => {
             <Input
               type={showPassword ? 'text' : 'password'}
               name="password"
-              placeholder="Mot de passe"
+              placeholder={t('login.password_placeholder', 'Mot de passe')}
               value={formData.password}
               onChange={handleChange}
               required
@@ -298,23 +300,23 @@ const Login = () => {
           </InputGroup>
           
           <Button type="submit" disabled={loading}>
-            {loading ? 'Connexion...' : 'Se connecter'}
+            {loading ? t('login.loading', 'Connexion...') : t('login.submit', 'Se connecter')}
           </Button>
           
           <ForgotPassword type="button" onClick={handleForgotPassword}>
-            Mot de passe oublié ?
+            {t('login.forgot_password', 'Mot de passe oublié ?')}
           </ForgotPassword>
 
           {showReset && (
             <div style={{ marginTop: 10 }}>
               <div style={{ fontSize: 13, color: '#444', marginBottom: 6 }}>
-                Entrez votre adresse email pour recevoir le lien de réinitialisation
+                {t('login.reset_instructions', 'Entrez votre adresse email pour recevoir le lien de réinitialisation')}
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
                 <Input
                   type="email"
                   name="resetEmail"
-                  placeholder="Votre email"
+                  placeholder={t('login.reset_email_placeholder', 'Votre email')}
                   value={resetEmail}
                   onChange={(e) => setResetEmail(e.target.value)}
                 />
@@ -331,7 +333,7 @@ const Login = () => {
                     cursor: 'pointer'
                   }}
                 >
-                  Envoyer
+                  {t('login.reset_submit', 'Envoyer')}
                 </button>
               </div>
             </div>
@@ -339,7 +341,7 @@ const Login = () => {
         </Form>
         
         <SignupLink>
-          Pas encore de compte ? <Link to="/register">S'inscrire</Link>
+          {t('login.no_account', 'Pas encore de compte ?')} <Link to="/register">{t('login.signup', "S'inscrire")}</Link>
         </SignupLink>
       </LoginCard>
     </LoginContainer>

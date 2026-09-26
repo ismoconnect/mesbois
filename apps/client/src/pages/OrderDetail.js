@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
 import { FiArrowLeft, FiPackage, FiTruck, FiCheckCircle, FiClock, FiXCircle, FiMapPin, FiCreditCard, FiPhone, FiMail, FiUser, FiCalendar } from 'react-icons/fi';
 import { useAuth } from '../contexts/AuthContext';
@@ -875,18 +876,19 @@ const getStatusIcon = (status) => {
   }
 };
 
-const getStatusText = (status) => {
+const getStatusText = (status, t) => {
   switch (status) {
-    case 'pending': return 'En attente de traitement';
-    case 'processing': return 'En cours de traitement';
-    case 'shipped': return 'Expédié';
-    case 'delivered': return 'Livré';
-    case 'cancelled': return 'Annulé';
-    default: return 'Statut inconnu';
+    case 'pending': return t('orderDetail.status_pending', 'En attente');
+    case 'processing': return t('orderDetail.status_processing', 'En cours de traitement');
+    case 'shipped': return t('orderDetail.status_shipped', 'Expédiée');
+    case 'delivered': return t('orderDetail.status_delivered', 'Livrée');
+    case 'cancelled': return t('orderDetail.status_cancelled', 'Annulée');
+    default: return t('orderDetail.status_unknown', 'Statut inconnu');
   }
 };
 
 const OrderDetail = () => {
+  const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -908,7 +910,7 @@ const OrderDetail = () => {
         setError(result.error);
       }
     } catch (err) {
-      setError('Erreur lors du chargement de la commande');
+      setError(t("orderDetail.error_loading", "Erreur lors du chargement de la commande"));
     } finally {
       setLoading(false);
     }
@@ -934,20 +936,20 @@ const OrderDetail = () => {
     setShowConfirm(false);
     setCancelling(true);
 
-    const result = await cancelOrder(id, 'Annulation client');
+    const result = await cancelOrder(id, t("orderDetail.cancel_by_customer", "Annulation par le client"));
 
     if (result.success) {
       setAlert({
         type: 'success',
-        title: 'Commande annulée',
-        message: 'Votre commande a été annulée avec succès.'
+        title: t("orderDetail.order_cancelled_title", "Commande annulée"),
+        message: t("orderDetail.order_cancelled_msg", "Votre commande a été annulée avec succès.")
       });
       fetchOrder();
     } else {
       setAlert({
         type: 'error',
-        title: 'Erreur d\'annulation',
-        message: 'Une erreur est survenue lors de l\'annulation de la commande. Veuillez réessayer.'
+        title: t("orderDetail.cancel_error_title", "Erreur lors de l'annulation"),
+        message: t("orderDetail.error_try_again", "Une erreur s'est produite. Veuillez réessayer.")
       });
     }
     setCancelling(false);
@@ -957,7 +959,7 @@ const OrderDetail = () => {
     return (
       <DashboardLayout>
         <OrderDetailContainer>
-          <LoadingSpinner>Chargement de la commande...</LoadingSpinner>
+          <LoadingSpinner>{t("orderDetail.loading", "Chargement de la commande...")}</LoadingSpinner>
         </OrderDetailContainer>
       </DashboardLayout>
     );
@@ -968,7 +970,7 @@ const OrderDetail = () => {
       <DashboardLayout>
         <OrderDetailContainer>
           <ErrorMessage>
-            <h3>Erreur</h3>
+            <h3>{t("orderDetail.error_title", "Erreur")}</h3>
             <p>{error}</p>
           </ErrorMessage>
         </OrderDetailContainer>
@@ -981,8 +983,8 @@ const OrderDetail = () => {
       <DashboardLayout>
         <OrderDetailContainer>
           <ErrorMessage>
-            <h3>Commande non trouvée</h3>
-            <p>Cette commande n'existe pas ou vous n'y avez pas accès.</p>
+            <h3>{t("orderDetail.not_found_title", "Commande introuvable")}</h3>
+            <p>{t("orderDetail.not_found_desc", "Cette commande n'existe pas ou vous n'y avez pas accès.")}</p>
           </ErrorMessage>
         </OrderDetailContainer>
       </DashboardLayout>
@@ -995,12 +997,10 @@ const OrderDetail = () => {
         {/* Mobile Header Sticky */}
         <MobileHeader>
           <BackButton onClick={() => navigate('/dashboard/orders')}>
-            <FiArrowLeft size={18} />
-            Retour
-          </BackButton>
+            <FiArrowLeft size={18} />{t("orderDetail.back", "Retour")}</BackButton>
           <MobileStatusBadge status={order.status}>
             {getStatusIcon(order.status)}
-            {getStatusText(order.status)}
+            {getStatusText(order.status, t)}
           </MobileStatusBadge>
         </MobileHeader>
 
@@ -1008,10 +1008,10 @@ const OrderDetail = () => {
         <MobileHeroSection>
           <MobileOrderTitle>
             <FiPackage size={24} />
-            Commande #{order.id.slice(-8)}
+            {t("orderDetail.order_number", "Commande #")}{order.id.slice(-8)}
           </MobileOrderTitle>
           <MobileOrderDate>
-            {new Date(order.createdAt.seconds * 1000).toLocaleDateString('fr-FR', {
+            {new Date(order.createdAt.seconds * 1000).toLocaleDateString('de-DE', {
               year: 'numeric',
               month: 'long',
               day: 'numeric',
@@ -1024,20 +1024,18 @@ const OrderDetail = () => {
         {/* Desktop Header (caché sur mobile) */}
         <DesktopHeader>
           <BackButton onClick={() => navigate('/dashboard/orders')}>
-            <FiArrowLeft size={20} />
-            Retour aux commandes
-          </BackButton>
+            <FiArrowLeft size={20} />{t("orderDetail.back_to_orders", "Retour aux commandes")}</BackButton>
 
           <OrderTitle>
             <FiPackage size={28} />
-            Commande #{order.id.slice(-8)}
+            {t("orderDetail.order_number", "Commande #")}{order.id.slice(-8)}
           </OrderTitle>
 
           <OrderInfo>
             <InfoItem>
-              <h4>Date de commande</h4>
+              <h4>{t("orderDetail.order_date", "Date de commande")}</h4>
               <p>
-                {new Date(order.createdAt.seconds * 1000).toLocaleDateString('fr-FR', {
+                {new Date(order.createdAt.seconds * 1000).toLocaleDateString('de-DE', {
                   year: 'numeric',
                   month: 'long',
                   day: 'numeric',
@@ -1048,21 +1046,21 @@ const OrderDetail = () => {
             </InfoItem>
 
             <InfoItem>
-              <h4>Numéro de commande</h4>
+              <h4>{t("orderDetail.order_number_title", "Numéro de commande")}</h4>
               <p>{order.id}</p>
             </InfoItem>
 
             <InfoItem>
-              <h4>Mode de livraison</h4>
+              <h4>{t("orderDetail.shipping_method", "Mode de livraison")}</h4>
               <p>
-                {order.delivery?.method === 'express' ? 'Livraison express' : 'Livraison standard'}
+                {order.delivery?.method === 'express' ? t("orderDetail.express_delivery", "Livraison Express") : t("orderDetail.standard_delivery", "Livraison Standard")}
               </p>
             </InfoItem>
           </OrderInfo>
 
           <OrderStatus status={order.status}>
             {getStatusIcon(order.status)}
-            {getStatusText(order.status)}
+            {getStatusText(order.status, t)}
           </OrderStatus>
         </DesktopHeader>
 
@@ -1072,9 +1070,7 @@ const OrderDetail = () => {
           <MobileCard>
             <MobileCardHeader>
               <h3>
-                <FiPackage size={20} />
-                Articles commandés
-              </h3>
+                <FiPackage size={20} />{t("orderDetail.ordered_items", "Articles commandés")}</h3>
             </MobileCardHeader>
             <MobileCardContent>
               {order.items.map((item, index) => (
@@ -1098,7 +1094,7 @@ const OrderDetail = () => {
                       <div className="item-description">{item.description}</div>
                     )}
                     <div className="item-meta">
-                      <span className="quantity">Qté: {item.quantity}</span>
+                      <span className="quantity">{t("orderDetail.quantity", "Quantité : ")}{item.quantity}</span>
                       <span className="price">{(item.price * item.quantity).toFixed(2)}€</span>
                     </div>
                   </MobileItemDetails>
@@ -1111,21 +1107,19 @@ const OrderDetail = () => {
           <MobileCard>
             <MobileCardHeader>
               <h3>
-                <FiCreditCard size={20} />
-                Résumé
-              </h3>
+                <FiCreditCard size={20} />{t("orderDetail.summary", "Résumé")}</h3>
             </MobileCardHeader>
             <MobileCardContent>
               <MobileSummaryRow>
-                <span className="label">Sous-total</span>
+                <span className="label">{t("orderDetail.subtotal", "Sous-total")}</span>
                 <span className="value">{(order.total - (order.delivery?.cost || 0)).toFixed(2)}€</span>
               </MobileSummaryRow>
               <MobileSummaryRow>
-                <span className="label">Livraison</span>
+                <span className="label">{t("orderDetail.shipping_cost", "Frais de port")}</span>
                 <span className="value">{(order.delivery?.cost || 0).toFixed(2)}€</span>
               </MobileSummaryRow>
               <MobileSummaryRow className="total">
-                <span>Total</span>
+                <span>{t("orderDetail.total", "Total")}</span>
                 <span>{order.total.toFixed(2)}€</span>
               </MobileSummaryRow>
             </MobileCardContent>
@@ -1135,15 +1129,13 @@ const OrderDetail = () => {
           <MobileCard>
             <MobileCardHeader>
               <h3>
-                <FiMapPin size={20} />
-                Livraison
-              </h3>
+                <FiMapPin size={20} />{t("orderDetail.delivery", "Livraison")}</h3>
             </MobileCardHeader>
             <MobileCardContent>
               <MobileInfoRow>
                 <FiUser className="icon" size={16} />
                 <div className="content">
-                  <div className="label">Destinataire</div>
+                  <div className="label">{t("orderDetail.recipient", "Destinataire")}</div>
                   <div className="value">
                     {order.customerInfo?.firstName} {order.customerInfo?.lastName}
                   </div>
@@ -1152,7 +1144,7 @@ const OrderDetail = () => {
               <MobileInfoRow>
                 <FiMapPin className="icon" size={16} />
                 <div className="content">
-                  <div className="label">Adresse</div>
+                  <div className="label">{t("orderDetail.address", "Adresse")}</div>
                   <div className="value">
                     {order.customerInfo?.address}<br />
                     {order.customerInfo?.postalCode} {order.customerInfo?.city}<br />
@@ -1163,9 +1155,9 @@ const OrderDetail = () => {
               <MobileInfoRow>
                 <FiTruck className="icon" size={16} />
                 <div className="content">
-                  <div className="label">Mode de livraison</div>
+                  <div className="label">{t("orderDetail.shipping_method", "Mode de livraison")}</div>
                   <div className="value">
-                    {order.delivery?.method === 'express' ? 'Livraison express' : 'Livraison standard'}
+                    {order.delivery?.method === 'express' ? t("orderDetail.express_delivery", "Livraison Express") : t("orderDetail.standard_delivery", "Livraison Standard")}
                   </div>
                 </div>
               </MobileInfoRow>
@@ -1176,31 +1168,29 @@ const OrderDetail = () => {
           <MobileCard>
             <MobileCardHeader>
               <h3>
-                <FiPhone size={20} />
-                Contact
-              </h3>
+                <FiPhone size={20} />{t("orderDetail.contact", "Contact")}</h3>
             </MobileCardHeader>
             <MobileCardContent>
               <MobileInfoRow>
                 <FiMail className="icon" size={16} />
                 <div className="content">
-                  <div className="label">Email</div>
-                  <div className="value">{order.customerInfo?.email || 'Non renseigné'}</div>
+                  <div className="label">{t("orderDetail.email", "E-mail")}</div>
+                  <div className="value">{order.customerInfo?.email || t("orderDetail.not_provided", "Non renseigné")}</div>
                 </div>
               </MobileInfoRow>
               <MobileInfoRow>
                 <FiPhone className="icon" size={16} />
                 <div className="content">
-                  <div className="label">Téléphone</div>
-                  <div className="value">{order.customerInfo?.phone || 'Non renseigné'}</div>
+                  <div className="label">{t("orderDetail.phone", "Téléphone")}</div>
+                  <div className="value">{order.customerInfo?.phone || t("orderDetail.not_provided", "Non renseigné")}</div>
                 </div>
               </MobileInfoRow>
               <MobileInfoRow>
                 <FiCreditCard className="icon" size={16} />
                 <div className="content">
-                  <div className="label">Paiement</div>
+                  <div className="label">{t("orderDetail.payment", "Paiement")}</div>
                   <div className="value">
-                    {order.payment?.method === 'card' ? 'Carte bancaire' : 'PayPal'}
+                    {order.payment?.method === 'card' ? t("orderDetail.credit_card", "Carte bancaire") : t("orderDetail.paypal", "PayPal")}
                   </div>
                 </div>
               </MobileInfoRow>
@@ -1212,9 +1202,7 @@ const OrderDetail = () => {
             <MobileCard>
               <MobileCardHeader>
                 <h3>
-                  <FiCalendar size={20} />
-                  Notes
-                </h3>
+                  <FiCalendar size={20} />{t("orderDetail.notes", "Remarques")}</h3>
               </MobileCardHeader>
               <MobileCardContent>
                 <p style={{ color: '#666', lineHeight: '1.5' }}>{order.notes}</p>
@@ -1228,9 +1216,7 @@ const OrderDetail = () => {
               <MobileActionButton
                 className="primary"
                 onClick={handlePayment}
-              >
-                Payer la commande
-              </MobileActionButton>
+              >{t("orderDetail.pay_order", "Payer la commande")}</MobileActionButton>
             )}
             
             {(order.status === 'pending' || order.status === 'processing') && (
@@ -1239,7 +1225,7 @@ const OrderDetail = () => {
                 onClick={handleCancelOrder}
                 disabled={cancelling}
               >
-                {cancelling ? 'Annulation...' : 'Annuler la commande'}
+                {cancelling ? t("orderDetail.cancelling", "Annulation...") : t("orderDetail.cancel_order", "Annuler la commande")}
               </MobileActionButton>
             )}
           </MobileActionContainer>
@@ -1250,9 +1236,7 @@ const OrderDetail = () => {
           <div>
             <OrderItems>
               <SectionTitle>
-                <FiPackage size={20} />
-                Articles commandés
-              </SectionTitle>
+                <FiPackage size={20} />{t("orderDetail.ordered_items", "Articles commandés")}</SectionTitle>
 
               {order.items.map((item, index) => (
                 <OrderItem key={index}>
@@ -1266,10 +1250,10 @@ const OrderDetail = () => {
                   <ItemInfo>
                     <h4>{item.name}</h4>
                     <div className="item-description">{item.description}</div>
-                    <div className="item-quantity">Quantité: {item.quantity}</div>
+                    <div className="item-quantity">{t("orderDetail.quantity", "Quantité : ")}{item.quantity}</div>
                   </ItemInfo>
                   <ItemPrice>
-                    <div className="unit-price">{item.price}€ / unité</div>
+                    <div className="unit-price">{item.price}{t("orderDetail.unit_price", "€ / unité")}</div>
                     <div className="total-price">{(item.price * item.quantity).toFixed(2)}€</div>
                   </ItemPrice>
                 </OrderItem>
@@ -1278,16 +1262,12 @@ const OrderDetail = () => {
 
             <DeliveryInfo>
               <SectionTitle>
-                <FiMapPin size={20} />
-                Informations de livraison
-              </SectionTitle>
+                <FiMapPin size={20} />{t("orderDetail.delivery_info", "Informations de livraison")}</SectionTitle>
 
               <InfoGrid>
                 <InfoCard>
                   <h4>
-                    <FiMapPin size={18} />
-                    Adresse de livraison
-                  </h4>
+                    <FiMapPin size={18} />{t("orderDetail.delivery_address", "Adresse de livraison")}</h4>
                   <p>
                     {order.customerInfo?.firstName} {order.customerInfo?.lastName}<br />
                     {order.customerInfo?.address}<br />
@@ -1298,11 +1278,9 @@ const OrderDetail = () => {
 
                 <InfoCard>
                   <h4>
-                    <FiCreditCard size={18} />
-                    Mode de paiement
-                  </h4>
+                    <FiCreditCard size={18} />{t("orderDetail.payment_method", "Moyen de paiement")}</h4>
                   <p>
-                    {order.payment?.method === 'card' ? 'Carte bancaire' : 'PayPal'}
+                    {order.payment?.method === 'card' ? t("orderDetail.credit_card", "Carte bancaire") : t("orderDetail.paypal", "PayPal")}
                   </p>
                 </InfoCard>
               </InfoGrid>
@@ -1310,28 +1288,26 @@ const OrderDetail = () => {
           </div>
 
           <OrderSummary>
-            <SectionTitle>Résumé</SectionTitle>
+            <SectionTitle>{t("orderDetail.summary", "Résumé")}</SectionTitle>
 
             <SummaryRow>
-              <span>Sous-total</span>
+              <span>{t("orderDetail.subtotal", "Sous-total")}</span>
               <span>{(order.total - (order.delivery?.cost || 0)).toFixed(2)}€</span>
             </SummaryRow>
 
             <SummaryRow>
-              <span>Livraison</span>
+              <span>{t("orderDetail.shipping_cost", "Frais de port")}</span>
               <span>{(order.delivery?.cost || 0).toFixed(2)}€</span>
             </SummaryRow>
 
             <SummaryRow className="total">
-              <span>Total</span>
+              <span>{t("orderDetail.total", "Total")}</span>
               <span>{order.total.toFixed(2)}€</span>
             </SummaryRow>
 
             {order.notes && (
               <div style={{ marginTop: '20px', padding: '15px', background: '#f8f9fa', borderRadius: '8px' }}>
-                <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#2c5530', marginBottom: '5px' }}>
-                  Notes
-                </h4>
+                <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#2c5530', marginBottom: '5px' }}>{t("orderDetail.notes", "Remarques")}</h4>
                 <p style={{ color: '#666', fontSize: '14px' }}>{order.notes}</p>
               </div>
             )}
@@ -1341,14 +1317,12 @@ const OrderDetail = () => {
                 onClick={handleCancelOrder}
                 disabled={cancelling}
               >
-                {cancelling ? 'Annulation...' : 'Annuler la commande'}
+                {cancelling ? t("orderDetail.cancelling", "Annulation...") : t("orderDetail.cancel_order", "Annuler la commande")}
               </CancelButton>
             )}
 
             {(order.status === 'pending') && (
-              <PayButton onClick={handlePayment}>
-                Payer la commande
-              </PayButton>
+              <PayButton onClick={handlePayment}>{t("orderDetail.pay_order", "Payer la commande")}</PayButton>
             )}
           </OrderSummary>
         </DesktopContent>
@@ -1358,23 +1332,21 @@ const OrderDetail = () => {
       {showConfirm && (
         <AlertOverlay>
           <ConfirmBox>
-            <h3>Confirmer l'annulation</h3>
-            <p>Êtes-vous sûr de vouloir annuler cette commande ?</p>
+            <h3>{t("orderDetail.confirm_cancel", "Confirmer l'annulation")}</h3>
+            <p>Sind Sie sicher, dass Sie diese Bestellung stornieren möchten?</p>
             <div className="button-group">
               <button
                 className="confirm"
                 onClick={confirmCancelOrder}
                 disabled={cancelling}
               >
-                {cancelling ? 'Annulation...' : 'OK'}
+                {cancelling ? t("orderDetail.cancelling", "Annulation...") : t("orderDetail.ok", "OK")}
               </button>
               <button
                 className="cancel"
                 onClick={() => setShowConfirm(false)}
                 disabled={cancelling}
-              >
-                Annuler
-              </button>
+              >{t("orderDetail.cancel", "Annuler")}</button>
             </div>
           </ConfirmBox>
         </AlertOverlay>

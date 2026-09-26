@@ -1,8 +1,11 @@
+import i18n from '../../i18n';
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSiteSettings } from '../../contexts/SiteSettingsContext';
+import { useTranslation } from 'react-i18next';
+import routeMapping from '../../utils/routeMapping.json';
 import { 
   FiHome, 
   FiPackage, 
@@ -264,6 +267,7 @@ const Burger = styled.button`
 
 const DashboardLayout = ({ children }) => {
   const { user, userData, logout } = useAuth();
+  const { t, i18n } = useTranslation();
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const { settings } = useSiteSettings();
@@ -279,38 +283,38 @@ const DashboardLayout = ({ children }) => {
             <img src="/images/brennholzkaufen_logo_transparent.png" alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
           </Avatar>
           <UserInfo>
-            <strong>{appName}</strong>
-            <small>Espace client</small>
+
+            <small>{t('dashboard.clientArea', 'Espace client')}</small>
           </UserInfo>
         </UserCard>
 
         <Nav>
           <NavItem to="/dashboard" onClick={() => setOpen(false)}>
             <FiHome />
-            <span>Mon Espace Client</span>
+            <span>{t('dashboard.nav.home', 'Mon espace client')}</span>
           </NavItem>
           <NavItem to="/dashboard/orders" onClick={() => setOpen(false)}>
             <FiPackage />
-            <span>Mes commandes</span>
+            <span>{t('dashboard.nav.orders', 'Mes commandes')}</span>
           </NavItem>
           <NavItem to="/dashboard/billing" onClick={() => setOpen(false)}>
             <FiFileText />
-            <span>Facturation &amp; RIB</span>
+            <span>{t('dashboard.nav.billing', 'Factures & RIB')}</span>
           </NavItem>
           <NavItem to="/dashboard/suivi" onClick={() => setOpen(false)}>
             <FiTruck />
-            <span>Suivi livraison</span>
+            <span>{t('dashboard.nav.tracking', 'Suivi de livraison')}</span>
           </NavItem>
           <NavItem to="/dashboard/settings" onClick={() => setOpen(false)}>
             <FiSettings />
-            <span>Réglages</span>
+            <span>{t('dashboard.nav.settings', 'Paramètres')}</span>
           </NavItem>
 
           <NavDivider />
 
-          <BoutiqueNavItem to="/products" onClick={() => setOpen(false)}>
+          <BoutiqueNavItem to={`/${i18n.language || 'fr'}/${routeMapping.products[i18n.language || 'fr']}`} onClick={() => setOpen(false)}>
             <FiShoppingBag />
-            <span>Commander du bois</span>
+            <span>{t('dashboard.nav.shop', 'Commander du bois')}</span>
           </BoutiqueNavItem>
         </Nav>
 
@@ -322,7 +326,7 @@ const DashboardLayout = ({ children }) => {
             try { window.location.replace('/'); } catch { }
           }
         }}>
-          <FiLogOut /> Se déconnecter
+          <FiLogOut /> {t('dashboard.nav.logout', 'Se déconnecter')}
         </LogoutButton>
       </Sidebar>
 
@@ -330,20 +334,20 @@ const DashboardLayout = ({ children }) => {
 
       <HeaderBar>
         <HeaderTitle>
-          <Burger onClick={() => setOpen(v => !v)} aria-label="Ouvrir le menu">
-            <FiMenu /> Menu
+          <Burger onClick={() => setOpen(v => !v)} aria-label={t('dashboard.header.openMenu', 'Ouvrir le menu')}>
+            <FiMenu /> {t('dashboard.header.menu', 'Menu')}
           </Burger>
-          <span className="header-name">Bienvenue, {displayName}</span>
+          <span className="header-name">{t('dashboard.header.welcome', 'Bienvenue')}, {displayName}</span>
         </HeaderTitle>
         <HeaderActions>
-          <Link to="/products" style={{ textDecoration: 'none' }}>
-            <HeaderButton title="Commander du bois">
-              <FiShoppingBag /> <span className="label">Boutique</span>
+          <Link to={`/${i18n.language || 'fr'}/${routeMapping.products[i18n.language || 'fr']}`} style={{ textDecoration: 'none' }}>
+            <HeaderButton title={t('dashboard.nav.shop', 'Commander du bois')}>
+              <FiShoppingBag /> <span className="label">{t('dashboard.header.shopLabel', 'Boutique')}</span>
             </HeaderButton>
           </Link>
           <Link to="/dashboard/profile" style={{ textDecoration: 'none' }}>
-            <HeaderButton title="Mon profil">
-              <FiUser /> <span className="label">Profil</span>
+            <HeaderButton title={t('dashboard.header.profile', 'Mon Profil')}>
+              <FiUser /> <span className="label">{t('dashboard.header.profileLabel', 'Profil')}</span>
             </HeaderButton>
           </Link>
           <Link to="/dashboard" style={{ textDecoration: 'none' }}>

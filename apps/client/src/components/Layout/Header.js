@@ -1006,7 +1006,7 @@ const Header = () => {
               <FiPhone /> <span>{headerPhone}</span>
             </InfoItem>
             <InfoItem>
-              <FiClock /> <span>Lun - Sam : 9h - 18h</span>
+              <FiClock /> <span>{t('header.hours', 'Lun - Sam : 9h - 18h')}</span>
             </InfoItem>
           </InfoGroup>
 
@@ -1023,8 +1023,8 @@ const Header = () => {
               </LangSelect>
               {!user && (
                 <>
-                  <NavLink as={LocalizedLink} routeKey="login">Connexion</NavLink>
-                  <NavLink as={LocalizedLink} routeKey="register">Inscription</NavLink>
+                  <NavLink as={LocalizedLink} routeKey="login">{t('nav.login', 'Connexion')}</NavLink>
+                  <NavLink as={LocalizedLink} routeKey="register">{t('nav.register', 'Inscription')}</NavLink>
                 </>
               )}
               <CartButton onClick={handleGoToCart}>
@@ -1053,7 +1053,7 @@ const Header = () => {
             <form onSubmit={handleSearch}>
               <SearchInput
                 type="text"
-                placeholder="Rechercher des produits..."
+                placeholder={t('products.search_placeholder', 'Rechercher des produits...')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -1083,15 +1083,15 @@ const Header = () => {
                     <HeaderAvatar>{profileInitial}</HeaderAvatar>
                   </UserButton>
                   <DropdownContent isOpen={isUserDropdownOpen}>
-                    <DropdownItem as={LocalizedLink} routeKey="dashboard" onClick={() => setIsUserDropdownOpen(false)}>Mon espace client</DropdownItem>
-                    <DropdownItem as={LocalizedLink} routeKey="orders" onClick={() => setIsUserDropdownOpen(false)}>Mes Commandes</DropdownItem>
-                    <DropdownItem as={LocalizedLink} routeKey="profile" onClick={() => setIsUserDropdownOpen(false)}>Mon Profil</DropdownItem>
+                    <DropdownItem as={LocalizedLink} routeKey="dashboard" onClick={() => setIsUserDropdownOpen(false)}>{t('dashboard.nav.home', 'Mon espace client')}</DropdownItem>
+                    <DropdownItem as={LocalizedLink} routeKey="orders" onClick={() => setIsUserDropdownOpen(false)}>{t('dashboard.nav.orders', 'Mes Commandes')}</DropdownItem>
+                    <DropdownItem as={LocalizedLink} routeKey="profile" onClick={() => setIsUserDropdownOpen(false)}>{t('dashboard.nav.profile', 'Mon Profil')}</DropdownItem>
                     <DropdownItem
                       as="button"
                       onClick={handleLogout}
                       style={{ color: '#b91c1c', fontWeight: 600 }}
                     >
-                      Déconnexion
+                      {t('dashboard.nav.logout', 'Déconnexion')}
                     </DropdownItem>
                   </DropdownContent>
                 </Dropdown>
@@ -1103,8 +1103,8 @@ const Header = () => {
                     </ResponsiveIcon>
                   </UserButton>
                   <DropdownContent isOpen={isUserDropdownOpen}>
-                    <DropdownItem as={LocalizedLink} routeKey="login" onClick={() => setIsUserDropdownOpen(false)}>Connexion</DropdownItem>
-                    <DropdownItem as={LocalizedLink} routeKey="register" onClick={() => setIsUserDropdownOpen(false)}>Inscription</DropdownItem>
+                    <DropdownItem as={LocalizedLink} routeKey="login" onClick={() => setIsUserDropdownOpen(false)}>{t('header.login', 'Connexion')}</DropdownItem>
+                    <DropdownItem as={LocalizedLink} routeKey="register" onClick={() => setIsUserDropdownOpen(false)}>{t('header.register', 'Inscription')}</DropdownItem>
                   </DropdownContent>
                 </Dropdown>
               )}
@@ -1135,7 +1135,7 @@ const Header = () => {
           <form onSubmit={(e) => { handleSearch(e); setIsMobileSearchOpen(false); }}>
             <MobileSearchInput
               type="text"
-              placeholder="Rechercher des produits..."
+              placeholder={t('products.search_placeholder', 'Rechercher des produits...')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -1159,12 +1159,12 @@ const Header = () => {
           <CartDrawerOverlay onClick={() => setIsCartDrawerOpen(false)} />
           <CartDrawer>
             <CartDrawerHeader>
-              <CartDrawerTitle>Panier d'achat</CartDrawerTitle>
+              <CartDrawerTitle>{t('cart.drawer_title', 'Panier d\'achat')}</CartDrawerTitle>
               <CartDrawerClose onClick={() => setIsCartDrawerOpen(false)}>×</CartDrawerClose>
             </CartDrawerHeader>
             <CartDrawerBody>
               {cartItems.length === 0 ? (
-                <p>Votre panier est vide.</p>
+                <p>{t('cart.empty_message', 'Votre panier est vide.')}</p>
               ) : (
                 cartItems.map((item) => (
                   <CartDrawerItem key={item.id}>
@@ -1190,9 +1190,7 @@ const Header = () => {
                             +
                           </CartQtyButton>
                         </CartQtyControls>
-                        <CartRemoveButton type="button" onClick={() => removeFromCart(item.id)}>
-                          Supprimer
-                        </CartRemoveButton>
+                        <CartRemoveButton type="button" onClick={() => removeFromCart(item.id)}>{t("cart.delete", "Supprimer")}</CartRemoveButton>
                       </CartDrawerItemActions>
                     </CartDrawerItemInfo>
                   </CartDrawerItem>
@@ -1201,7 +1199,7 @@ const Header = () => {
             </CartDrawerBody>
             <CartDrawerFooter>
               <CartDrawerRow>
-                <span>Sous-total</span>
+                <span>{t('cart.subtotal', 'Sous-total')}</span>
                 <span>{getCartTotal().toFixed(2)}€</span>
               </CartDrawerRow>
               {cartItems.length > 0 && (
@@ -1211,29 +1209,21 @@ const Header = () => {
                     clearCart();
                   }}
                   style={{ marginBottom: 8 }}
-                >
-                  Vider le panier
-                </CartRemoveButton>
+                >{t("cart.empty", "Vider le panier")}</CartRemoveButton>
               )}
               <CartDrawerSecondary
                 type="button"
                 onClick={() => { setIsCartDrawerOpen(false); localizedNavigate('products'); }}
                 style={{ marginBottom: 8 }}
-              >
-                Continuer mes achats
-              </CartDrawerSecondary>
+              >{t("cart.continue", "Continuer mes achats")}</CartDrawerSecondary>
               <CartDrawerSecondary
                 type="button"
                 onClick={() => { setIsCartDrawerOpen(false); localizedNavigate('cart'); }}
-              >
-                Voir le panier
-              </CartDrawerSecondary>
+              >{t("cart.view", "Voir le panier")}</CartDrawerSecondary>
               <CartDrawerPrimary
                 type="button"
                 onClick={() => { if (!cartItems || cartItems.length === 0) { setIsEmptyCartAlertOpen(true); return; } setIsCartDrawerOpen(false); localizedNavigate('checkout'); }}
-              >
-                Commander
-              </CartDrawerPrimary>
+              >{t("cart.checkout", "Commander")}</CartDrawerPrimary>
             </CartDrawerFooter>
           </CartDrawer>
         </>

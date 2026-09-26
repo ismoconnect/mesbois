@@ -1,0 +1,24 @@
+{
+  "cart": {
+    "added_success": "Das Produkt wurde erfolgreich zu Ihrem Warenkorb hinzugefügt.",
+    "what_next": "Was möchten Sie tun?",
+    "continue_shopping": "Weiter einkaufen",
+    "view_cart": "Warenkorb ansehen"
+  },
+  "category": {
+    "wood": "Brennholz",
+    "accessories": "Zubehör",
+    "briquettes": "Holzbriketts",
+    "pellets": "Pellets",
+    "stoves": "Öfen"
+  },
+  "product": {
+    "decrease_quantity": "Menge verringern",
+    "increase_quantity": "Menge erhöhen",
+    "fast_delivery_title": "Schnelle Lieferung",
+    "fast_delivery_desc": "Lieferung in 24-48h",
+    "quality_guarantee_title": "Qualitätsgarantie",
+    "quality_guarantee_desc": "100% zertifiziertes Produkt",
+    "reviews": "Bewertungen"
+  }
+}

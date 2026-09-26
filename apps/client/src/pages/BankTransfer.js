@@ -1,3 +1,6 @@
+import i18n from '../i18n';
+import { useTranslation } from 'react-i18next';
+import routeMapping from '../utils/routeMapping.json';
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { useSearchParams, useLocation, Link } from 'react-router-dom';
@@ -945,6 +948,7 @@ const BottomSecondaryLink = styled(Link)`
 // ========================================================
 
 export default function BankTransfer() {
+  const { t, i18n } = useTranslation();
   const [params] = useSearchParams();
   const location = useLocation();
   const { user } = useAuth();
@@ -1117,7 +1121,7 @@ Merci !`;
           {isRibPublic ? 'Commande enregistrée avec succès' : 'Votre commande a bien été enregistrée !'}
         </MainTitle>
         <Subtitle>
-          Votre réservation de bois de chauffage a été validée dans notre système.
+          {t('bank_transfer.success_desc', 'Votre réservation de bois de chauffage a été validée dans notre système.')}
         </Subtitle>
         <OrderRefBadge>
           <span>Réf. commande :</span>
@@ -1178,7 +1182,7 @@ Merci !`;
                   onClick={() => handleCopy(whatsappMessageCas2, 'Message commande')}
                 >
                   {copiedKey === 'Message commande' ? <FiCheck style={{ color: '#10b981' }} /> : <FiCopy />}
-                  <span>Copier</span>
+                  <span>{t('bank_transfer.copy', t('bank_transfer.copy', 'Copier'))}</span>
                 </MiniCopyButton>
               </SubActionRow>
             </WhatsAppBox>
@@ -1237,11 +1241,11 @@ Merci !`;
             <HeaderStatus>
               <span className="header-icon">🏦</span>
               <div className="header-text-col">
-                <h2>Coordonnées bancaires pour votre virement</h2>
-                <div className="header-sub">Veuillez ordonner votre virement pour expédition</div>
+                <h2>{t('bank_transfer.bank_details', 'Coordonnées bancaires pour votre virement')}</h2>
+                <div className="header-sub">{t('bank_transfer.order_transfer', 'Veuillez ordonner votre virement pour expédition')}</div>
               </div>
             </HeaderStatus>
-            <SecurityTag style={{ background: '#047857' }}>Compte Professionnel Validé</SecurityTag>
+            <SecurityTag style={{ background: '#047857' }}>{t('bank_transfer.pro_account', 'Compte Professionnel Validé')}</SecurityTag>
           </CardHeader>
 
           <CardBody>
@@ -1260,7 +1264,7 @@ Merci !`;
             }}>
               <FiClock style={{ fontSize: 16, flexShrink: 0 }} />
               <div>
-                <strong>Conseil rapide :</strong> Privilégiez un <strong>virement instantané</strong> pour une préparation immédiate en entrepôt.
+                <strong>Conseil rapide :</strong> Privilégiez un <strong>{t('bank_transfer.tip_bold', 'virement instantané')}</strong>{t('bank_transfer.tip2', ' pour une préparation immédiate en entrepôt.')}
               </div>
             </div>
 
@@ -1268,7 +1272,7 @@ Merci !`;
             <RIBGrid>
               <RIBBox>
                 <div className="label-val">
-                  <strong>Titulaire</strong>
+                  <strong>{t("bank_transfer.account_holder", "Titulaire")}</strong>
                   <div className="val">{rib.holder || 'Brennholzkaufen'}</div>
                 </div>
                 <button
@@ -1277,13 +1281,13 @@ Merci !`;
                   style={{ background: '#fff', border: '1px solid #d1d5db', borderRadius: 6, padding: '5px 8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: 11 }}
                 >
                   {copiedKey === 'Titulaire' ? <FiCheck style={{ color: '#10b981' }} /> : <FiCopy />}
-                  <span>{copiedKey === 'Titulaire' ? 'Copié' : 'Copier'}</span>
+                  <span>{copiedKey === 'Titulaire' ? t('bank_transfer.copied', 'Copié') : t('bank_transfer.copy', 'Copier')}</span>
                 </button>
               </RIBBox>
 
               <RIBBox>
                 <div className="label-val">
-                  <strong>Banque</strong>
+                  <strong>{t("bank_transfer.bank", "Banque")}</strong>
                   <div className="val">{rib.bank || 'Banque Européenne'}</div>
                 </div>
                 <button
@@ -1292,13 +1296,13 @@ Merci !`;
                   style={{ background: '#fff', border: '1px solid #d1d5db', borderRadius: 6, padding: '5px 8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: 11 }}
                 >
                   {copiedKey === 'Banque' ? <FiCheck style={{ color: '#10b981' }} /> : <FiCopy />}
-                  <span>{copiedKey === 'Banque' ? 'Copié' : 'Copier'}</span>
+                  <span>{copiedKey === 'Banque' ? t('bank_transfer.copied', 'Copié') : t('bank_transfer.copy', 'Copier')}</span>
                 </button>
               </RIBBox>
 
               <RIBBox style={{ gridColumn: '1 / -1' }}>
                 <div className="label-val">
-                  <strong>IBAN (Compte de paiement)</strong>
+                  <strong>{t("bank_transfer.iban", "IBAN (Compte de paiement)")}</strong>
                   <div className="val" style={{ fontFamily: 'monospace', letterSpacing: '0.8px', fontSize: 15 }}>
                     {rib.iban}
                   </div>
@@ -1309,13 +1313,13 @@ Merci !`;
                   style={{ background: '#2c5530', color: '#fff', border: 'none', borderRadius: 6, padding: '6px 12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 700 }}
                 >
                   {copiedKey === 'IBAN' ? <FiCheck /> : <FiCopy />}
-                  <span>{copiedKey === 'IBAN' ? 'Copié !' : 'Copier l\'IBAN'}</span>
+                  <span>{copiedKey === 'IBAN' ? t('bank_transfer.copied_exclam', 'Copié !') : t('bank_transfer.copy_iban', "Copier l'IBAN")}</span>
                 </button>
               </RIBBox>
 
               <RIBBox>
                 <div className="label-val">
-                  <strong>BIC / SWIFT</strong>
+                  <strong>{t('bank_transfer.bic', 'BIC / SWIFT')}</strong>
                   <div className="val" style={{ fontFamily: 'monospace' }}>{rib.bic}</div>
                 </div>
                 <button
@@ -1324,13 +1328,13 @@ Merci !`;
                   style={{ background: '#fff', border: '1px solid #d1d5db', borderRadius: 6, padding: '5px 8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: 11 }}
                 >
                   {copiedKey === 'BIC' ? <FiCheck style={{ color: '#10b981' }} /> : <FiCopy />}
-                  <span>{copiedKey === 'BIC' ? 'Copié' : 'Copier'}</span>
+                  <span>{copiedKey === 'BIC' ? t('bank_transfer.copied', 'Copié') : t('bank_transfer.copy', 'Copier')}</span>
                 </button>
               </RIBBox>
 
               <RIBBox>
                 <div className="label-val">
-                  <strong>Référence (Obligatoire)</strong>
+                  <strong>{t("bank_transfer.reference", "Référence (Obligatoire)")}</strong>
                   <div className="val" style={{ color: '#b91c1c', fontFamily: 'monospace' }}>#{orderRef}</div>
                 </div>
                 <button
@@ -1339,7 +1343,7 @@ Merci !`;
                   style={{ background: '#fff', border: '1px solid #d1d5db', borderRadius: 6, padding: '5px 8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: 11 }}
                 >
                   {copiedKey === 'Référence' ? <FiCheck style={{ color: '#10b981' }} /> : <FiCopy />}
-                  <span>{copiedKey === 'Référence' ? 'Copié' : 'Copier'}</span>
+                  <span>{copiedKey === 'Référence' ? t('bank_transfer.copied', 'Copié') : t('bank_transfer.copy', 'Copier')}</span>
                 </button>
               </RIBBox>
             </RIBGrid>
@@ -1347,7 +1351,7 @@ Merci !`;
             {/* Bouton WhatsApp Pro secondaire en Cas 1 */}
             <div style={{ marginTop: 14, padding: '12px', background: '#f0fdf4', borderRadius: 8, border: '1px solid #bbf7d0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
               <div style={{ fontSize: 12.5, color: '#14532d' }}>
-                <strong>Virement effectué ?</strong> Transmettez votre justificatif sur WhatsApp Pro pour enclencher la préparation prioritaire.
+                <strong>{t('bank_transfer.transfer_done', 'Virement effectué ?')}</strong> {t('bank_transfer.whatsapp_desc', 'Transmettez votre justificatif sur WhatsApp Pro pour enclencher la préparation prioritaire.')}
               </div>
               <a
                 href={targetWhatsAppUrl}
@@ -1367,7 +1371,7 @@ Merci !`;
                 }}
               >
                 <FaWhatsapp size={16} />
-                <span>Envoyer sur WhatsApp</span>
+                <span>{t('bank_transfer.send_whatsapp', 'Envoyer sur WhatsApp')}</span>
               </a>
             </div>
           </CardBody>
@@ -1381,7 +1385,7 @@ Merci !`;
         <RecapHeader>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <FiPackage style={{ color: '#2c5530' }} />
-            <span>Récapitulatif de votre commande</span>
+            <span>{t('bank_transfer.order_summary', 'Récapitulatif de votre commande')}</span>
           </div>
           <span style={{ fontSize: 12, color: '#6b7280', fontWeight: 600 }}>
             {items.length} {items.length > 1 ? 'articles' : 'article'}
@@ -1405,20 +1409,18 @@ Merci !`;
         )}
 
         <DetailRow>
-          <span className="label">Adresse de livraison :</span>
+          <span className="label">{t("bank_transfer.delivery_address", "Adresse de livraison :")}</span>
           <span className="val">{deliveryAddress || 'Adresse enregistrée'}</span>
         </DetailRow>
 
         <DetailRow>
-          <span className="label">Mode de livraison :</span>
+          <span className="label">{t("bank_transfer.delivery_mode", "Mode de livraison :")}</span>
           <span className="val" style={{ color: '#166534', fontWeight: 700 }}>
-            <FiTruck style={{ verticalAlign: 'middle', marginRight: 4 }} />
-            Chariot tout-terrain inclus
-          </span>
+            <FiTruck style={{ verticalAlign: 'middle', marginRight: 4 }} />{t("bank_transfer.forklift_included", "Chariot tout-terrain inclus")}</span>
         </DetailRow>
 
         <DetailRow>
-          <span className="label">Destinataire :</span>
+          <span className="label">{t("bank_transfer.recipient", "Destinataire :")}</span>
           <span className="val">
             {customerName} {customerPhone ? `(${customerPhone})` : ''}
           </span>
@@ -1426,13 +1428,13 @@ Merci !`;
 
         {customerEmail && (
           <DetailRow>
-            <span className="label">Email de confirmation :</span>
+            <span className="label">{t("bank_transfer.email_conf", "Email de confirmation :")}</span>
             <span className="val">{customerEmail}</span>
           </DetailRow>
         )}
 
         <TotalRow>
-          <span>Total TTC à régler :</span>
+          <span>{t("bank_transfer.total_to_pay", "Total TTC à régler :")}</span>
           <span className="total-price">{totalFormatted} €</span>
         </TotalRow>
       </OrderRecapCard>
@@ -1441,15 +1443,15 @@ Merci !`;
       <TrustBar>
         <TrustItem>
           <FiTruck />
-          <span>Chariot tout-terrain jusqu'à l'abri</span>
+          <span>{t("bank_transfer.forklift_to_shelter", "Chariot tout-terrain jusqu'à l'abri")}</span>
         </TrustItem>
         <TrustItem>
           <FiShield />
-          <span>Bois 100% sec certifié (&lt; 20%)</span>
+          <span>{t("bank_transfer.wood_certified", "Bois 100% sec certifié (< 20%)")}</span>
         </TrustItem>
         <TrustItem>
           <FiClock />
-          <span>Support & WhatsApp 7j/7</span>
+          <span>{t("bank_transfer.support_whatsapp", "Support & WhatsApp 7j/7")}</span>
         </TrustItem>
       </TrustBar>
 
@@ -1463,21 +1465,21 @@ Merci !`;
             <span>Consulter ma commande dans mon espace client</span>
           </BottomPrimaryButton>
         ) : (
-          <BottomPrimaryButton to="/products">
+          <BottomPrimaryButton to={`/${i18n.language || 'fr'}/${routeMapping.products[i18n.language || 'fr']}`}>
             <FiArrowRight />
-            <span>Continuer mes achats sur la boutique</span>
+            <span>{t("bank_transfer.continue_shopping", "Continuer mes achats sur la boutique")}</span>
           </BottomPrimaryButton>
         )}
 
         <BottomSecondaryLink to="/">
           <FiHome size={14} />
-          <span>Retour à l'accueil</span>
+          <span>{t("bank_transfer.back_home", "Retour à l'accueil")}</span>
         </BottomSecondaryLink>
 
         {/* Note e-mail pour invités */}
         {isGuest && (
           <div style={{ textAlign: 'center', fontSize: 11.5, color: '#6b7280', maxWidth: 440, marginTop: 4 }}>
-            📧 Un e-mail de confirmation reprenant ces informations vous a également été envoyé.
+            📧 {t("bank_transfer.email_sent", "Un e-mail de confirmation reprenant ces informations vous a également été envoyé.")}
           </div>
         )}
       </BottomActionContainer>

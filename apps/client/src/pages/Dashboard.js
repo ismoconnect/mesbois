@@ -1,3 +1,4 @@
+import i18n from '../i18n';
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
@@ -19,6 +20,8 @@ import {
   FiChevronRight
 } from 'react-icons/fi';
 import { FaWhatsapp } from 'react-icons/fa';
+import { useTranslation } from 'react-i18next';
+import routeMapping from '../utils/routeMapping.json';
 
 // ========================================================
 // STYLED COMPONENTS (RESPONSIVE, MODERN & PROPRE)
@@ -617,25 +620,26 @@ const EmptyState = styled.div`
 `;
 
 // Helper de statut adapté à la réalité du bois
-function getStatusDetails(status) {
+function getStatusDetails(status, t) {
   switch (status) {
     case 'pending':
     case 'awaiting_payment':
-      return { text: 'En attente virement', bg: '#fef3c7', color: '#92400e', border: '#fde68a' };
+      return { text: t('dashboard.status.awaiting_payment', 'En attente de virement'), bg: '#fef3c7', color: '#92400e', border: '#fde68a' };
     case 'processing':
-      return { text: 'En préparation palette', bg: '#e0f2fe', color: '#0369a1', border: '#bae6fd' };
+      return { text: t('dashboard.status.processing', 'En préparation'), bg: '#e0f2fe', color: '#0369a1', border: '#bae6fd' };
     case 'shipped':
-      return { text: 'En livraison chariot', bg: '#ecfdf5', color: '#15803d', border: '#bbf7d0' };
+      return { text: t('dashboard.status.shipped', 'En cours de livraison'), bg: '#ecfdf5', color: '#15803d', border: '#bbf7d0' };
     case 'delivered':
-      return { text: 'Livrée avec chariot', bg: '#f0fdf4', color: '#166534', border: '#86efac' };
+      return { text: t('dashboard.status.delivered', 'Livré'), bg: '#f0fdf4', color: '#166534', border: '#86efac' };
     case 'cancelled':
-      return { text: 'Annulée', bg: '#fee2e2', color: '#991b1b', border: '#fecaca' };
+      return { text: t('dashboard.status.cancelled', 'Annulé'), bg: '#fee2e2', color: '#991b1b', border: '#fecaca' };
     default:
-      return { text: 'Commande enregistrée', bg: '#f1f5f9', color: '#334155', border: '#cbd5e1' };
+      return { text: t('dashboard.status.registered', 'Commande enregistrée'), bg: '#f1f5f9', color: '#334155', border: '#cbd5e1' };
   }
 }
 
 const Dashboard = () => {
+  const { t, i18n } = useTranslation();
   const { user, userData } = useAuth();
   const { settings, loaded: settingsLoaded } = useSiteSettings();
   const [orders, setOrders] = useState([]);
@@ -672,7 +676,7 @@ const Dashboard = () => {
             const ordersData = ordersRes.data || [];
             setOrders(ordersData);
 
-            // Calculer les statistiques réelles
+            // Tatsächliche Statistiken berechnen
             const totalOrders = ordersData.length;
             const pendingOrders = ordersData.filter(o => 
               o.status === 'pending' || 
@@ -687,7 +691,7 @@ const Dashboard = () => {
           }
         }
       } catch (err) {
-        console.error('Erreur chargement Dashboard:', err);
+        console.error('Fehler beim Laden des Dashboards:', err);
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -697,7 +701,7 @@ const Dashboard = () => {
     return () => { isMounted = false; };
   }, [user]);
 
-  // Détection de la commande la plus récente active
+  // Erkennung der aktuellsten aktiven Bestellung
   const activeOrder = orders.find(o => 
     o.status === 'pending' || 
     o.status === 'awaiting_payment' || 
@@ -706,17 +710,17 @@ const Dashboard = () => {
   ) || (orders.length > 0 && orders[0].status !== 'cancelled' ? orders[0] : null);
 
   const cleanPhone = (whatsappNumber || '+49 1633637236').replace(/[^0-9]/g, '');
-  const targetWhatsAppUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(`Bonjour, je suis ${displayName} et je vous contacte depuis mon Espace Client Bois de Chauffage.`)}`;
+  const targetWhatsAppUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(`Hallo, ich bin ${displayName} und kontaktiere Sie aus meinem Brennholz-Kundenbereich.`)}`;
 
   return (
     <DashboardLayout>
       <Shell>
         {/* 1. CARTE EN-TÊTE BIENVENUE */}
         <HeaderCard>
-          <WoodTag>🪵 Espace Client Bois de Chauffage</WoodTag>
-          <Title>Mon Espace Client</Title>
+          <WoodTag>🪵 {t('dashboard.wood_tag', 'Espace client Bois de Chauffage')}</WoodTag>
+          <Title>{t('dashboard.main_title', 'Mon espace client')}</Title>
           <Subtitle>
-            Bienvenue {displayName} ! Suivez vos livraisons de bois de chauffage avec chariot tout-terrain et gérez vos commandes.
+            {t('dashboard.welcome_msg', 'Bienvenue')} {displayName}! {t('dashboard.welcome_sub', 'Suivez vos livraisons de bois de chauffage avec chariot embarqué et gérez vos commandes.')}
           </Subtitle>
         </HeaderCard>
 
@@ -726,10 +730,10 @@ const Dashboard = () => {
             <ActiveBannerHeader>
               <ActiveOrderRef>
                 <FiPackage />
-                <span>Commande #{formatTransferRef(activeOrder.id)}</span>
+                <span>{t('dashboard.order', 'Commande')} #{formatTransferRef(activeOrder.id)}</span>
               </ActiveOrderRef>
               {(() => {
-                const s = getStatusDetails(activeOrder.status);
+                const s = getStatusDetails(activeOrder.status, t);
                 return (
                   <ActiveStatusBadge bg={s.bg} color={s.color} border={s.border}>
                     {s.text}
@@ -739,24 +743,24 @@ const Dashboard = () => {
             </ActiveBannerHeader>
 
             <ActiveOrderInfo>
-              Montant : <strong>{Number(activeOrder.total || 0).toFixed(2)} €</strong> • 🚜 Chariot tout-terrain inclus jusqu'à l'abri
+              {t('dashboard.amount', 'Montant :')} <strong>{Number(activeOrder.total || 0).toFixed(2)} €</strong> • 🚜 {t('dashboard.forklift', 'Chariot élévateur inclus')}
             </ActiveOrderInfo>
 
             <ActiveActionsRow>
               <ActiveButton to={`/dashboard/suivi/${activeOrder.id}`} className="primary">
                 <FiTruck />
-                <span>Suivre ma livraison</span>
+                <span>{t('dashboard.track_delivery', 'Suivre la livraison')}</span>
               </ActiveButton>
 
               {activeOrder.status === 'pending' || activeOrder.status === 'awaiting_payment' ? (
                 <ActiveButton to="/dashboard/billing" className="secondary">
                   <FiFileText />
-                  <span>Coordonnées RIB</span>
+                  <span>{t('dashboard.bank_details', 'Coordonnées bancaires (IBAN)')}</span>
                 </ActiveButton>
               ) : (
                 <ActiveButton to={`/dashboard/orders/${activeOrder.id}`} className="secondary">
                   <FiPackage />
-                  <span>Détail commande</span>
+                  <span>{t('dashboard.order_details', 'Détails de la commande')}</span>
                 </ActiveButton>
               )}
             </ActiveActionsRow>
@@ -767,7 +771,7 @@ const Dashboard = () => {
         <StatsGrid>
           <StatCard>
             <StatTopRow>
-              <StatLabel>Commandes</StatLabel>
+              <StatLabel>{t('dashboard.stats.orders', 'Commandes')}</StatLabel>
               <StatIcon color="#2c5530"><FiPackage /></StatIcon>
             </StatTopRow>
             <StatValue color="#1b4332">{stats.totalOrders}</StatValue>
@@ -775,7 +779,7 @@ const Dashboard = () => {
 
           <StatCard>
             <StatTopRow>
-              <StatLabel>En cours</StatLabel>
+              <StatLabel>{t('dashboard.stats.pending', 'En attente')}</StatLabel>
               <StatIcon color="#d97706"><FiClock /></StatIcon>
             </StatTopRow>
             <StatValue color="#d97706">{stats.pendingOrders}</StatValue>
@@ -783,7 +787,7 @@ const Dashboard = () => {
 
           <StatCard>
             <StatTopRow>
-              <StatLabel>Livrées</StatLabel>
+              <StatLabel>{t('dashboard.stats.delivered', 'Livré')}</StatLabel>
               <StatIcon color="#166534"><FiCheckCircle /></StatIcon>
             </StatTopRow>
             <StatValue color="#166534">{stats.deliveredOrders}</StatValue>
@@ -791,7 +795,7 @@ const Dashboard = () => {
 
           <StatCard>
             <StatTopRow>
-              <StatLabel>Total dépensé</StatLabel>
+              <StatLabel>{t('dashboard.stats.total_spent', 'Dépenses totales')}</StatLabel>
               <StatIcon color="#2c5530">€</StatIcon>
             </StatTopRow>
             <StatValue color="#2c5530" style={{ fontSize: stats.totalSpent > 999 ? '18px' : '22px' }}>
@@ -803,38 +807,38 @@ const Dashboard = () => {
         {/* 4. ACTIONS RAPIDES (SANS PANIER) */}
         <SectionCard>
           <SectionHeader>
-            <h2>Actions rapides</h2>
+            <h2>{t('dashboard.quick_access', 'Accès rapide')}</h2>
           </SectionHeader>
 
           <ActionGrid>
             <ActionButton to="/dashboard/orders">
               <span className="act-icon"><FiPackage /></span>
-              <span className="act-label">Mes commandes</span>
+              <span className="act-label">{t('dashboard.nav.orders', 'Commandes')}</span>
             </ActionButton>
 
             <ActionButton to="/dashboard/suivi">
               <span className="act-icon"><FiTruck /></span>
-              <span className="act-label">Suivi chariot</span>
+              <span className="act-label">{t('dashboard.nav.tracking', 'Suivi chariot')}</span>
             </ActionButton>
 
             <ActionButton to="/dashboard/billing">
               <span className="act-icon"><FiFileText /></span>
-              <span className="act-label">Facturation</span>
+              <span className="act-label">{t('dashboard.nav.invoices', 'Factures')}</span>
             </ActionButton>
 
-            <ActionButton to="/products">
+            <ActionButton to={`/${i18n.language || 'fr'}/${routeMapping.products[i18n.language || 'fr']}`}>
               <span className="act-icon"><FiShoppingBag /></span>
-              <span className="act-label">Boutique</span>
+              <span className="act-label">{t('dashboard.nav.shop', 'Boutique')}</span>
             </ActionButton>
 
             <ActionButton to="/dashboard/profile">
               <span className="act-icon"><FiUser /></span>
-              <span className="act-label">Mon profil</span>
+              <span className="act-label">{t('dashboard.nav.profile', 'Mon profil')}</span>
             </ActionButton>
 
             <ActionAnchor href={targetWhatsAppUrl} target="_blank" rel="noopener noreferrer">
               <span className="act-icon"><FaWhatsapp /></span>
-              <span className="act-label">WhatsApp 7j/7</span>
+              <span className="act-label">{t('dashboard.nav.whatsapp', 'WhatsApp 24/7')}</span>
             </ActionAnchor>
           </ActionGrid>
         </SectionCard>
@@ -842,10 +846,10 @@ const Dashboard = () => {
         {/* 5. COMMANDES RÉCENTES */}
         <SectionCard>
           <SectionHeader>
-            <h2>Commandes récentes</h2>
+            <h2>{t('dashboard.recent_orders', 'Dernières commandes')}</h2>
             {orders.length > 0 && (
               <Link to="/dashboard/orders" className="view-all">
-                <span>Voir tout</span>
+                <span>{t('dashboard.view_all', 'Tout voir')}</span>
                 <FiChevronRight size={13} />
               </Link>
             )}
@@ -853,16 +857,16 @@ const Dashboard = () => {
 
           {loading && (
             <div style={{ textAlign: 'center', padding: '16px', color: '#64748b', fontSize: '13px' }}>
-              Chargement de vos commandes...
+              {t('dashboard.loading_orders', 'Chargement de vos commandes...')}
             </div>
           )}
 
           {!loading && orders.length === 0 && (
             <EmptyState>
-              <p>Vous n'avez pas encore de commande enregistrée.</p>
-              <Link to="/products" className="shop-link">
+              <p>{t('dashboard.no_orders', "Vous n'avez pas encore passé de commande.")}</p>
+              <Link to={`/${i18n.language || 'fr'}/${routeMapping.products[i18n.language || 'fr']}`} className="shop-link">
                 <FiShoppingBag />
-                <span>Découvrir la boutique de bois</span>
+                <span>{t('dashboard.discover_shop', 'Découvrir la boutique de bois')}</span>
               </Link>
             </EmptyState>
           )}
@@ -870,17 +874,17 @@ const Dashboard = () => {
           {!loading && orders.length > 0 && (
             <div>
               {orders.slice(0, 3).map((order) => {
-                const s = getStatusDetails(order.status);
+                const s = getStatusDetails(order.status, t);
                 const orderRef = formatTransferRef(order.id);
                 const firstItem = Array.isArray(order.items) && order.items.length > 0 ? order.items[0] : null;
                 const itemsCount = Array.isArray(order.items) ? order.items.length : 0;
                 const itemLabel = firstItem
-                  ? `${firstItem.quantity || 1}x ${firstItem.name || firstItem.title || 'Bois de chauffage'}${itemsCount > 1 ? ` (+${itemsCount - 1})` : ''}`
-                  : 'Commande de bois de chauffage';
+                  ? `${firstItem.quantity || 1}x ${firstItem.name || firstItem.title || t('dashboard.firewood', 'Bois de chauffage')}${itemsCount > 1 ? ` (+${itemsCount - 1})` : ''}`
+                  : t('dashboard.firewood_order', 'Commande de bois');
 
                 const dateStr = order.createdAt?.seconds 
-                  ? new Date(order.createdAt.seconds * 1000).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })
-                  : 'Récente';
+                  ? new Date(order.createdAt.seconds * 1000).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                  : t('dashboard.current', 'Actuel');
 
                 return (
                   <OrderItemRow key={order.id} to={`/dashboard/orders/${order.id}`}>
@@ -910,15 +914,15 @@ const Dashboard = () => {
         <TrustBar>
           <TrustItem>
             <FiTruck />
-            <span>Chariot tout-terrain inclus</span>
+            <span>{t('dashboard.trust.forklift', 'Chariot élévateur inclus')}</span>
           </TrustItem>
           <TrustItem>
             <FiShield />
-            <span>Bois sec garanti &lt; 20%</span>
+            <span>{t('dashboard.trust.dry_wood', 'Bois sec &lt; 20%')}</span>
           </TrustItem>
           <TrustItem>
             <FiClock />
-            <span>Support &amp; WhatsApp 7j/7</span>
+            <span>{t('dashboard.trust.support', 'Support &amp; WhatsApp 24/7')}</span>
           </TrustItem>
         </TrustBar>
       </Shell>

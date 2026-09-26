@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -362,26 +363,27 @@ const EmptyState = styled.div`
   }
 `;
 
-function getStatusDetails(status) {
+function getStatusDetails(status, t) {
   switch (status) {
     case 'pending':
-      return { text: 'Enregistrée', icon: <FiClock size={13} />, step: 1 };
+      return { text: t('suivi.status.pending', 'Enregistré'), icon: <FiClock size={13} />, step: 1 };
     case 'awaiting_payment':
-      return { text: 'En attente de virement', icon: <FiCreditCard size={13} />, step: 1 };
+      return { text: t('suivi.status.awaiting_payment', 'En attente de virement'), icon: <FiCreditCard size={13} />, step: 1 };
     case 'processing':
-      return { text: 'Préparation palettes', icon: <FiPackage size={13} />, step: 2 };
+      return { text: t('suivi.status.processing', 'Palettes en préparation'), icon: <FiPackage size={13} />, step: 2 };
     case 'shipped':
-      return { text: 'En route (Chariot embarqué)', icon: <FiTruck size={13} />, step: 3 };
+      return { text: t('suivi.status.shipped', 'En route (Chariot embarqué)'), icon: <FiTruck size={13} />, step: 3 };
     case 'delivered':
-      return { text: 'Livré & Déposé', icon: <FiCheckCircle size={13} />, step: 4 };
+      return { text: t('suivi.status.delivered', 'Livré & Déposé'), icon: <FiCheckCircle size={13} />, step: 4 };
     case 'cancelled':
-      return { text: 'Annulée', icon: <FiClock size={13} />, step: 0 };
+      return { text: t('suivi.status.cancelled', 'Annulé'), icon: <FiClock size={13} />, step: 0 };
     default:
-      return { text: 'Traitement', icon: <FiClock size={13} />, step: 1 };
+      return { text: t('suivi.status.default', 'Traitement'), icon: <FiClock size={13} />, step: 1 };
   }
 }
 
 const Suivi = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -407,19 +409,19 @@ const Suivi = () => {
         {/* Header Hero */}
         <HeaderCard>
           <HeaderBadges>
-            <TrustBadge><FaTruck size={12} /> Chariot tout-terrain à bord</TrustBadge>
-            <TrustBadge><FaShieldAlt size={12} /> Traçabilité bois PEFC</TrustBadge>
-            <TrustBadge><FaWhatsapp size={12} /> Chauffeur joignable le jour J</TrustBadge>
+            <TrustBadge><FaTruck size={12} /> {t('suivi.badges.forklift', 'Chariot élévateur inclus')}</TrustBadge>
+            <TrustBadge><FaShieldAlt size={12} /> {t('suivi.badges.traceability', 'Traçabilité bois PEFC')}</TrustBadge>
+            <TrustBadge><FaWhatsapp size={12} /> {t('suivi.badges.driver', 'Chauffeur joignable le jour J')}</TrustBadge>
           </HeaderBadges>
-          <Title>Suivi de Livraison en Direct</Title>
+          <Title>{t('suivi.title', 'Suivi de Livraison en direct')}</Title>
           <Subtitle>
-            Visualisez l'état d'avancement de vos palettes et le détail d'acheminement jusqu'à votre abri à bois.
+            {t('suivi.subtitle', 'Suivez la progression de vos palettes et les détails de livraison jusqu\'à votre abri.')}
           </Subtitle>
         </HeaderCard>
 
         {loading && (
           <OrderCard style={{ textAlign: 'center', padding: '30px', color: '#64748b' }}>
-            Chargement de vos suivis de livraison…
+            {t('suivi.loading', 'Vos suivis de livraison sont en cours de chargement…')}
           </OrderCard>
         )}
 
@@ -427,10 +429,10 @@ const Suivi = () => {
           <OrderCard>
             <EmptyState>
               <div className="icon">🪵</div>
-              <h3>Aucune commande en cours d'acheminement</h3>
-              <p>Commandez du bois de chauffage dur ou des granulés certifiés pour suivre votre livraison ici.</p>
+              <h3>{t('suivi.empty.title', 'Aucune livraison en cours')}</h3>
+              <p>{t('suivi.empty.desc', 'Commandez du bois de chauffage pour suivre votre livraison ici.')}</p>
               <PrimaryBtn to="/dashboard/boutique">
-                Commander mon bois →
+                {t('suivi.empty.btn', 'Commander mon bois →')}
               </PrimaryBtn>
             </EmptyState>
           </OrderCard>
@@ -438,22 +440,22 @@ const Suivi = () => {
 
         {!loading && orders.map((order) => {
           const ref = formatTransferRef(order.id);
-          const st = getStatusDetails(order.status);
+          const st = getStatusDetails(order.status, t);
           const currentStep = st.step;
           const orderDate = order.createdAt?.seconds
-            ? new Date(order.createdAt.seconds * 1000).toLocaleDateString('fr-FR')
-            : 'Date récente';
+            ? new Date(order.createdAt.seconds * 1000).toLocaleDateString('de-DE')
+            : t('suivi.recent_date', 'Date récente');
 
           return (
             <OrderCard key={order.id}>
               <CardTop>
                 <div>
                   <RefBlock>
-                    <span>Commande</span>
+                    <span>{t('suivi.order_label', 'Commande')}</span>
                     <span className="ref-pill">{ref}</span>
                   </RefBlock>
                   <div style={{ fontSize: '12px', color: '#64748b', marginTop: '3px' }}>
-                    Passée le {orderDate} • {order.items?.length || 1} référence(s) de bois
+                    {t('suivi.ordered_on', 'Commandé le')} {orderDate} • {order.items?.length || 1} {t('suivi.items', 'Articles')}
                   </div>
                 </div>
                 <StatusPill $status={order.status}>
@@ -465,19 +467,19 @@ const Suivi = () => {
               <Stepper>
                 <StepNode $done={currentStep > 1} $current={currentStep === 1}>
                   <div className="circle">{currentStep > 1 ? '✓' : '1'}</div>
-                  <div className="label">Validation & Virement</div>
+                  <div className="label">{t('suivi.step1', 'Confirmation & Virement')}</div>
                 </StepNode>
                 <StepNode $done={currentStep > 2} $current={currentStep === 2}>
                   <div className="circle">{currentStep > 2 ? '✓' : '2'}</div>
-                  <div className="label">Préparation Palettes</div>
+                  <div className="label">{t('suivi.step2', 'Préparation des palettes')}</div>
                 </StepNode>
                 <StepNode $done={currentStep > 3} $current={currentStep === 3}>
                   <div className="circle">{currentStep > 3 ? '✓' : '3'}</div>
-                  <div className="label">Camion Chariot Embarqué</div>
+                  <div className="label">{t('suivi.step3', 'Camion avec chariot')}</div>
                 </StepNode>
                 <StepNode $done={currentStep >= 4} $current={currentStep === 4}>
                   <div className="circle">{currentStep >= 4 ? '✓' : '4'}</div>
-                  <div className="label">Déposé chez vous</div>
+                  <div className="label">{t('suivi.step4', 'Déposé chez vous')}</div>
                 </StepNode>
               </Stepper>
 
@@ -486,11 +488,11 @@ const Suivi = () => {
                 <div className="loc">
                   <FiMapPin size={15} color="#2c5530" />
                   <span>
-                    Livraison à : <strong>{order.shippingAddress?.city ? `${order.shippingAddress.postalCode || ''} ${order.shippingAddress.city}` : 'Adresse enregistrée'}</strong>
+                    {t('suivi.delivery_to', 'Livraison à :')} <strong>{order.shippingAddress?.city ? `${order.shippingAddress.postalCode || ''} ${order.shippingAddress.city}` : t('suivi.saved_address', 'Adresse enregistrée')}</strong>
                   </span>
                 </div>
                 <div className="total">
-                  Total : {order.total ? Number(order.total).toFixed(2) : '0.00'} €
+                  {t('suivi.total', 'Total :')} {order.total ? Number(order.total).toFixed(2) : '0.00'} €
                 </div>
               </DetailsRow>
 
@@ -498,10 +500,10 @@ const Suivi = () => {
               <ActionsRow>
                 <div className="buttons-group">
                   <PrimaryBtn to={`/dashboard/suivi/${order.id}`}>
-                    <FiTruck size={14} /> Suivi détaillé & Facture PDF
+                    <FiTruck size={14} /> {t('suivi.btn_details', 'Suivi détaillé & Facture PDF')}
                   </PrimaryBtn>
                   <SecondaryBtn to={`/dashboard/orders/${order.id}`}>
-                    <FiFileText size={14} /> Voir la commande
+                    <FiFileText size={14} /> {t('suivi.btn_view', 'Voir la commande')}
                   </SecondaryBtn>
                 </div>
                 {order.status === 'awaiting_payment' && (
@@ -517,7 +519,7 @@ const Suivi = () => {
                       gap: '4px'
                     }}
                   >
-                    <FiCreditCard size={13} /> Régler par virement →
+                    <FiCreditCard size={13} /> {t('suivi.btn_pay', 'Payer par virement →')}
                   </Link>
                 )}
               </ActionsRow>

@@ -6,6 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { createUser } from '../firebase/auth';
 import toast from 'react-hot-toast';
 import { sendEmailVerification } from 'firebase/auth';
+import { useTranslation } from 'react-i18next';
 
 const RegisterContainer = styled.div`
   min-height: 80vh;
@@ -160,6 +161,7 @@ const PasswordRequirements = styled.div`
 `;
 
 const Register = () => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -181,21 +183,21 @@ const Register = () => {
   const navigate = useNavigate();
 
   const mapAuthError = (raw) => {
-    if (!raw) return 'Une erreur est survenue';
+    if (!raw) return t('register.error_occurred', 'Une erreur est survenue');
     const msg = String(raw).toLowerCase();
     if (msg.includes('auth/email-already-in-use')) {
-      return "Cette adresse e‑mail est déjà utilisée. Connectez‑vous ou réinitialisez votre mot de passe.";
+      return t('register.email_in_use', "Cette adresse e‑mail est déjà utilisée. Connectez‑vous ou réinitialisez votre mot de passe.");
     }
     if (msg.includes('auth/invalid-email')) {
-      return "Adresse e‑mail invalide.";
+      return t('register.invalid_email', "Adresse e‑mail invalide.");
     }
     if (msg.includes('auth/weak-password')) {
-      return "Mot de passe trop faible (minimum 6 caractères).";
+      return t('register.weak_password', "Mot de passe trop faible (minimum 6 caractères).");
     }
     if (msg.includes('network') || msg.includes('request-failed')) {
-      return "Problème de réseau. Veuillez réessayer.";
+      return t('register.network_error', "Problème de réseau. Veuillez réessayer.");
     }
-    return 'Une erreur est survenue';
+    return t('register.error_occurred', 'Une erreur est survenue');
   };
 
   // Rediriger si déjà connecté (uniquement quand on est sur la page /register)
@@ -216,12 +218,12 @@ const Register = () => {
 
   const validateForm = () => {
     if (formData.password !== formData.confirmPassword) {
-      setError('Les mots de passe ne correspondent pas');
+      setError(t('register.passwords_dont_match', 'Les mots de passe ne correspondent pas'));
       return false;
     }
     
     if (formData.password.length < 6) {
-      setError('Le mot de passe doit contenir au moins 6 caractères');
+      setError(t('register.password_too_short', 'Le mot de passe doit contenir au moins 6 caractères'));
       return false;
     }
     
@@ -257,9 +259,9 @@ const Register = () => {
             url: 'https://jeferco.boisdechauffages.com/auth/action',
             handleCodeInApp: true
           });
-          toast.success("Compte créé ! Vérifiez votre email pour valider votre adresse.");
+          toast.success(t('register.account_created_verify', "Compte créé ! Vérifiez votre email pour valider votre adresse."));
         } catch (_) {
-          toast.success('Compte créé avec succès !');
+          toast.success(t('register.account_created', 'Compte créé avec succès !'));
         }
         navigate('/dashboard', { replace: true });
       } else {
@@ -275,12 +277,12 @@ const Register = () => {
   return (
     <RegisterContainer>
       <RegisterCard>
-        <RegisterTitle>Créer un compte</RegisterTitle>
+        <RegisterTitle>{t('register.title', 'Créer un compte')}</RegisterTitle>
         
         {error && (
           <>
             <ErrorMessage>{error}</ErrorMessage>
-            {error.includes('déjà utilisée') && (
+            {error.includes(t('register.email_in_use_check', 'déjà utilisée')) && (
               <div style={{ textAlign: 'center', marginTop: 8 }}>
                 <button
                   type="button"
@@ -295,7 +297,7 @@ const Register = () => {
                     cursor: 'pointer'
                   }}
                 >
-                  Aller à la connexion
+                  {t('register.go_to_login', 'Aller à la connexion')}
                 </button>
               </div>
             )}
@@ -311,7 +313,7 @@ const Register = () => {
               <Input
                 type="text"
                 name="firstName"
-                placeholder="Prénom"
+                placeholder={t('register.first_name', 'Prénom')}
                 value={formData.firstName}
                 onChange={handleChange}
                 required
@@ -325,7 +327,7 @@ const Register = () => {
               <Input
                 type="text"
                 name="lastName"
-                placeholder="Nom"
+                placeholder={t('register.last_name', 'Nom')}
                 value={formData.lastName}
                 onChange={handleChange}
                 required
@@ -341,7 +343,7 @@ const Register = () => {
               <Input
                 type="tel"
                 name="phone"
-                placeholder="Téléphone"
+                placeholder={t('register.phone', 'Téléphone')}
                 value={formData.phone}
                 onChange={handleChange}
               />
@@ -354,7 +356,7 @@ const Register = () => {
               <Input
                 type="email"
                 name="email"
-                placeholder="Adresse email"
+                placeholder={t('register.email', 'Adresse email')}
                 value={formData.email}
                 onChange={handleChange}
                 required
@@ -370,7 +372,7 @@ const Register = () => {
               <Input
                 type={showPassword ? 'text' : 'password'}
                 name="password"
-                placeholder="Mot de passe"
+                placeholder={t('register.password', 'Mot de passe')}
                 value={formData.password}
                 onChange={handleChange}
                 required
@@ -390,7 +392,7 @@ const Register = () => {
               <Input
                 type={showConfirmPassword ? 'text' : 'password'}
                 name="confirmPassword"
-                placeholder="Confirmer le mot de passe"
+                placeholder={t('register.confirm_password', 'Confirmer le mot de passe')}
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 required
@@ -405,7 +407,7 @@ const Register = () => {
           </FormRow>
           
           <PasswordRequirements>
-            Le mot de passe doit contenir au moins 6 caractères
+            {t('register.password_requirements', 'Le mot de passe doit contenir au moins 6 caractères')}
           </PasswordRequirements>
           
           <InputGroup>
@@ -415,13 +417,13 @@ const Register = () => {
             <Input
               type="text"
               name="address"
-              placeholder="Adresse"
+              placeholder={t('register.address', 'Adresse')}
               value={formData.address}
               onChange={handleChange}
             />
           </InputGroup>
           <div style={{ fontSize: 12, color: '#dc2626', marginTop: 4, fontWeight: 600 }}>
-            Cette adresse sera utilisée comme adresse de livraison pour vos commandes. Vous pourrez la modifier plus tard dans votre espace client.
+            {t('register.address_notice', 'Cette adresse sera utilisée comme adresse de livraison pour vos commandes. Vous pourrez la modifier plus tard dans votre espace client.')}
           </div>
           
           <FormRow>
@@ -429,7 +431,7 @@ const Register = () => {
               <Input
                 type="text"
                 name="city"
-                placeholder="Ville"
+                placeholder={t('register.city', 'Ville')}
                 value={formData.city}
                 onChange={handleChange}
               />
@@ -439,7 +441,7 @@ const Register = () => {
               <Input
                 type="text"
                 name="postalCode"
-                placeholder="Code postal"
+                placeholder={t('register.postal_code', 'Code postal')}
                 value={formData.postalCode}
                 onChange={handleChange}
               />
@@ -447,12 +449,12 @@ const Register = () => {
           </FormRow>
           
           <Button type="submit" disabled={loading}>
-            {loading ? 'Création du compte...' : 'Créer le compte'}
+            {loading ? t('register.loading', 'Création du compte...') : t('register.submit', 'Créer le compte')}
           </Button>
         </Form>
         
         <LoginLink>
-          Déjà un compte ? <Link to="/login">Se connecter</Link>
+          {t('register.already_have_account', 'Déjà un compte ?')} <Link to="/login">{t('register.login', 'Se connecter')}</Link>
         </LoginLink>
       </RegisterCard>
     </RegisterContainer>

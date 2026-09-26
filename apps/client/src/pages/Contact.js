@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
 import { FiMail, FiPhone, FiMapPin, FiClock, FiSend, FiMessageCircle, FiCheckCircle } from 'react-icons/fi';
 import { FaTruck, FaShieldAlt } from 'react-icons/fa';
@@ -470,6 +471,7 @@ const DeliveryBadges = styled.div`
 `;
 
 const Contact = () => {
+  const { t } = useTranslation();
   const { settings, loaded } = useSiteSettings();
   const phone = loaded && settings.supportPhone ? settings.supportPhone : '+49 1633637236';
   const email = loaded && settings.supportEmail ? settings.supportEmail : 'kontakt@brennholzkaufen.online';
@@ -499,7 +501,7 @@ const Contact = () => {
     try {
       await new Promise(resolve => setTimeout(resolve, 800));
       
-      toast.success('Message envoyé avec succès ! Notre équipe vous répondra sous 2h.');
+      toast.success(t('contact.success', 'Message envoyé avec succès ! Notre équipe vous répondra sous 2h.'));
       setFormData({
         firstName: '',
         lastName: '',
@@ -509,7 +511,7 @@ const Contact = () => {
         message: ''
       });
     } catch (error) {
-      toast.error('Erreur lors de l\'envoi du message');
+      toast.error(t('contact.error', 'Erreur lors de l\'envoi du message'));
     } finally {
       setLoading(false);
     }
@@ -519,11 +521,11 @@ const Contact = () => {
     <ContactContainer>
       <ContactHeader>
         <ContactBadge>
-          <FiMessageCircle size={12} /> Service Client & Devis Gratuit
+          <FiMessageCircle size={12} /> {t('contact.badge', 'Service Client & Devis Gratuit')}
         </ContactBadge>
-        <ContactTitle>Contactez notre équipe</ContactTitle>
+        <ContactTitle>{t('contact.title', 'Contactez notre équipe')}</ContactTitle>
         <ContactSubtitle>
-          Une question sur un produit, votre livraison ou un devis personnalisé ? Nous vous répondons rapidement.
+          {t('contact.subtitle', 'Une question sur un produit, votre livraison ou un devis personnalisé ? Nous vous répondons rapidement.')}
         </ContactSubtitle>
       </ContactHeader>
       
@@ -531,7 +533,7 @@ const Contact = () => {
         <ContactInfo>
           <InfoTitle>
             <FiMessageCircle />
-            Nos coordonnées directes
+            {t('contact.info_title', 'Nos coordonnées directes')}
           </InfoTitle>
           
           <InfoItem>
@@ -539,7 +541,7 @@ const Contact = () => {
               <FiPhone />
             </IconBox>
             <InfoContent>
-              <h4>Téléphone direct</h4>
+              <h4>{t('contact.phone', 'Téléphone direct')}</h4>
               <a href={`tel:${phone.replace(/\s+/g, '')}`}>{phone}</a>
             </InfoContent>
           </InfoItem>
@@ -549,7 +551,7 @@ const Contact = () => {
               <FiMail />
             </IconBox>
             <InfoContent>
-              <h4>Email du support</h4>
+              <h4>{t('contact.email', 'Email du support')}</h4>
               <a href={`mailto:${email}`}>{email}</a>
             </InfoContent>
           </InfoItem>
@@ -559,7 +561,7 @@ const Contact = () => {
               <FiMapPin />
             </IconBox>
             <InfoContent>
-              <h4>Dépôt & Siège</h4>
+              <h4>{t('contact.address', 'Dépôt & Siège')}</h4>
               <p>{address}</p>
             </InfoContent>
           </InfoItem>
@@ -569,34 +571,34 @@ const Contact = () => {
               <FiClock />
             </IconBox>
             <InfoContent>
-              <h4>Horaires d'ouverture</h4>
+              <h4>{t('contact.hours', 'Horaires d\'ouverture')}</h4>
               <p>
-                Lun – Ven : 8h30 – 18h30<br />
-                Samedi : 9h00 – 17h00 (Dimanche fermé)
+                {t('contact.hours_week', 'Lun – Ven : 8h30 – 18h30')}<br />
+                {t('contact.hours_weekend', 'Samedi : 9h00 – 17h00 (Dimanche fermé)')}
               </p>
             </InfoContent>
           </InfoItem>
 
           <QuickNotice>
             <FiCheckCircle />
-            <span>Réponse garantie sous 2h ouvrées par nos conseillers.</span>
+            <span>{t('contact.guarantee', 'Réponse garantie sous 2h ouvrées par nos conseillers.')}</span>
           </QuickNotice>
         </ContactInfo>
         
         <ContactForm onSubmit={handleSubmit}>
           <FormTitle>
             <FiSend />
-            Envoyez-nous un message
+            {t('contact.form_title', 'Envoyez-nous un message')}
           </FormTitle>
           
           <FormRow>
             <FormGroup>
-              <Label htmlFor="firstName">Prénom *</Label>
+              <Label htmlFor="firstName">{t('contact.form_firstname', 'Prénom *')}</Label>
               <Input
                 type="text"
                 id="firstName"
                 name="firstName"
-                placeholder="Votre prénom"
+                placeholder={t("contact.form_firstname_placeholder", "Votre prénom")}
                 value={formData.firstName}
                 onChange={handleChange}
                 required
@@ -604,12 +606,12 @@ const Contact = () => {
             </FormGroup>
             
             <FormGroup>
-              <Label htmlFor="lastName">Nom *</Label>
+              <Label htmlFor="lastName">{t('contact.form_lastname', 'Nom *')}</Label>
               <Input
                 type="text"
                 id="lastName"
                 name="lastName"
-                placeholder="Votre nom"
+                placeholder={t("contact.form_lastname_placeholder", "Votre nom")}
                 value={formData.lastName}
                 onChange={handleChange}
                 required
@@ -619,12 +621,12 @@ const Contact = () => {
           
           <FormRow>
             <FormGroup>
-              <Label htmlFor="email">Email *</Label>
+              <Label htmlFor="email">{t('contact.form_email', 'Email *')}</Label>
               <Input
                 type="email"
                 id="email"
                 name="email"
-                placeholder="nom@exemple.com"
+                placeholder={t("contact.form_email_placeholder", "nom@exemple.com")}
                 value={formData.email}
                 onChange={handleChange}
                 required
@@ -632,12 +634,12 @@ const Contact = () => {
             </FormGroup>
             
             <FormGroup>
-              <Label htmlFor="phone">Téléphone</Label>
+              <Label htmlFor="phone">{t('contact.form_phone', 'Téléphone')}</Label>
               <Input
                 type="tel"
                 id="phone"
                 name="phone"
-                placeholder="06 12 34 56 78"
+                placeholder={t("contact.form_phone_placeholder", "06 12 34 56 78")}
                 value={formData.phone}
                 onChange={handleChange}
               />
@@ -645,12 +647,12 @@ const Contact = () => {
           </FormRow>
           
           <FormGroup>
-            <Label htmlFor="subject">Sujet *</Label>
+            <Label htmlFor="subject">{t('contact.form_subject', 'Sujet *')}</Label>
             <Input
               type="text"
               id="subject"
               name="subject"
-              placeholder="Ex: Demande de livraison, Devis stères..."
+              placeholder={t("contact.form_subject_placeholder", "Ex: Demande de livraison, Devis stères...")}
               value={formData.subject}
               onChange={handleChange}
               required
@@ -658,11 +660,11 @@ const Contact = () => {
           </FormGroup>
           
           <FormGroup>
-            <Label htmlFor="message">Votre message *</Label>
+            <Label htmlFor="message">{t('contact.form_message', 'Votre message *')}</Label>
             <TextArea
               id="message"
               name="message"
-              placeholder="Détaillez votre demande ou votre code postal de livraison..."
+              placeholder={t("contact.form_message_placeholder", "Détaillez votre demande ou votre code postal de livraison...")}
               value={formData.message}
               onChange={handleChange}
               required
@@ -671,7 +673,7 @@ const Contact = () => {
           
           <SubmitButton type="submit" disabled={loading}>
             <FiSend size={15} />
-            {loading ? 'Envoi en cours...' : 'Envoyer mon message'}
+            {loading ? t('contact.sending', 'Envoi en cours...') : t('contact.send', 'Envoyer mon message')}
           </SubmitButton>
         </ContactForm>
       </ContactContent>
@@ -682,13 +684,13 @@ const Contact = () => {
             <FaTruck size={17} />
           </div>
           <div>
-            <h4>Zone de livraison directe sous abri</h4>
-            <p>Camion équipé d'un chariot tout-terrain pour déposer vos palettes exactement où vous le souhaitez.</p>
+            <h4>{t('contact.delivery_title', 'Zone de livraison directe sous abri')}</h4>
+            <p>{t('contact.delivery_desc', 'Camion équipé d\'un chariot tout-terrain pour déposer vos palettes exactement où vous le souhaitez.')}</p>
           </div>
         </DeliveryInfo>
         <DeliveryBadges>
-          <span><FiCheckCircle size={11} /> Chariot tout-terrain</span>
-          <span><FaShieldAlt size={10} /> 100% garanti</span>
+          <span><FiCheckCircle size={11} /> {t('contact.delivery_badge1', 'Chariot tout-terrain')}</span>
+          <span><FaShieldAlt size={10} /> {t('contact.delivery_badge2', '100% garanti')}</span>
         </DeliveryBadges>
       </DeliveryNoticeCard>
     </ContactContainer>

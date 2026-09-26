@@ -12,6 +12,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useSiteSettings } from '../../contexts/SiteSettingsContext';
 import LocalizedLink from '../LocalizedLink/LocalizedLink';
+import LanguageSwitcher from '../LanguageSwitcher';
 
 const FooterContainer = styled.footer`
   background: #142618;
@@ -456,7 +457,7 @@ const Footer = () => {
           <TrustBadgesRow>
             <TrustBadge><FiCheckCircle size={13} /> PEFC / FSC</TrustBadge>
             <TrustBadge><FiCheckCircle size={13} /> DINplus / ENplus</TrustBadge>
-            <TrustBadge><FiCheckCircle size={13} /> Humidité &lt; 20%</TrustBadge>
+            <TrustBadge><FiCheckCircle size={13} /> {t('footer.humidity', 'Humidité < 20%')}</TrustBadge>
           </TrustBadgesRow>
         </FooterCol>
 
@@ -543,8 +544,11 @@ const Footer = () => {
 
       {/* Barre Copyright */}
       <FooterBottom>
-        <div>
-          © {currentYear} {siteName}. {t('footer.rights_reserved', 'Tous droits réservés.')}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
+          <div>
+            © {currentYear} {siteName}. {t('footer.rights_reserved', 'Tous droits réservés.')}
+          </div>
+          <LanguageSwitcher />
         </div>
         <div style={{ opacity: 0.85 }}>
           {t('footer.delivery_notice', 'Livraison avec camion hayon et chariot tout-terrain.')}

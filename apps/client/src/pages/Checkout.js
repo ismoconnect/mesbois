@@ -1496,18 +1496,18 @@ const Checkout = () => {
   const handleForgotPassword = async () => {
     const emailToReset = (loginFields.email || '').trim();
     if (!emailToReset || !emailToReset.includes('@')) {
-      toast.error('Veuillez renseigner une adresse email valide ci-dessus pour réinitialiser votre mot de passe.');
+      toast.error(t('checkout.forgot_password_invalid_email', 'Veuillez renseigner une adresse email valide ci-dessus pour réinitialiser votre mot de passe.'));
       return;
     }
     try {
       const res = await resetPassword(emailToReset);
       if (res.success) {
-        toast.success(`Un email de réinitialisation a été envoyé à ${emailToReset}. Vérifiez vos courriers indésirables.`);
+        toast.success(t('checkout.forgot_password_success', 'Un email de réinitialisation a été envoyé. Vérifiez vos courriers indésirables.'));
       } else {
-        toast.error(res.error || 'Erreur lors de l\'envoi du lien de réinitialisation');
+        toast.error(res.error || t('checkout.forgot_password_error', 'Erreur lors de l\'envoi du lien de réinitialisation'));
       }
     } catch {
-      toast.error('Impossible d\'envoyer l\'email de réinitialisation.');
+      toast.error(t('checkout.forgot_password_failed', 'Impossible d\'envoyer l\'email de réinitialisation.'));
     }
   };
 
@@ -1744,7 +1744,7 @@ const Checkout = () => {
             <form onSubmit={handleQuickLogin}>
               <LoginInputGroup>
                 <div className="label-row">
-                  <label htmlFor="login-email">Adresse email</label>
+                  <label htmlFor="login-email">{t('checkout.email', 'Adresse email')}</label>
                 </div>
                 <div className="input-with-icon">
                   <span className="field-icon">
@@ -1840,8 +1840,8 @@ const Checkout = () => {
   const renderOrderSummaryContent = () => (
     <SummaryCard>
       <SummaryTitle>
-        <span>Récapitulatif de la commande</span>
-        <span style={{ fontSize: 13, fontWeight: 600, color: '#4a6150' }}>{totalItemsCount} article{totalItemsCount > 1 ? 's' : ''}</span>
+        <span>{t('checkout.summary_title', 'Récapitulatif de la commande')}</span>
+        <span style={{ fontSize: 13, fontWeight: 600, color: '#4a6150' }}>{totalItemsCount} {totalItemsCount > 1 ? t('checkout.items', 'articles') : t('checkout.item', 'article')}</span>
       </SummaryTitle>
 
       {/* Liste des articles */}
@@ -1892,15 +1892,15 @@ const Checkout = () => {
 
       {/* Lignes de décompte */}
       <LineRow>
-        <span>Sous-total articles</span>
+        <span>{t('checkout.subtotal_items', 'Sous-total articles')}</span>
         <span>{subtotal.toFixed(2)} €</span>
       </LineRow>
 
       <LineRow>
-        <span>Livraison tout-terrain sous abri</span>
+        <span>{t('checkout.delivery_offroad', 'Livraison tout-terrain sous abri')}</span>
         <span>
           {shipping === 0 ? (
-            <strong style={{ color: '#27ae60' }}>Offerte</strong>
+            <strong style={{ color: '#27ae60' }}>{t('checkout.free', 'Offerte')}</strong>
           ) : (
             `${shipping.toFixed(2)} €`
           )}
@@ -1909,13 +1909,13 @@ const Checkout = () => {
 
       {discount > 0 && (
         <LineRow className="discount">
-          <span>Remise coupon</span>
+          <span>{t('checkout.discount', 'Remise coupon')}</span>
           <span>-{discount.toFixed(2)} €</span>
         </LineRow>
       )}
 
       <LineRow className="total">
-        <span>Total TTC</span>
+        <span>{t('checkout.total_tax', 'Total TTC')}</span>
         <span>{total.toFixed(2)} €</span>
       </LineRow>
 
@@ -1928,7 +1928,7 @@ const Checkout = () => {
           required
         />
         <span>
-          J'accepte les <Link to="/terms" target="_blank">Conditions Générales de Vente</Link> et la <Link to="/privacy" target="_blank">Politique de Confidentialité</Link>. <span style={{ color: '#dc2626' }}>*</span>
+          {t('checkout.accept', 'J\'accepte les ')}<Link to="/terms" target="_blank">{t('checkout.terms', 'Conditions Générales de Vente')}</Link>{t('checkout.and', ' et la ')}<Link to="/privacy" target="_blank">{t('checkout.privacy', 'Politique de Confidentialité')}</Link>. <span style={{ color: '#dc2626' }}>*</span>
         </span>
       </TermsWrapper>
 
@@ -1942,7 +1942,7 @@ const Checkout = () => {
           <>Validation en cours...</>
         ) : (
           <>
-            <span>Confirmer la commande ({total.toFixed(2)}&nbsp;€)</span>
+            <span>{t('checkout.confirm_order', 'Confirmer la commande (')}{total.toFixed(2)}&nbsp;€)</span>
             <FiArrowRight size={15} />
           </>
         )}
@@ -1958,15 +1958,15 @@ const Checkout = () => {
       <TrustList>
         <TrustItem>
           <FiTruck size={15} />
-          <span>Livraison directe sous abri par camion avec chariot</span>
+          <span>{t('checkout.delivery_desc', 'Livraison directe sous abri par camion avec chariot')}</span>
         </TrustItem>
         <TrustItem>
           <FiShield size={15} />
-          <span>Virement bancaire sécurisé sans transmission de données bancaires</span>
+          <span>{t('checkout.bank_secure', 'Virement bancaire sécurisé sans transmission de données bancaires')}</span>
         </TrustItem>
         <TrustItem>
           <FiCheckCircle size={15} />
-          <span>Bois 100% fendu prêt à l'emploi & granulés certifiés DINplus</span>
+          <span>{t("checkout.wood_certified", "Bois 100% fendu prêt à l'emploi & granulés certifiés DINplus")}</span>
         </TrustItem>
       </TrustList>
     </SummaryCard>
@@ -1975,19 +1975,19 @@ const Checkout = () => {
   return (
     <PageContainer>
       <PageHeader>
-        <Title>Finaliser votre commande</Title>
+        <Title>{t('checkout.title_finalize', 'Finaliser votre commande')}</Title>
         <Subtitle>
           {!user ? (
             <>
-              <span>Achat rapide et direct en tant qu’invité.</span>
+              <span>{t('checkout.guest_buy', 'Achat rapide et direct en tant qu’invité.')}</span>
               <span>•</span>
               <span>
-                Déjà client ?{' '}
+                {t('checkout.already_client', 'Déjà client ?')}{' '}
                 <LoginPromptButton 
                   type="button" 
                   onClick={() => setIsLoginOpen(true)}
                 >
-                  Se connecter
+                  {t('checkout.login', 'Se connecter')}
                 </LoginPromptButton>
               </span>
             </>
@@ -2035,7 +2035,7 @@ const Checkout = () => {
               <CardHeader>
                 <div className="left-head">
                   <div className="step-badge">1</div>
-                  <h2>Coordonnées & Adresse de livraison</h2>
+                  <h2>{t('checkout.step1_title', 'Coordonnées & Adresse de livraison')}</h2>
                 </div>
               </CardHeader>
 
@@ -2101,24 +2101,24 @@ const Checkout = () => {
                   {/* Prénom & Nom */}
                   <FormGroup $cols="1fr 1fr" $mobileCols="1fr 1fr">
                     <InputWrapper>
-                      <label><span className="req">*</span> Prénom</label>
+                      <label><span className="req">*</span> {t('checkout.firstname', 'Prénom')}</label>
                       <StyledInput
                         type="text"
                     name="firstName"
                     autoComplete="given-name"
-                    placeholder="Jean"
+                    placeholder={t('checkout.ph_firstname', 'Jean')}
                     value={formData.firstName}
                     onChange={handleChange}
                     required
                   />
                 </InputWrapper>
                 <InputWrapper>
-                  <label><span className="req">*</span> Nom</label>
+                  <label><span className="req">*</span> {t('checkout.lastname', 'Nom')}</label>
                   <StyledInput
                     type="text"
                     name="lastName"
                     autoComplete="family-name"
-                    placeholder="Dupont"
+                    placeholder={t('checkout.ph_lastname', 'Dupont')}
                     value={formData.lastName}
                     onChange={handleChange}
                     required
@@ -2129,24 +2129,24 @@ const Checkout = () => {
               {/* Email & Téléphone */}
               <FormGroup $cols="1.2fr 1fr" $mobileCols="1fr">
                 <InputWrapper>
-                  <label><span className="req">*</span> Adresse email</label>
+                  <label><span className="req">*</span> {t('checkout.email', 'Adresse email')}</label>
                   <StyledInput
                     type="email"
                     name="email"
                     autoComplete="email"
-                    placeholder="jean.dupont@email.com"
+                    placeholder={t('checkout.ph_email', 'jean.dupont@email.com')}
                     value={formData.email}
                     onChange={handleChange}
                     required
                   />
                 </InputWrapper>
                 <InputWrapper>
-                  <label><span className="req">*</span> Téléphone</label>
+                  <label><span className="req">*</span> {t('checkout.phone', 'Téléphone')}</label>
                   <StyledInput
                     type="tel"
                     name="phone"
                     autoComplete="tel"
-                    placeholder="06 12 34 56 78"
+                    placeholder={t('checkout.ph_phone', '06 12 34 56 78')}
                     value={formData.phone}
                     onChange={handleChange}
                     required
@@ -2157,12 +2157,12 @@ const Checkout = () => {
               {/* Adresse */}
               <FormGroup $cols="1fr">
                 <InputWrapper>
-                  <label><span className="req">*</span> Adresse de livraison complète</label>
+                  <label><span className="req">*</span> {t('checkout.address', 'Adresse de livraison complète')}</label>
                   <StyledInput
                     type="text"
                     name="address"
                     autoComplete="street-address"
-                    placeholder="Numéro et nom de rue"
+                    placeholder={t("checkout.street_ph", "Numéro et nom de rue")}
                     value={formData.address}
                     onChange={handleChange}
                     required
@@ -2173,11 +2173,11 @@ const Checkout = () => {
               {/* Complément d'adresse */}
               <FormGroup $cols="1fr">
                 <InputWrapper>
-                  <label>Complément d'adresse <span className="opt">(Bâtiment, étage, etc.)</span></label>
+                  <label>{t('checkout.address_comp', 'Complément d\'adresse')} <span className="opt">{t('checkout.address_comp_sub', '(Bâtiment, étage, etc.)')}</span></label>
                   <StyledInput
                     type="text"
                     name="address2"
-                    placeholder="Appartement, lieu-dit, digicode..."
+                    placeholder={t('checkout.address_comp_ph', 'Appartement, lieu-dit, digicode...')}
                     value={formData.address2}
                     onChange={handleChange}
                   />
@@ -2187,43 +2187,43 @@ const Checkout = () => {
               {/* Code Postal, Ville & Pays */}
               <FormGroup $cols="1fr 1.5fr 1fr" $mobileCols="1fr 1fr">
                 <InputWrapper>
-                  <label><span className="req">*</span> Code postal</label>
+                  <label><span className="req">*</span> {t('checkout.postal_code', 'Code postal')}</label>
                   <StyledInput
                     type="text"
                     name="postalCode"
                     autoComplete="postal-code"
-                    placeholder="67000"
+                    placeholder={t('checkout.ph_zip', '67000')}
                     value={formData.postalCode}
                     onChange={handleChange}
                     required
                   />
                 </InputWrapper>
                 <InputWrapper>
-                  <label><span className="req">*</span> Ville</label>
+                  <label><span className="req">*</span> {t('checkout.city', 'Ville')}</label>
                   <StyledInput
                     type="text"
                     name="city"
                     autoComplete="address-level2"
-                    placeholder="Strasbourg"
+                    placeholder={t('checkout.ph_city', 'Strasbourg')}
                     value={formData.city}
                     onChange={handleChange}
                     required
                   />
                 </InputWrapper>
                 <CountryInputWrapper>
-                  <label><span className="req">*</span> Pays</label>
+                  <label><span className="req">*</span> {t('checkout.country', 'Pays')}</label>
                   <StyledSelect
                     name="country"
                     value={formData.country}
                     onChange={handleChange}
                   >
-                    <option value="France">France</option>
-                    <option value="Allemagne">Allemagne</option>
-                    <option value="Belgique">Belgique</option>
-                    <option value="Luxembourg">Luxembourg</option>
+                    <option value="France">{t('checkout.france', 'France')}</option>
+                    <option value="Allemagne">{t('checkout.germany', 'Allemagne')}</option>
+                    <option value="Belgique">{t('checkout.belgium', 'Belgique')}</option>
+                    <option value="Luxembourg">{t('checkout.luxembourg', 'Luxembourg')}</option>
                     <option value="Pays-Bas">Pays-Bas</option>
-                    <option value="Autriche">Autriche</option>
-                    <option value="Suisse">Suisse</option>
+                    <option value="Autriche">{t('checkout.austria', 'Autriche')}</option>
+                    <option value="Suisse">{t('checkout.switzerland', 'Suisse')}</option>
                   </StyledSelect>
                 </CountryInputWrapper>
               </FormGroup>
@@ -2245,7 +2245,7 @@ const Checkout = () => {
                       textDecoration: 'underline'
                     }}
                   >
-                    + Ajouter une instruction pour le chauffeur (optionnel)
+                    + {t('checkout.driver_instruction', 'Ajouter une instruction pour le chauffeur (optionnel)')}
                   </button>
                 ) : (
                   <InputWrapper>
@@ -2284,8 +2284,8 @@ const Checkout = () => {
               {!user && (
                 <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid #edf2ee' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: '#3b5240' }}>Compte client</span>
-                    <span style={{ fontSize: 11, color: '#88998c', fontWeight: 500 }}>(Optionnel)</span>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: '#3b5240' }}>{t('checkout.client_account', 'Compte client')}</span>
+                    <span style={{ fontSize: 11, color: '#88998c', fontWeight: 500 }}>{t('checkout.optional', '(Optionnel)')}</span>
                   </div>
                   <label style={{ 
                     display: 'flex', 
@@ -2304,7 +2304,7 @@ const Checkout = () => {
                       onChange={(e) => setCreateAccount(e.target.checked)}
                       style={{ accentColor: '#2c5530', width: 15, height: 15, flexShrink: 0, margin: 0 }}
                     />
-                    <span>Créer un compte pour suivre mes commandes</span>
+                    <span>{t("checkout.create_account", "Créer un compte pour suivre mes commandes")}</span>
                   </label>
 
                   {createAccount && (
@@ -2372,7 +2372,7 @@ const Checkout = () => {
               <CardHeader>
                 <div className="left-head">
                   <div className="step-badge">2</div>
-                  <h2>Mode de paiement</h2>
+                  <h2>{t("checkout.payment_mode", "Mode de paiement")}</h2>
                 </div>
               </CardHeader>
 
@@ -2382,32 +2382,32 @@ const Checkout = () => {
                     <span className="radio-check">
                       <FiCheck size={12} />
                     </span>
-                    <span>Virement bancaire (SEPA)</span>
+                    <span>{t("checkout.bank_sepa", "Virement bancaire (SEPA)")}</span>
                   </PaymentOptionTitle>
                   <SecurityBadge>
                     <FiShield size={12} />
-                    100% Sécurisé
+                    {t('checkout.secure_100', '100% Sécurisé')}
                   </SecurityBadge>
                 </PaymentBoxHeader>
 
                 <PaymentDetails>
                   <p>
-                    <strong>Simple et sans risque :</strong> Vous effectuerez le virement depuis votre application bancaire sans jamais transmettre vos identifiants bancaires sur Internet.
+                    {t('checkout.safe_desc', 'Simple et sans risque : Vous effectuerez le virement depuis votre application bancaire sans jamais transmettre vos identifiants bancaires sur Internet.')}
                   </p>
                   <p style={{ marginTop: 5 }}>
-                    Nos coordonnées officielles (<strong>IBAN, BIC et Titulaire</strong>) ainsi que votre <strong>numéro de commande</strong> s'afficheront sur la page suivante immédiatement après confirmation.
+                    <span dangerouslySetInnerHTML={{ __html: t('checkout.safe_desc2', 'Nos coordonnées officielles (<strong>IBAN, BIC et Titulaire</strong>) ainsi que votre <strong>numéro de commande</strong> s\'afficheront sur la page suivante immédiatement après confirmation.') }} />
                   </p>
                   <p style={{ marginTop: 5, color: '#166534', fontWeight: 600 }}>
-                    ✓ Vos articles sont immédiatement réservés pour votre livraison.
+                    ✓ {t('checkout.items_reserved', 'Vos articles sont immédiatement réservés pour votre livraison.')}
                   </p>
                 </PaymentDetails>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 10, color: '#4a6150', fontSize: 11.5, flexWrap: 'wrap' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <FiLock size={12} color="#2c5530" /> Chiffrement SSL 256-bit
+                    <FiLock size={12} color="#2c5530" /> {t('checkout.ssl', 'Chiffrement SSL 256-bit')}
                   </span>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <FiCheckCircle size={12} color="#27ae60" /> Aucun frais additionnel
+                    <FiCheckCircle size={12} color="#27ae60" /> {t('checkout.no_extra_fee', 'Aucun frais additionnel')}
                   </span>
                 </div>
               </PaymentBox>

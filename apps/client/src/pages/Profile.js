@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import {
@@ -450,6 +451,7 @@ const LogoutBtn = styled.button`
 `;
 
 const Profile = ({ defaultTab }) => {
+  const { t } = useTranslation();
   const { user, userData, setUserData } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -494,7 +496,7 @@ const Profile = ({ defaultTab }) => {
         address: userData.address || '',
         city: userData.city || '',
         postalCode: userData.postalCode || '',
-        country: userData.country || 'France',
+        country: userData.country || 'Frankreich',
         accessNotes: userData.accessNotes || ''
       });
 
@@ -522,10 +524,10 @@ const Profile = ({ defaultTab }) => {
       if (!res.success) throw new Error(res.error || 'Erreur');
 
       if (res.data) setUserData(res.data);
-      toast.success('Vos coordonnées ont été enregistrées avec succès !');
+      toast.success(t('profile.toast_data_saved', 'Vos données ont été enregistrées avec succès !'));
       setIsEditing(false);
     } catch {
-      toast.error('Erreur lors de la sauvegarde du profil.');
+      toast.error(t('profile.toast_data_error', "Erreur lors de l'enregistrement du profil."));
     } finally {
       setSavingDetails(false);
     }
@@ -543,9 +545,9 @@ const Profile = ({ defaultTab }) => {
       if (res.success && res.data) {
         setUserData(res.data);
       }
-      toast.success('Préférences enregistrées !');
+      toast.success(t('profile.toast_settings_saved', 'Paramètres enregistrés !'));
     } catch {
-      toast.error('Erreur lors de la mise à jour des préférences');
+      toast.error(t('profile.toast_settings_error', 'Erreur lors de la mise à jour des paramètres'));
     }
   };
 
@@ -554,17 +556,17 @@ const Profile = ({ defaultTab }) => {
     if (!user) return;
 
     if (!currentPassword || !newPassword || !confirmPassword) {
-      toast.error('Merci de remplir tous les champs de mot de passe.');
+      toast.error(t('profile.toast_password_fields_empty', 'Veuillez remplir tous les champs de mot de passe.'));
       return;
     }
 
     if (newPassword.length < 6) {
-      toast.error('Le nouveau mot de passe doit comporter au moins 6 caractères.');
+      toast.error(t('profile.toast_password_too_short', 'Le nouveau mot de passe doit comporter au moins 6 caractères.'));
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      toast.error('Les mots de passe ne correspondent pas.');
+      toast.error(t('profile.toast_password_mismatch', 'Les mots de passe ne correspondent pas.'));
       return;
     }
 
@@ -576,9 +578,9 @@ const Profile = ({ defaultTab }) => {
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
-      toast.success('Mot de passe modifié avec succès !');
+      toast.success(t('profile.toast_password_success', 'Mot de passe modifié avec succès !'));
     } catch {
-      toast.error('Ancien mot de passe incorrect ou erreur.');
+      toast.error(t('profile.toast_password_wrong', "Ancien mot de passe incorrect ou une erreur est survenue."));
     } finally {
       setPasswordLoading(false);
     }
@@ -587,10 +589,10 @@ const Profile = ({ defaultTab }) => {
   const handleLogout = async () => {
     try {
       await signOutUser();
-      toast.success('Vous avez été déconnecté.');
+      toast.success(t('profile.toast_logout_success', 'Vous avez été déconnecté.'));
       navigate('/');
     } catch {
-      toast.error('Erreur de déconnexion.');
+      toast.error(t('profile.toast_logout_error', 'Erreur lors de la déconnexion.'));
     }
   };
 
@@ -611,14 +613,14 @@ const Profile = ({ defaultTab }) => {
           <HeroLeft>
             <AvatarCircle>{userInitials}</AvatarCircle>
             <HeroDetails>
-              <h1>{userData?.displayName || 'Mon Profil Client'}</h1>
+              <h1>{userData?.displayName || t('profile.title', 'Mon profil client')}</h1>
               <p>
                 <FiMail size={13} /> {user.email}
               </p>
             </HeroDetails>
           </HeroLeft>
           <ClientBadge>
-            <FaShieldAlt size={12} /> Compte Client Vérifié
+            <FaShieldAlt size={12} /> {t('profile.verified_account', 'Compte client vérifié')}
           </ClientBadge>
         </ProfileHero>
 
@@ -628,13 +630,13 @@ const Profile = ({ defaultTab }) => {
             $active={activeTab === 'details'}
             onClick={() => setActiveTab('details')}
           >
-            <FiUser size={16} /> Coordonnées & Livraison
+            <FiUser size={16} /> {t('profile.tab_contact', 'Contact & Livraison')}
           </TabButton>
           <TabButton
             $active={activeTab === 'security'}
             onClick={() => setActiveTab('security')}
           >
-            <FiLock size={16} /> Sécurité & Préférences
+            <FiLock size={16} /> {t('profile.tab_security', 'Sécurité & Paramètres')}
           </TabButton>
         </TabsNav>
 
@@ -645,11 +647,11 @@ const Profile = ({ defaultTab }) => {
               <CardTitle>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <FiUser color="#2c5530" />
-                  <span>Informations de contact & facturation</span>
+                  <span>{t('profile.contact_billing_info', 'Informations de contact & facturation')}</span>
                 </div>
                 {!isEditing && (
                   <EditToggleBtn onClick={() => setIsEditing(true)}>
-                    <FiEdit3 size={13} /> Modifier
+                    <FiEdit3 size={13} /> {t('profile.edit_btn', 'Modifier')}
                   </EditToggleBtn>
                 )}
               </CardTitle>
@@ -658,26 +660,26 @@ const Profile = ({ defaultTab }) => {
                 <>
                   <Grid>
                     <InfoBox>
-                      <span className="lbl"><FiUser size={12} /> Nom & Prénom</span>
-                      <span className="val">{userData?.displayName || 'Non renseigné'}</span>
+                      <span className="lbl"><FiUser size={12} /> {t('profile.first_last_name', 'Prénom & Nom')}</span>
+                      <span className="val">{userData?.displayName || t('profile.not_specified', 'Non spécifié')}</span>
                     </InfoBox>
                     <InfoBox>
-                      <span className="lbl"><FiPhone size={12} /> Téléphone de livraison</span>
-                      <span className="val">{userData?.phone || 'Non renseigné'}</span>
-                      <span className="sub">Utilisé par le transporteur pour le créneau</span>
+                      <span className="lbl"><FiPhone size={12} /> {t('profile.delivery_phone', 'Téléphone de livraison')}</span>
+                      <span className="val">{userData?.phone || t('profile.not_specified', 'Nicht angegeben')}</span>
+                      <span className="sub">{t('profile.phone_sub', 'Utilisé par le transporteur pour le créneau horaire')}</span>
                     </InfoBox>
                     <InfoBox className="full">
-                      <span className="lbl"><FiMapPin size={12} /> Adresse de dépose</span>
+                      <span className="lbl"><FiMapPin size={12} /> {t('profile.delivery_address', 'Adresse de livraison')}</span>
                       <span className="val">
                         {userData?.address
-                          ? `${userData.address}, ${userData.postalCode || ''} ${userData.city || ''} (${userData.country || 'France'})`
-                          : 'Aucune adresse enregistrée'
+                          ? `${userData.address}, ${userData.postalCode || ''} ${userData.city || ''} (${userData.country || 'Frankreich'})`
+                          : t('profile.no_address', 'Aucune adresse renseignée')
                         }
                       </span>
                     </InfoBox>
                     {userData?.accessNotes && (
                       <InfoBox className="full" style={{ background: '#f0fdf4', borderColor: '#bbf7d0' }}>
-                        <span className="lbl" style={{ color: '#166534' }}><FiTruck size={12} /> Accès chariot tout-terrain</span>
+                        <span className="lbl" style={{ color: '#166534' }}><FiTruck size={12} /> {t('profile.forklift_access', 'Accès pour chariot embarqué')}</span>
                         <span className="val" style={{ color: '#166534' }}>{userData.accessNotes}</span>
                       </InfoBox>
                     )}
@@ -686,7 +688,7 @@ const Profile = ({ defaultTab }) => {
                   <ForkliftBanner>
                     <FiTruck size={20} style={{ flexShrink: 0, marginTop: 2 }} />
                     <div>
-                      <strong>Livraison par chariot embarqué tout-terrain :</strong> nos palettes de bois sont déposées directement au plus près de votre stockage (abri, garage, cour), sous réserve d'un passage suffisant (largeur minimale d'accès 2,20m).
+                      <strong>{t('profile.forklift_delivery', 'Livraison avec chariot embarqué :')}</strong> {t('profile.forklift_desc', "Nos palettes de bois sont déposées au plus près de votre lieu de stockage (cabanon, garage, cour), sous réserve d'un espace suffisant (largeur de passage minimum 2,20m).")}
                     </div>
                   </ForkliftBanner>
                 </>
@@ -694,14 +696,14 @@ const Profile = ({ defaultTab }) => {
                 <form onSubmit={handleSaveProfile}>
                   <Grid>
                     <FormGroup>
-                      <label>Nom complet / Société</label>
+                      <label>{t('profile.full_name_company', 'Nom complet / Société')}</label>
                       <InputWrapper>
                         <FiUser className="lead-icon" size={16} />
                         <Input
                           $hasIcon
                           type="text"
                           name="displayName"
-                          placeholder="Ex: Jean Dupont"
+                          placeholder={t('profile.placeholder_name', 'Ex. : Jean Dupont')}
                           value={formData.displayName}
                           onChange={handleFieldChange}
                           required
@@ -710,14 +712,14 @@ const Profile = ({ defaultTab }) => {
                     </FormGroup>
 
                     <FormGroup>
-                      <label>Numéro de téléphone</label>
+                      <label>{t('profile.phone_number', 'Numéro de téléphone')}</label>
                       <InputWrapper>
                         <FiPhone className="lead-icon" size={16} />
                         <Input
                           $hasIcon
                           type="tel"
                           name="phone"
-                          placeholder="Ex: 06 12 34 56 78"
+                          placeholder={t('profile.placeholder_phone', 'Ex. : 06 12 34 56 78')}
                           value={formData.phone}
                           onChange={handleFieldChange}
                           required
@@ -726,14 +728,14 @@ const Profile = ({ defaultTab }) => {
                     </FormGroup>
 
                     <FormGroup style={{ gridColumn: '1 / -1' }}>
-                      <label>Adresse (Numéro et nom de rue)</label>
+                      <label>{t('profile.address_street', 'Adresse (numéro et rue)')}</label>
                       <InputWrapper>
                         <FiMapPin className="lead-icon" size={16} />
                         <Input
                           $hasIcon
                           type="text"
                           name="address"
-                          placeholder="Ex: 15 rue des Chênes"
+                          placeholder={t('profile.placeholder_address', 'Ex. : 15 rue des Chênes')}
                           value={formData.address}
                           onChange={handleFieldChange}
                           required
@@ -742,11 +744,11 @@ const Profile = ({ defaultTab }) => {
                     </FormGroup>
 
                     <FormGroup>
-                      <label>Code Postal</label>
+                      <label>{t('profile.postal_code', 'Code postal')}</label>
                       <Input
                         type="text"
                         name="postalCode"
-                        placeholder="Ex: 67000"
+                        placeholder={t('profile.placeholder_postal', 'Ex. : 75001')}
                         value={formData.postalCode}
                         onChange={handleFieldChange}
                         required
@@ -754,11 +756,11 @@ const Profile = ({ defaultTab }) => {
                     </FormGroup>
 
                     <FormGroup>
-                      <label>Ville</label>
+                      <label>{t('profile.city', 'Ville')}</label>
                       <Input
                         type="text"
                         name="city"
-                        placeholder="Ex: Strasbourg"
+                        placeholder={t('profile.placeholder_city', 'Ex. : Paris')}
                         value={formData.city}
                         onChange={handleFieldChange}
                         required
@@ -766,25 +768,25 @@ const Profile = ({ defaultTab }) => {
                     </FormGroup>
 
                     <FormGroup>
-                      <label>Pays</label>
+                      <label>{t('profile.country', 'Pays')}</label>
                       <Select
                         name="country"
                         value={formData.country}
                         onChange={handleFieldChange}
                       >
-                        <option value="France">France</option>
-                        <option value="Belgique">Belgique</option>
-                        <option value="Luxembourg">Luxembourg</option>
-                        <option value="Suisse">Suisse</option>
-                        <option value="Allemagne">Allemagne</option>
+                        <option value="Frankreich">{t('profile.country_france', 'Frankreich')}</option>
+                        <option value="Belgien">{t('profile.country_belgium', 'Belgique')}</option>
+                        <option value="Luxemburg">{t('profile.country_luxembourg', 'Luxembourg')}</option>
+                        <option value="Schweiz">{t('profile.country_switzerland', 'Suisse')}</option>
+                        <option value="Deutschland">{t('profile.country_germany', 'Allemagne')}</option>
                       </Select>
                     </FormGroup>
 
                     <FormGroup style={{ gridColumn: '1 / -1' }}>
-                      <label>Précisions d'accès pour le chariot embarqué (facultatif)</label>
+                      <label>{t('profile.access_details', "Détails d'accès pour le chariot embarqué (optionnel)")}</label>
                       <Textarea
                         name="accessNotes"
-                        placeholder="Ex: Allée gravillonnée, portail de 3m, stockage devant le garage à gauche..."
+                        placeholder={t('profile.placeholder_access', 'Ex. : Chemin en gravier, portail 3m, stockage devant le garage à gauche...')}
                         value={formData.accessNotes}
                         onChange={handleFieldChange}
                       />
@@ -793,11 +795,11 @@ const Profile = ({ defaultTab }) => {
 
                   <ButtonRow>
                     <SecondaryBtn type="button" onClick={() => setIsEditing(false)}>
-                      <FiX size={15} /> Annuler
+                      <FiX size={15} /> {t('profile.cancel', 'Annuler')}
                     </SecondaryBtn>
                     <PrimaryBtn type="submit" disabled={savingDetails}>
                       <FiSave size={15} />
-                      {savingDetails ? 'Enregistrement…' : 'Enregistrer mes coordonnées'}
+                      {savingDetails ? t('profile.saving', 'Enregistrement...') : t('profile.save_data', 'Enregistrer mes données')}
                     </PrimaryBtn>
                   </ButtonRow>
                 </form>
@@ -814,17 +816,17 @@ const Profile = ({ defaultTab }) => {
               <CardTitle>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <FiBell color="#2c5530" />
-                  <span>Préférences de communication</span>
+                  <span>{t('profile.communication_settings', 'Préférences de communication')}</span>
                 </div>
               </CardTitle>
 
               <ToggleRow>
                 <div>
                   <div style={{ fontWeight: 700, fontSize: '13.5px', color: '#1f2937' }}>
-                    Notifications de commande & livraison
+                    {t('profile.order_delivery_notifs', 'Notifications de commande & livraison')}
                   </div>
                   <div style={{ fontSize: '12.5px', color: '#64748b', marginTop: '2px' }}>
-                    Recevez par email la confirmation de paiement et les alertes d'acheminement du camion.
+                    {t('profile.order_delivery_desc', 'Recevez par e-mail les confirmations de paiement et les notifications de livraison du camion.')}
                   </div>
                 </div>
                 <Toggle
@@ -841,10 +843,10 @@ const Profile = ({ defaultTab }) => {
               <ToggleRow>
                 <div>
                   <div style={{ fontWeight: 700, fontSize: '13.5px', color: '#1f2937' }}>
-                    Offres spéciales & conseils de chauffage
+                    {t('profile.promos_tips', 'Offres promotionnelles & conseils de chauffage')}
                   </div>
                   <div style={{ fontSize: '12.5px', color: '#64748b', marginTop: '2px' }}>
-                    Soyez informé des tarifs de saison morte et des conseils de stockage du bois.
+                    {t('profile.promos_tips_desc', 'Soyez informé des prix hors saison et des conseils de stockage du bois.')}
                   </div>
                 </div>
                 <Toggle
@@ -864,24 +866,24 @@ const Profile = ({ defaultTab }) => {
               <CardTitle>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <FiLock color="#2c5530" />
-                  <span>Sécurité du compte & mot de passe</span>
+                  <span>{t('profile.account_security', 'Sécurité du compte & mot de passe')}</span>
                 </div>
               </CardTitle>
 
               <form onSubmit={handleChangePassword} style={{ maxWidth: '440px' }}>
                 <FormGroup>
-                  <label>Mot de passe actuel</label>
+                  <label>{t('profile.current_password', 'Mot de passe actuel')}</label>
                   <InputWrapper>
                     <Input
                       type={showCurrent ? 'text' : 'password'}
-                      placeholder="Votre mot de passe actuel"
+                      placeholder={t('profile.placeholder_current_password', 'Votre mot de passe actuel')}
                       value={currentPassword}
                       onChange={(e) => setCurrentPassword(e.target.value)}
                     />
                     <EyeBtn
                       type="button"
                       onClick={() => setShowCurrent(!showCurrent)}
-                      aria-label="Afficher/masquer"
+                      aria-label={t('profile.show_hide', 'Afficher/masquer')}
                     >
                       {showCurrent ? <FiEyeOff size={16} /> : <FiEye size={16} />}
                     </EyeBtn>
@@ -889,18 +891,18 @@ const Profile = ({ defaultTab }) => {
                 </FormGroup>
 
                 <FormGroup>
-                  <label>Nouveau mot de passe</label>
+                  <label>{t('profile.new_password', 'Nouveau mot de passe')}</label>
                   <InputWrapper>
                     <Input
                       type={showNew ? 'text' : 'password'}
-                      placeholder="Minimum 6 caractères"
+                      placeholder={t('profile.placeholder_new_password', 'Au moins 6 caractères')}
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                     />
                     <EyeBtn
                       type="button"
                       onClick={() => setShowNew(!showNew)}
-                      aria-label="Afficher/masquer"
+                      aria-label="Anzeigen/verbergen"
                     >
                       {showNew ? <FiEyeOff size={16} /> : <FiEye size={16} />}
                     </EyeBtn>
@@ -908,18 +910,18 @@ const Profile = ({ defaultTab }) => {
                 </FormGroup>
 
                 <FormGroup>
-                  <label>Confirmer le nouveau mot de passe</label>
+                  <label>{t('profile.confirm_new_password', 'Confirmer le nouveau mot de passe')}</label>
                   <InputWrapper>
                     <Input
                       type={showConfirm ? 'text' : 'password'}
-                      placeholder="Retapez le nouveau mot de passe"
+                      placeholder={t('profile.placeholder_confirm_new_password', 'Saisir à nouveau le nouveau mot de passe')}
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                     />
                     <EyeBtn
                       type="button"
                       onClick={() => setShowConfirm(!showConfirm)}
-                      aria-label="Afficher/masquer"
+                      aria-label="Anzeigen/verbergen"
                     >
                       {showConfirm ? <FiEyeOff size={16} /> : <FiEye size={16} />}
                     </EyeBtn>
@@ -929,17 +931,17 @@ const Profile = ({ defaultTab }) => {
                 <ButtonRow style={{ justifyContent: 'flex-start' }}>
                   <PrimaryBtn type="submit" disabled={passwordLoading}>
                     <FiLock size={15} />
-                    {passwordLoading ? 'Mise à jour…' : 'Mettre à jour le mot de passe'}
+                    {passwordLoading ? t('profile.updating', 'Mise à jour...') : t('profile.update_password', 'Mettre à jour le mot de passe')}
                   </PrimaryBtn>
                 </ButtonRow>
               </form>
 
               <LogoutBox>
                 <div style={{ fontSize: '13px', color: '#64748b' }}>
-                  Session active sur cet appareil
+                  {t('profile.active_session', 'Session active sur cet appareil')}
                 </div>
                 <LogoutBtn onClick={handleLogout}>
-                  <FiLogOut size={15} /> Se déconnecter de Brennholzkaufen
+                  <FiLogOut size={15} /> {t('profile.logout', 'Se déconnecter')}
                 </LogoutBtn>
               </LogoutBox>
             </Card>

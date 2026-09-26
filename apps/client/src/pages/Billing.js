@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useTranslation } from 'react-i18next';
 import DashboardLayout from '../components/Layout/DashboardLayout';
 import { getUserOrders } from '../firebase/orders';
 import { getRIB } from '../firebase/rib';
@@ -422,6 +423,7 @@ const EmptyState = styled.div`
 
 const Billing = () => {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [orders, setOrders] = useState([]);
   const [rib, setRib] = useState({ holder: '', iban: '', bic: '', bank: '', enabled: true, whatsappNumber: '' });
@@ -430,9 +432,9 @@ const Billing = () => {
   const copy = async (text, label) => {
     try {
       await navigator.clipboard.writeText(text || '');
-      toast.success(`${label} copié !`, { duration: 1800, position: 'bottom-center' });
+      toast.success(`${label} ${t('billing.copySuccess', 'copié !')}`, { duration: 1800, position: 'bottom-center' });
     } catch {
-      toast.error('Erreur de copie');
+      toast.error(t('billing.copyError', 'Erreur de copie'));
     }
   };
 
@@ -496,13 +498,13 @@ const Billing = () => {
         {/* Header Hero */}
         <HeaderCard>
           <HeaderBadges>
-            <TrustBadge><FaShieldAlt size={12} /> Virement bancaire sécurisé</TrustBadge>
-            <TrustBadge><FaTruck size={12} /> Livraison chariot tout-terrain</TrustBadge>
-            <TrustBadge><FaWhatsapp size={12} /> Support WhatsApp 7j/7</TrustBadge>
+            <TrustBadge><FaShieldAlt size={12} /> {t('billing.badges.secureTransfer', 'Transfert bancaire sécurisé')}</TrustBadge>
+            <TrustBadge><FaTruck size={12} /> {t('billing.badges.forklift', 'Livraison avec chariot embarqué')}</TrustBadge>
+            <TrustBadge><FaWhatsapp size={12} /> {t('billing.badges.whatsappSupport', 'Support WhatsApp 7j/7')}</TrustBadge>
           </HeaderBadges>
-          <Title>Paiement & Facturation</Title>
+          <Title>{t('billing.title', 'Facturation & RIB')}</Title>
           <Subtitle>
-            Retrouvez les coordonnées officielles pour régler vos commandes de bois de chauffage et déclencher la livraison.
+            {t('billing.subtitle', 'Voici les coordonnées officielles pour payer vos commandes de bois de chauffage et déclencher la livraison.')}
           </Subtitle>
         </HeaderCard>
 
@@ -510,20 +512,20 @@ const Billing = () => {
         <NoticeCard>
           <FaCheckCircle size={20} color="#16a34a" style={{ flexShrink: 0, marginTop: 2 }} />
           <NoticeContent>
-            <strong>Validation prioritaire de votre commande :</strong> dès exécution de votre virement bancaire avec la référence indiquée, votre stock de stères ou palettes est réservé et le transporteur vous contacte pour le rendez-vous.
+            <strong>{t('billing.notice.title', 'Confirmation prioritaire de votre commande:')}</strong> {t('billing.notice.text', 'Dès que vous effectuez votre virement bancaire avec la référence indiquée, votre bois est réservé et le transporteur vous contacte pour un rendez-vous de livraison.')}
           </NoticeContent>
         </NoticeCard>
 
         {/* Commandes en attente de paiement */}
         <SectionTitle>
           <FiClock size={18} color="#2c5530" />
-          Commandes en attente de règlement
+          {t('billing.pendingOrders', 'Commandes en attente')}
         </SectionTitle>
 
         {loading && (
           <Card>
             <div style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>
-              Chargement de vos informations de paiement…
+              {t('billing.loading', 'Chargement des informations de paiement...')}
             </div>
           </Card>
         )}
@@ -532,10 +534,10 @@ const Billing = () => {
           <Card>
             <EmptyState>
               <div className="icon">✓</div>
-              <h3>Toutes vos commandes sont à jour !</h3>
-              <p>Vous n'avez aucun paiement en attente. Votre bois est soit validé, soit déjà en cours de livraison.</p>
+              <h3>{t('billing.empty.title', 'Toutes vos commandes sont à jour !')}</h3>
+              <p>{t('billing.empty.text', 'Vous n\'avez aucun paiement en attente. Votre bois est soit confirmé, soit déjà en cours de livraison.')}</p>
               <PrimaryLink to="/dashboard/boutique">
-                Commander du bois ou des granulés →
+                {t('billing.empty.button', 'Commander du bois ou des granulés →')}
               </PrimaryLink>
             </EmptyState>
           </Card>
@@ -549,15 +551,15 @@ const Billing = () => {
                 <FaShieldAlt size={28} />
               </div>
               <h3 style={{ margin: '0 0 10px 0', fontSize: '18px', color: '#166534', fontWeight: 800 }}>
-                Obtenir les coordonnées bancaires
+                {t('billing.whatsappCard.title', 'Obtenir les coordonnées bancaires')}
               </h3>
               <p style={{ margin: '0 0 20px 0', fontSize: '14px', color: '#334155', lineHeight: 1.5, maxWidth: '500px', marginLeft: 'auto', marginRight: 'auto' }}>
-                Pour garantir la sécurité de votre transaction, notre RIB/IBAN officiel vous sera communiqué exclusivement via notre canal WhatsApp vérifié. Cliquez ci-dessous pour le demander.
+                {t('billing.whatsappCard.text', 'Pour des raisons de sécurité, nos coordonnées bancaires officielles vous seront communiquées uniquement via notre canal WhatsApp vérifié. Cliquez ci-dessous pour les demander.')}
               </p>
               {(() => {
                 const totalAmount = orders.reduce((sum, o) => sum + (o.total || 0), 0).toFixed(2);
                 const refs = orders.map(o => formatTransferRef(o.id)).join(', ');
-                const message = `Bonjour, je souhaite obtenir le RIB officiel pour régler ma/mes commande(s) en attente : ${refs} pour un montant total de ${totalAmount} €.\nMerci !`;
+                const message = `${t('billing.whatsappCard.message.part1', 'Bonjour, je souhaite obtenir les coordonnées bancaires pour payer ma/mes commande(s) en attente :')} ${refs} ${t('billing.whatsappCard.message.part2', 'pour un montant total de')} ${totalAmount} €.\n${t('billing.whatsappCard.message.part3', 'Merci !')}`;
                 
                 return (
                   <WhatsAppBtn
@@ -568,7 +570,7 @@ const Billing = () => {
                     style={{ width: '100%', justifyContent: 'center', maxWidth: '350px' }}
                   >
                     <FaWhatsapp size={20} />
-                    <span>Demander le RIB sur WhatsApp</span>
+                    <span>{t('billing.whatsappCard.button', 'Demander les coordonnées via WhatsApp')}</span>
                   </WhatsAppBtn>
                 );
               })()}
@@ -585,16 +587,16 @@ const Billing = () => {
                     <OrderHeader style={{ borderBottom: 'none', paddingBottom: 0, marginBottom: 0 }}>
                       <div>
                         <OrderRef>
-                          <span>Commande</span>
+                          <span>{t('billing.orderCard.order', 'Commande')}</span>
                           <span className="ref-badge">{ref}</span>
                         </OrderRef>
                         <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
-                          {order.items?.length || 1} article(s) • Passée le {order.createdAt?.seconds ? new Date(order.createdAt.seconds * 1000).toLocaleDateString('fr-FR') : 'récemment'}
+                          {order.items?.length || 1} {t('billing.orderCard.items', 'articles')} • {t('billing.orderCard.orderedOn', 'Commandé le')} {order.createdAt?.seconds ? new Date(order.createdAt.seconds * 1000).toLocaleDateString('de-DE') : t('billing.orderCard.recently', 'récemment')}
                         </div>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <OrderAmount>
-                          <span className="lbl">À régler :</span>
+                          <span className="lbl">{t('billing.orderCard.toPay', 'À payer :')}</span>
                           <span>{orderTotal} €</span>
                         </OrderAmount>
                       </div>
@@ -603,10 +605,10 @@ const Billing = () => {
                     {/* Actions rapides pour cette commande (centrées ou empilées selon la taille) */}
                     <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', width: '100%', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #f1f5f9' }}>
                       <PrimaryLink to={`/dashboard/suivi/${order.id}`} style={{ flex: 1, justifyContent: 'center' }}>
-                        <FaTruck size={14} /> Suivre
+                        <FaTruck size={14} /> {t('billing.orderCard.track', 'Suivre')}
                       </PrimaryLink>
                       <PrimaryLink to={`/dashboard/orders/${order.id}`} style={{ flex: 1, justifyContent: 'center', background: '#f8fafc', color: '#1e293b', border: '1px solid #cbd5e1' }}>
-                        Détails
+                        {t('billing.orderCard.details', 'Détails')}
                       </PrimaryLink>
                     </div>
                   </Card>
@@ -620,28 +622,28 @@ const Billing = () => {
         <StepsBox>
           <div style={{ fontWeight: 800, fontSize: '14px', color: '#0f172a', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <FaUniversity color="#2c5530" size={16} />
-            Comment se déroule la validation & la livraison de votre bois ?
+            {t('billing.steps.title', 'Comment se passe la confirmation et la livraison de votre bois ?')}
           </div>
           <StepsList>
             <StepItem>
               <div className="num">1</div>
               <div className="text">
-                <strong>Virement bancaire</strong>
-                Effectuez le virement avec le motif <code>#MB-...</code> depuis votre espace bancaire habituel.
+                <strong>{t('billing.steps.step1.title', 'Virement bancaire')}</strong>
+                {t('billing.steps.step1.text1', 'Effectuez le virement avec la référence')} <code>#MB-...</code> {t('billing.steps.step1.text2', 'depuis votre espace bancaire.')}
               </div>
             </StepItem>
             <StepItem>
               <div className="num">2</div>
               <div className="text">
-                <strong>Vérification & Préparation</strong>
-                Nos équipes valident la réception sous 24h et préparent vos stères sur palette cerclée.
+                <strong>{t('billing.steps.step2.title', 'Vérification & Préparation')}</strong>
+                {t('billing.steps.step2.text', 'Notre équipe confirme la réception du paiement sous 24h et prépare vos palettes.')}
               </div>
             </StepItem>
             <StepItem>
               <div className="num">3</div>
               <div className="text">
-                <strong>Livraison Chariot Embarqué</strong>
-                Le chauffeur dépose vos palettes au plus près de votre zone de stockage (abri, garage, jardin).
+                <strong>{t('billing.steps.step3.title', 'Livraison avec chariot')}</strong>
+                {t('billing.steps.step3.text', 'Le chauffeur dépose vos palettes au plus près de votre lieu de stockage (carport, garage, jardin).')}
               </div>
             </StepItem>
           </StepsList>

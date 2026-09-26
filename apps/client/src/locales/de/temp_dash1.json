@@ -1,0 +1,129 @@
+{
+  "dashboard": {
+    "clientArea": "Kundenbereich",
+    "nav": {
+      "home": "Mein Kundenbereich",
+      "orders": "Meine Bestellungen",
+      "billing": "Rechnungen & Bankdaten",
+      "tracking": "Sendungsverfolgung",
+      "settings": "Einstellungen",
+      "shop": "Holz bestellen",
+      "logout": "Abmelden"
+    },
+    "header": {
+      "openMenu": "Menü öffnen",
+      "menu": "Menü",
+      "welcome": "Willkommen",
+      "shopLabel": "Shop",
+      "profile": "Mein Profil",
+      "profileLabel": "Profil"
+    }
+  },
+  "billing": {
+    "copySuccess": "kopiert!",
+    "copyError": "Kopierfehler",
+    "badges": {
+      "secureTransfer": "Sichere Banküberweisung",
+      "forklift": "Lieferung mit Geländestapler",
+      "whatsappSupport": "WhatsApp Support 7 Tage/Woche"
+    },
+    "title": "Zahlung & Rechnungsstellung",
+    "subtitle": "Hier finden Sie die offiziellen Kontaktdaten, um Ihre Brennholzbestellungen zu bezahlen und die Lieferung auszulösen.",
+    "notice": {
+      "title": "Prioritäre Bestätigung Ihrer Bestellung:",
+      "text": "Sobald Sie Ihre Banküberweisung mit der angegebenen Referenz ausführen, wird Ihr Holz reserviert und der Spediteur kontaktiert Sie für einen Liefertermin."
+    },
+    "pendingOrders": "Ausstehende Bestellungen",
+    "loading": "Zahlungsinformationen werden geladen…",
+    "empty": {
+      "title": "Alle Ihre Bestellungen sind auf dem neuesten Stand!",
+      "text": "Sie haben keine ausstehenden Zahlungen. Ihr Holz ist entweder bestätigt oder bereits in der Lieferung.",
+      "button": "Holz oder Pellets bestellen →"
+    },
+    "whatsappCard": {
+      "title": "Bankdaten erhalten",
+      "text": "Um die Sicherheit Ihrer Transaktion zu gewährleisten, werden Ihnen unsere offiziellen Bankdaten ausschließlich über unseren verifizierten WhatsApp-Kanal mitgeteilt. Klicken Sie unten, um diese anzufordern.",
+      "message": {
+        "part1": "Hallo, ich möchte die offiziellen Bankdaten anfordern, um meine ausstehende(n) Bestellung(en) zu bezahlen:",
+        "part2": "für einen Gesamtbetrag von",
+        "part3": "Danke!"
+      },
+      "button": "Bankdaten über WhatsApp anfordern"
+    },
+    "orderCard": {
+      "order": "Bestellung",
+      "items": "Artikel",
+      "orderedOn": "Bestellt am",
+      "recently": "kürzlich",
+      "toPay": "Zu zahlen:",
+      "track": "Verfolgen",
+      "details": "Details"
+    },
+    "steps": {
+      "title": "Wie läuft die Bestätigung und Lieferung Ihres Holzes ab?",
+      "step1": {
+        "title": "Banküberweisung",
+        "text1": "Führen Sie die Überweisung mit dem Verwendungszweck",
+        "text2": "über Ihr gewohntes Online-Banking durch."
+      },
+      "step2": {
+        "title": "Prüfung & Vorbereitung",
+        "text": "Unser Team bestätigt den Zahlungseingang innerhalb von 24h und bereitet Ihre Paletten vor."
+      },
+      "step3": {
+        "title": "Lieferung mit Mitnahmestapler",
+        "text": "Der Fahrer stellt Ihre Paletten so nah wie möglich an Ihrem Lagerplatz ab (Carport, Garage, Garten)."
+      }
+    }
+  },
+  "orders": {
+    "status": {
+      "pending": "Warten auf Überweisung",
+      "processing": "In Vorbereitung (Palette)",
+      "shipped": "In Zustellung (Stapler)",
+      "delivered": "Geliefert mit Stapler",
+      "cancelled": "Storniert",
+      "default": "Registriert"
+    },
+    "error": {
+      "fetch": "Fehler beim Laden der Bestellungen",
+      "title": "Fehler"
+    },
+    "cancel": {
+      "reason": "Stornierung durch Kunden",
+      "success": "Bestellung erfolgreich storniert",
+      "error": "Fehler beim Stornieren der Bestellung",
+      "canceling": "Stornierung...",
+      "cancel": "Stornieren"
+    },
+    "header": {
+      "woodTag": "Brennholz Kundenbereich",
+      "title": "Meine Bestellungen",
+      "subtitle": "Sehen Sie sich Ihre Historie an und verfolgen Sie Ihre Brennholzlieferungen."
+    },
+    "loading": "Lade Ihre Bestellungen...",
+    "empty": {
+      "title": "Noch keine Bestellungen",
+      "text": "Finden Sie Schüttraummeter, Paletten und Pellets mit Mitnahmestapler-Lieferung im Shop.",
+      "button": "Brennholz-Shop entdecken"
+    },
+    "orderCard": {
+      "order": "Bestellung",
+      "dateUnknown": "Datum unbekannt",
+      "pendingPayment": "Überweisung ausstehend: Unsere offiziellen Bankdaten liegen bereit.",
+      "showBankDetails": "Bankdaten anzeigen →",
+      "forkliftDelivery": "Lieferung mit Mitnahmestapler inklusive",
+      "firewood": "Brennholz",
+      "total": "Gesamtsumme (inkl. MwSt.):",
+      "viewDetails": "Details ansehen",
+      "trackDelivery": "Lieferung verfolgen",
+      "leaveReview": "Bewertung abgeben"
+    },
+    "modal": {
+      "title": "Bestellung stornieren?",
+      "text": "Diese Aktion ist endgültig. Ihre Brennholz-Bestellung wird auf \"Storniert\" gesetzt.",
+      "no": "Nein, zurück",
+      "yes": "Ja, stornieren"
+    }
+  }
+}

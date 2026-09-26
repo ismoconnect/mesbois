@@ -1,0 +1,40 @@
+{
+  "suivi": {
+    "status": {
+      "pending": "Enregistré",
+      "awaiting_payment": "En attente de paiement",
+      "processing": "Palettes en préparation",
+      "shipped": "En route (chariot embarqué)",
+      "delivered": "Livré & Déposé",
+      "cancelled": "Annulé",
+      "default": "Traitement"
+    },
+    "badges": {
+      "forklift": "Chariot tout-terrain inclus",
+      "traceability": "Traçabilité bois PEFC",
+      "driver": "Livreur joignable le jour J"
+    },
+    "title": "Suivi de livraison en direct",
+    "subtitle": "Suivez l'avancement de vos palettes et les détails de livraison jusqu'à votre abri bois.",
+    "loading": "Chargement de vos suivis de livraison…",
+    "empty": {
+      "title": "Aucune livraison en attente",
+      "desc": "Commandez du bois de chauffage ou des granulés certifiés pour suivre votre livraison ici.",
+      "btn": "Commander mon bois →"
+    },
+    "recent_date": "Date récente",
+    "order_label": "Commande",
+    "ordered_on": "Commandé le",
+    "items": "Article(s)",
+    "step1": "Confirmation & Virement",
+    "step2": "Préparation palettes",
+    "step3": "Camion avec chariot",
+    "step4": "Déposé chez vous",
+    "delivery_to": "Livraison à:",
+    "saved_address": "Adresse enregistrée",
+    "total": "Total:",
+    "btn_details": "Suivi détaillé & Facture PDF",
+    "btn_view": "Voir la commande",
+    "btn_pay": "Payer par virement →"
+  }
+}

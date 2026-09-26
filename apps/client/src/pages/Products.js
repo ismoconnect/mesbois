@@ -1431,7 +1431,7 @@ const Products = () => {
   const handleAddToCart = (product) => {
     addToCart(product, 1);
     toast.dismiss('add-to-cart');
-    toast.custom((t) => (
+    toast.custom((tToast) => (
       <div
         style={{
           position: 'fixed',
@@ -1456,10 +1456,10 @@ const Products = () => {
           }}
         >
           <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>
-            Le produit a été ajouté avec succès à votre panier.
+            {t('cart.added_success', 'Le produit a été ajouté avec succès à votre panier.')}
           </div>
           <div style={{ fontSize: 13, color: '#555', marginBottom: 16 }}>
-            Que souhaitez-vous faire ?
+            {t('cart.what_next', 'Que souhaitez-vous faire ?')}
           </div>
           <div
             style={{
@@ -1471,7 +1471,7 @@ const Products = () => {
           >
             <button
               type="button"
-              onClick={() => toast.dismiss(t.id)}
+              onClick={() => toast.dismiss(tToast.id)}
               style={{
                 flex: 1,
                 minWidth: 120,
@@ -1485,12 +1485,12 @@ const Products = () => {
                 cursor: 'pointer'
               }}
             >
-              Poursuivre les achats
+              {t('cart.continue_shopping', 'Poursuivre les achats')}
             </button>
             <button
               type="button"
               onClick={() => {
-                toast.dismiss(t.id);
+                toast.dismiss(tToast.id);
                 localizedNavigate('cart');
               }}
               style={{
@@ -1506,7 +1506,7 @@ const Products = () => {
                 cursor: 'pointer'
               }}
             >
-              Voir le panier
+              {t('cart.view_cart', 'Voir le panier')}
             </button>
           </div>
         </div>
@@ -1533,11 +1533,11 @@ const Products = () => {
 
   // Options dynamiques pour filtres
   const fixedCategories = [
-    { value: 'bûches', label: 'Bois de chauffage' },
-    { value: 'accessoires', label: 'Accessoires' },
-    { value: 'bûches densifiées', label: 'Bûches densifiées' },
-    { value: 'pellets', label: 'Pellets' },
-    { value: 'poêles', label: 'Poêles' }
+    { value: 'bûches', label: t('category.wood', 'Bois de chauffage') },
+    { value: 'accessoires', label: t('category.accessories', 'Accessoires') },
+    { value: 'bûches densifiées', label: t('category.briquettes', 'Bûches densifiées') },
+    { value: 'pellets', label: t('category.pellets', 'Pellets') },
+    { value: 'poêles', label: t('category.stoves', 'Poêles') }
   ];
   const uniqueCategories = fixedCategories;
   const typesSource = allProducts.filter(p => {
@@ -1639,10 +1639,10 @@ const Products = () => {
         </CatalogSubtitle>
         
         <TrustPillBar>
-          <span><FaFire size={13} style={{ color: '#d97706' }} /> Humidité garantie &lt; 20%</span>
-          <span><FiTruck size={14} style={{ color: '#16a34a' }} /> Livraison à domicile 24-48h</span>
-          <span><FiShield size={14} style={{ color: '#2563eb' }} /> Virement sécurisé (Vorkasse)</span>
-          <span><FiStar size={13} style={{ color: '#f59e0b' }} /> Note 4.8/5</span>
+          <span><FaFire size={13} style={{ color: '#d97706' }} /> {t('products.trust.humidity', 'Humidité garantie < 20%')}</span>
+          <span><FiTruck size={14} style={{ color: '#16a34a' }} /> {t('products.trust.delivery', 'Livraison à domicile 24-48h')}</span>
+          <span><FiShield size={14} style={{ color: '#2563eb' }} /> {t('products.trust.secure_payment', 'Virement sécurisé')}</span>
+          <span><FiStar size={13} style={{ color: '#f59e0b' }} /> {t('products.trust.rating', 'Note 4.8/5')}</span>
         </TrustPillBar>
       </CatalogHeader>
 
@@ -1708,7 +1708,7 @@ const Products = () => {
           onClick={() => setIsFiltersOpen(!isFiltersOpen)}
         >
           <FiFilter size={15} />
-          <span>Filtres</span>
+          <span>{t('products.filters.title', 'Filtres')}</span>
           {(Boolean(filters.type) + Boolean(filters.minPrice) + Boolean(filters.maxPrice) + Boolean(filters.available)) > 0 && (
             <FilterBadge>
               {Boolean(filters.type) + Boolean(filters.minPrice) + Boolean(filters.maxPrice) + Boolean(filters.available)}
@@ -1721,9 +1721,9 @@ const Products = () => {
       {isFiltersOpen && (
         <CollapsibleFiltersPanel>
           <FilterPanelHeader>
-            <h4><FiFilter size={16} /> Filtres avancés</h4>
+            <h4><FiFilter size={16} /> {t('products.filters.advanced', 'Filtres avancés')}</h4>
             <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-              <button className="reset-btn" onClick={clearFilters}>Réinitialiser tout</button>
+              <button className="reset-btn" onClick={clearFilters}>{t('products.filters.reset', 'Réinitialiser tout')}</button>
               <button 
                 onClick={() => setIsFiltersOpen(false)}
                 style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}
@@ -1736,12 +1736,12 @@ const Products = () => {
           <FilterFieldsGrid>
             {uniqueTypes.length > 0 && (
               <FilterItem>
-                <label>Type spécifique</label>
+                <label>{t('products.filters.type', 'Type spécifique')}</label>
                 <select 
                   value={filters.type} 
                   onChange={(e) => handleFilterChange('type', e.target.value)}
                 >
-                  <option value="">Tous les types</option>
+                  <option value="">{t('products.filters.all_types', 'Tous les types')}</option>
                   {uniqueTypes.map(t => (
                     <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>
                   ))}
@@ -1750,7 +1750,7 @@ const Products = () => {
             )}
 
             <FilterItem>
-              <label>Prix minimum (€)</label>
+              <label>{t('products.filters.min_price', 'Prix minimum (€)')}</label>
               <input
                 type="number"
                 value={filters.minPrice}
@@ -1760,7 +1760,7 @@ const Products = () => {
             </FilterItem>
 
             <FilterItem>
-              <label>Prix maximum (€)</label>
+              <label>{t('products.filters.max_price', 'Prix maximum (€)')}</label>
               <input
                 type="number"
                 value={filters.maxPrice}
@@ -1777,7 +1777,7 @@ const Products = () => {
                 checked={filters.available}
                 onChange={(e) => handleFilterChange('available', e.target.checked)}
               />
-              <span>En stock uniquement ({allProducts.filter(p => p.stock > 0).length})</span>
+              <span>{t('products.filters.in_stock', 'En stock uniquement')} ({allProducts.filter(p => p.stock > 0).length})</span>
             </FilterCheckbox>
 
             <button 
@@ -1793,7 +1793,7 @@ const Products = () => {
                 cursor: 'pointer'
               }}
             >
-              Voir les {filteredProducts.length} résultats
+              {t('products.filters.view_results', 'Voir les {{count}} résultats', { count: filteredProducts.length })}
             </button>
           </div>
         </CollapsibleFiltersPanel>

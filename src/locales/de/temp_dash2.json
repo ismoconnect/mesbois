@@ -1,0 +1,40 @@
+{
+  "suivi": {
+    "status": {
+      "pending": "Erfasst",
+      "awaiting_payment": "Warten auf Überweisung",
+      "processing": "Paletten werden vorbereitet",
+      "shipped": "Unterwegs (Mitnahmestapler)",
+      "delivered": "Geliefert & Abgestellt",
+      "cancelled": "Storniert",
+      "default": "Bearbeitung"
+    },
+    "badges": {
+      "forklift": "Geländestapler inklusive",
+      "traceability": "PEFC-Holz Rückverfolgbarkeit",
+      "driver": "Fahrer am Liefertag erreichbar"
+    },
+    "title": "Live-Lieferverfolgung",
+    "subtitle": "Verfolgen Sie den Fortschritt Ihrer Paletten und die Lieferdetails bis zu Ihrem Holzunterstand.",
+    "loading": "Ihre Lieferverfolgungen werden geladen…",
+    "empty": {
+      "title": "Keine ausstehenden Lieferungen",
+      "desc": "Bestellen Sie Hartholz oder zertifizierte Pellets, um Ihre Lieferung hier zu verfolgen.",
+      "btn": "Mein Holz bestellen →"
+    },
+    "recent_date": "Kürzliches Datum",
+    "order_label": "Bestellung",
+    "ordered_on": "Bestellt am",
+    "items": "Artikel",
+    "step1": "Bestätigung & Überweisung",
+    "step2": "Palettenvorbereitung",
+    "step3": "LKW mit Mitnahmestapler",
+    "step4": "Bei Ihnen abgestellt",
+    "delivery_to": "Lieferung an:",
+    "saved_address": "Gespeicherte Adresse",
+    "total": "Gesamt:",
+    "btn_details": "Detaillierte Verfolgung & PDF-Rechnung",
+    "btn_view": "Bestellung ansehen",
+    "btn_pay": "Per Überweisung bezahlen →"
+  }
+}

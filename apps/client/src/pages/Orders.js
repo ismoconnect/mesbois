@@ -1,3 +1,4 @@
+import i18n from '../i18n';
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
@@ -18,6 +19,8 @@ import { getUserOrders, cancelOrder } from '../firebase/orders';
 import { formatTransferRef } from '../utils/ref';
 import DashboardLayout from '../components/Layout/DashboardLayout';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
+import routeMapping from '../utils/routeMapping.json';
 
 // ========================================================
 // STYLED COMPONENTS (RESPONSIVE & ADAPTÉ AU BOIS)
@@ -505,12 +508,12 @@ const LoadingSpinner = styled.div`
 `;
 
 // Helper de statut adapté à la réalité du bois
-function getStatusDetails(status) {
+function getStatusDetails(status, t) {
   switch (status) {
     case 'pending':
     case 'awaiting_payment':
       return { 
-        text: 'En attente virement', 
+        text: t('orders.status.pending', 'En attente de virement'), 
         bg: '#fef3c7', 
         color: '#92400e', 
         border: '#fde68a',
@@ -518,7 +521,7 @@ function getStatusDetails(status) {
       };
     case 'processing':
       return { 
-        text: 'En préparation palette', 
+        text: t('orders.status.processing', 'En préparation (Palette)'), 
         bg: '#e0f2fe', 
         color: '#0369a1', 
         border: '#bae6fd',
@@ -526,7 +529,7 @@ function getStatusDetails(status) {
       };
     case 'shipped':
       return { 
-        text: 'En livraison chariot', 
+        text: t('orders.status.shipped', 'En cours de livraison'), 
         bg: '#ecfdf5', 
         color: '#15803d', 
         border: '#bbf7d0',
@@ -534,7 +537,7 @@ function getStatusDetails(status) {
       };
     case 'delivered':
       return { 
-        text: 'Livrée avec chariot', 
+        text: t('orders.status.delivered', 'Livré'), 
         bg: '#f0fdf4', 
         color: '#166534', 
         border: '#86efac',
@@ -542,7 +545,7 @@ function getStatusDetails(status) {
       };
     case 'cancelled':
       return { 
-        text: 'Annulée', 
+        text: t('orders.status.cancelled', 'Annulé'), 
         bg: '#fee2e2', 
         color: '#991b1b', 
         border: '#fecaca',
@@ -550,7 +553,7 @@ function getStatusDetails(status) {
       };
     default:
       return { 
-        text: 'Enregistrée', 
+        text: t('orders.status.default', 'Enregistré'), 
         bg: '#f1f5f9', 
         color: '#334155', 
         border: '#cbd5e1',
@@ -565,6 +568,7 @@ function getStatusDetails(status) {
 
 const Orders = () => {
   const { user } = useAuth();
+  const { t, i18n } = useTranslation();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -644,7 +648,7 @@ const Orders = () => {
         setError(result.error);
       }
     } catch (err) {
-      setError('Erreur lors du chargement des commandes');
+      setError(t('orders.error.fetch', 'Erreur lors du chargement des commandes'));
     } finally {
       setLoading(false);
     }
@@ -657,13 +661,13 @@ const Orders = () => {
 
   const handleCancelOrder = async (orderId) => {
     setCancellingId(orderId);
-    const result = await cancelOrder(orderId, 'Annulation client');
+    const result = await cancelOrder(orderId, t('orders.cancel.reason', 'Annulation par le client'));
 
     if (result.success) {
-      showCenterAlert('Commande annulée avec succès');
+      showCenterAlert(t('orders.cancel.success', 'Commande annulée avec succès'));
       fetchOrders();
     } else {
-      showCenterAlert("Erreur lors de l'annulation de la commande", 'error');
+      showCenterAlert(t('orders.cancel.error', 'Erreur lors de l\'annulation de la commande'), 'error');
     }
     setCancellingId(null);
     setConfirmId(null);
@@ -675,17 +679,17 @@ const Orders = () => {
     <DashboardLayout>
       <OrdersContainer>
         <HeaderCard>
-          <WoodTag>🪵 Espace Bois de Chauffage</WoodTag>
-          <OrdersTitle>Mes Commandes</OrdersTitle>
-          <OrdersSubtitle>Consultez l'historique et le suivi de vos livraisons de bois.</OrdersSubtitle>
+          <WoodTag>🪵 {t('orders.header.woodTag', 'Espace client Bois de chauffage')}</WoodTag>
+          <OrdersTitle>{t('orders.header.title', 'Mes commandes')}</OrdersTitle>
+          <OrdersSubtitle>{t('orders.header.subtitle', 'Consultez votre historique et suivez vos livraisons de bois de chauffage.')}</OrdersSubtitle>
         </HeaderCard>
 
-        {loading && <LoadingSpinner>Chargement de vos commandes...</LoadingSpinner>}
+        {loading && <LoadingSpinner>{t('orders.loading', 'Chargement de vos commandes...')}</LoadingSpinner>}
 
         {error && (
           <EmptyOrders>
             <FiXCircle className="empty-icon" style={{ color: '#dc2626' }} />
-            <h3>Erreur</h3>
+            <h3>{t('orders.error.title', 'Erreur')}</h3>
             <p>{error}</p>
           </EmptyOrders>
         )}
@@ -693,11 +697,11 @@ const Orders = () => {
         {!loading && !error && orders.length === 0 && (
           <EmptyOrders>
             <FiPackage className="empty-icon" />
-            <h3>Aucune commande pour le moment</h3>
-            <p>Retrouvez vos stères, palettes et granulés livrés avec chariot tout-terrain sur la boutique.</p>
-            <ShopButton to="/products">
+            <h3>{t('orders.empty.title', 'Aucune commande pour le moment')}</h3>
+            <p>{t('orders.empty.text', 'Retrouvez stères, palettes et granulés avec livraison par chariot embarqué dans la boutique.')}</p>
+            <ShopButton to={`/${i18n.language || 'fr'}/${routeMapping.products[i18n.language || 'fr']}`}>
               <FiShoppingBag />
-              <span>Découvrir la boutique de bois</span>
+              <span>{t('orders.empty.button', 'Découvrir la boutique bois')}</span>
             </ShopButton>
           </EmptyOrders>
         )}
@@ -705,7 +709,7 @@ const Orders = () => {
         {!loading && !error && orders.length > 0 && (
           <OrdersList>
             {orders.map((order) => {
-              const s = getStatusDetails(order.status);
+              const s = getStatusDetails(order.status, t);
               const orderRef = formatTransferRef(order.id);
               const items = Array.isArray(order.items) ? order.items : [];
               const isPendingPayment = order.status === 'pending' || order.status === 'awaiting_payment';
@@ -716,18 +720,18 @@ const Orders = () => {
                     <OrderInfo>
                       <div className="order-ref">
                         <FiPackage />
-                        <span>Commande #{orderRef}</span>
+                        <span>{t('orders.orderCard.order', 'Commande')} #{orderRef}</span>
                       </div>
                       <div className="order-date">
                         {order.createdAt?.seconds 
-                          ? new Date(order.createdAt.seconds * 1000).toLocaleDateString('fr-FR', {
+                          ? new Date(order.createdAt.seconds * 1000).toLocaleDateString('de-DE', {
                               year: 'numeric',
                               month: 'long',
                               day: 'numeric',
                               hour: '2-digit',
                               minute: '2-digit'
                             })
-                          : 'Date non renseignée'}
+                          : t('orders.orderCard.dateUnknown', 'Date inconnue')}
                       </div>
                     </OrderInfo>
 
@@ -742,10 +746,10 @@ const Orders = () => {
                     <PayNotice>
                       <div className="notice-left">
                         <span className="icon">🏦</span>
-                        <span>Virement en attente : vos coordonnées bancaires officielles sont prêtes.</span>
+                        <span>{t('orders.orderCard.pendingPayment', 'Virement en attente : Nos coordonnées bancaires officielles sont disponibles.')}</span>
                       </div>
                       <PayNoticeButton to="/dashboard/billing">
-                        Voir le RIB →
+                        {t('orders.orderCard.showBankDetails', 'Afficher les coordonnées bancaires →')}
                       </PayNoticeButton>
                     </PayNotice>
                   )}
@@ -753,7 +757,7 @@ const Orders = () => {
                   {/* Badge chariot tout-terrain */}
                   <DeliveryBadge>
                     <FiTruck />
-                    <span>Livraison avec chariot tout-terrain inclus jusqu'à l'abri</span>
+                    <span>{t('orders.orderCard.forkliftDelivery', 'Livraison avec chariot embarqué incluse')}</span>
                   </DeliveryBadge>
 
                   {/* Liste des articles */}
@@ -762,7 +766,7 @@ const Orders = () => {
                       <OrderItem key={idx}>
                         <ItemLeft>
                           <span className="item-qty">{item.quantity || 1}x</span>
-                          <span className="item-title">{item.name || item.title || 'Bois de chauffage'}</span>
+                          <span className="item-title">{item.name || item.title || t('orders.orderCard.firewood', 'Bois de chauffage')}</span>
                         </ItemLeft>
                         <ItemPrice>
                           {((item.price || 0) * (item.quantity || 1)).toFixed(2)} €
@@ -773,7 +777,7 @@ const Orders = () => {
 
                   {/* Total TTC */}
                   <OrderTotalRow>
-                    <span>Total TTC :</span>
+                    <span>{t('orders.orderCard.total', 'Total (TTC) :')}</span>
                     <span className="total-amount">{Number(order.total || 0).toFixed(2)} €</span>
                   </OrderTotalRow>
 
@@ -781,19 +785,19 @@ const Orders = () => {
                   <OrderActions>
                     <ActionButton to={`/dashboard/orders/${order.id}`} className="primary">
                       <FiPackage />
-                      <span>Voir les détails</span>
+                      <span>{t('orders.orderCard.viewDetails', 'Voir les détails')}</span>
                     </ActionButton>
 
                     {(order.status === 'processing' || order.status === 'shipped') && (
                       <ActionButton to={`/dashboard/suivi/${order.id}`} className="secondary">
                         <FiTruck />
-                        <span>Suivre la livraison</span>
+                        <span>{t('orders.orderCard.trackDelivery', 'Suivre la livraison')}</span>
                       </ActionButton>
                     )}
 
                     {order.status === 'delivered' && (
                       <ActionButton to={`/dashboard/orders/${order.id}/review`} className="secondary">
-                        <span>Laisser un avis</span>
+                        <span>{t('orders.orderCard.leaveReview', 'Laisser un avis')}</span>
                       </ActionButton>
                     )}
 
@@ -803,7 +807,7 @@ const Orders = () => {
                         onClick={() => setConfirmId(order.id)}
                         disabled={cancellingId === order.id}
                       >
-                        {cancellingId === order.id ? 'Annulation...' : 'Annuler'}
+                        {cancellingId === order.id ? t('orders.cancel.canceling', 'Annulation...') : t('orders.cancel.cancel', 'Annuler')}
                       </CancelButton>
                     )}
                   </OrderActions>
@@ -840,10 +844,10 @@ const Orders = () => {
               onClick={(e) => e.stopPropagation()}
             >
               <div style={{ fontSize: 16, fontWeight: 700, color: '#111827', marginBottom: 8 }}>
-                Annuler cette commande ?
+                {t('orders.modal.title', 'Annuler la commande ?')}
               </div>
               <div style={{ fontSize: 13, color: '#64748b', marginBottom: 18, lineHeight: 1.4 }}>
-                Cette action est définitive. Votre commande de bois passera en statut « Annulée ».
+                {t('orders.modal.text', 'Cette action est définitive. Votre commande de bois de chauffage sera marquée comme "Annulée".')}
               </div>
               <div style={{ display: 'flex', justifyContent: 'center', gap: 10 }}>
                 <button
@@ -860,7 +864,7 @@ const Orders = () => {
                     cursor: 'pointer'
                   }}
                 >
-                  Non, revenir
+                  {t('orders.modal.no', 'Non, retour')}
                 </button>
                 <button
                   type="button"
@@ -877,7 +881,7 @@ const Orders = () => {
                     cursor: 'pointer'
                   }}
                 >
-                  Oui, annuler
+                  {t('orders.modal.yes', 'Oui, annuler')}
                 </button>
               </div>
             </div>

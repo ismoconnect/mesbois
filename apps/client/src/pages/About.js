@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
 import { FiTruck, FiShield, FiUsers, FiAward, FiHeart, FiCheckCircle } from 'react-icons/fi';
 import { FaTree, FaLeaf, FaHandshake } from 'react-icons/fa';
@@ -320,15 +321,16 @@ const StatLabel = styled.div`
 `;
 
 const About = () => {
+  const { t } = useTranslation();
   return (
     <AboutContainer>
       <HeroSection>
         <HeroBadge>
-          <FaTree size={11} /> Spécialiste européen du bois
+          <FaTree size={11} /> {t('about.badge', 'Spécialiste européen du bois')}
         </HeroBadge>
-        <HeroTitle>À propos de nous</HeroTitle>
+        <HeroTitle>{t('about.title', 'À propos de nous')}</HeroTitle>
         <HeroSubtitle>
-          Votre partenaire de confiance pour le bois de chauffage haute performance et les granulés certifiés.
+          {t('about.subtitle', 'Votre partenaire de confiance pour le bois de chauffage haute performance et les granulés certifiés.')}
         </HeroSubtitle>
       </HeroSection>
 
@@ -336,50 +338,43 @@ const About = () => {
         <StoryCard>
           <StoryItem>
             <h3>
-              <FaTree /> Notre histoire
+              <FaTree /> {t('about.story_title', 'Notre histoire')}
             </h3>
             <p>
-              Depuis notre création, nous nous sommes engagés à fournir du bois de chauffage 
-              de la plus haute qualité. Notre passion pour la forêt et le respect de 
-              l'environnement nous poussent à sélectionner exclusivement des essences dures 
-              (chêne, hêtre, frêne) issues de forêts gérées durablement.
+              {t('about.story_text', 'Depuis notre création, nous nous sommes engagés à fournir du bois de chauffage de la plus haute qualité. Notre passion pour la forêt et le respect de l\'environnement nous poussent à sélectionner exclusivement des essences dures (chêne, hêtre, frêne) issues de forêts gérées durablement.')}
             </p>
           </StoryItem>
           
           <StoryItem>
             <h3>
-              <FaLeaf /> Notre mission
+              <FaLeaf /> {t('about.mission_title', 'Notre mission')}
             </h3>
             <p>
-              Rendre le chauffage au bois performant, économique et respectueux de notre planète. 
-              Chaque produit proposé respecte des normes strictes de séchage (taux d'humidité inférieur à 20%) 
-              pour garantir un rendement calorifique maximal et une combustion propre.
+              {t('about.mission_text', 'Rendre le chauffage au bois performant, économique et respectueux de notre planète. Chaque produit proposé respecte des normes strictes de séchage (taux d\'humidité inférieur à 20%) pour garantir un rendement calorifique maximal et une combustion propre.')}
             </p>
           </StoryItem>
           
           <StoryItem>
             <h3>
-              <FaHandshake /> Notre engagement client
+              <FaHandshake /> {t('about.engagement_title', 'Notre engagement client')}
             </h3>
             <p>
-              Votre satisfaction totale est notre priorité absolue. Nous assurons un conseil expert, 
-              des tarifs transparents sans intermédiaires et une livraison directe sous votre abri 
-              grâce à nos camions équipés de chariots tout-terrain.
+              {t('about.engagement_text', 'Votre satisfaction totale est notre priorité absolue. Nous assurons un conseil expert, des tarifs transparents sans intermédiaires et une livraison directe sous votre abri grâce à nos camions équipés de chariots tout-terrain.')}
             </p>
           </StoryItem>
         </StoryCard>
       </ContentSection>
 
       <ContentSection>
-        <SectionTitle>Nos valeurs fondamentales</SectionTitle>
+        <SectionTitle>{t('about.values_title', 'Nos valeurs fondamentales')}</SectionTitle>
         <ValuesGrid>
           <ValueCard>
             <ValueIcon>
               <FiHeart size={18} />
             </ValueIcon>
-            <ValueTitle>Environnement</ValueTitle>
+            <ValueTitle>{t('about.val1_title', 'Environnement')}</ValueTitle>
             <ValueDescription>
-              Bois 100% éco-responsable certifié PEFC / FSC issu de forêts durables.
+              {t('about.val1_desc', 'Bois 100% éco-responsable certifié PEFC / FSC issu de forêts durables.')}
             </ValueDescription>
           </ValueCard>
           
@@ -387,9 +382,9 @@ const About = () => {
             <ValueIcon>
               <FiShield size={18} />
             </ValueIcon>
-            <ValueTitle>Qualité certifiée</ValueTitle>
+            <ValueTitle>{t('about.val2_title', 'Qualité certifiée')}</ValueTitle>
             <ValueDescription>
-              Contrôles rigoureux de l'humidité (&lt; 20%) et normes DINplus / ENplus.
+              {t('about.val2_desc', 'Contrôles rigoureux de l\'humidité (< 20%) et normes DINplus / ENplus.')}
             </ValueDescription>
           </ValueCard>
           
@@ -397,9 +392,9 @@ const About = () => {
             <ValueIcon>
               <FiTruck size={18} />
             </ValueIcon>
-            <ValueTitle>Livraison chariot</ValueTitle>
+            <ValueTitle>{t('about.val3_title', 'Livraison chariot')}</ValueTitle>
             <ValueDescription>
-              Dépose exacte sous votre abri, garage ou cour par chariot tout-terrain.
+              {t('about.val3_desc', 'Dépose exacte sous votre abri, garage ou cour par chariot tout-terrain.')}
             </ValueDescription>
           </ValueCard>
           
@@ -407,9 +402,9 @@ const About = () => {
             <ValueIcon>
               <FiUsers size={18} />
             </ValueIcon>
-            <ValueTitle>Proximité</ValueTitle>
+            <ValueTitle>{t('about.val4_title', 'Proximité')}</ValueTitle>
             <ValueDescription>
-              Une équipe humaine et disponible pour vous conseiller 6j/7.
+              {t('about.val4_desc', 'Une équipe humaine et disponible pour vous conseiller 6j/7.')}
             </ValueDescription>
           </ValueCard>
           
@@ -417,9 +412,9 @@ const About = () => {
             <ValueIcon>
               <FiAward size={18} />
             </ValueIcon>
-            <ValueTitle>Excellence</ValueTitle>
+            <ValueTitle>{t('about.val5_title', 'Excellence')}</ValueTitle>
             <ValueDescription>
-              Des rendements thermiques optimaux pour préserver vos appareils.
+              {t('about.val5_desc', 'Des rendements thermiques optimaux pour préserver vos appareils.')}
             </ValueDescription>
           </ValueCard>
           
@@ -427,39 +422,39 @@ const About = () => {
             <ValueIcon>
               <FiCheckCircle size={18} />
             </ValueIcon>
-            <ValueTitle>Transparence</ValueTitle>
+            <ValueTitle>{t('about.val6_title', 'Transparence')}</ValueTitle>
             <ValueDescription>
-              Tarifs nets, volumes en stères réels vérifiés et traçabilité claire.
+              {t('about.val6_desc', 'Tarifs nets, volumes en stères réels vérifiés et traçabilité claire.')}
             </ValueDescription>
           </ValueCard>
         </ValuesGrid>
       </ContentSection>
 
       <TeamSection>
-        <TeamTitle>Notre engagement en chiffres</TeamTitle>
+        <TeamTitle>{t('about.stats_title', 'Notre engagement en chiffres')}</TeamTitle>
         <TeamDescription>
-          Une expertise reconnue au service des particuliers et professionnels.
+          {t('about.stats_subtitle', 'Une expertise reconnue au service des particuliers et professionnels.')}
         </TeamDescription>
         
         <StatsGrid>
           <StatCard>
             <StatNumber>10+</StatNumber>
-            <StatLabel>Années d'expérience</StatLabel>
+            <StatLabel>{t('about.stat1', 'Années d\'expérience')}</StatLabel>
           </StatCard>
           
           <StatCard>
             <StatNumber>5000+</StatNumber>
-            <StatLabel>Clients satisfaits</StatLabel>
+            <StatLabel>{t('about.stat2', 'Clients satisfaits')}</StatLabel>
           </StatCard>
           
           <StatCard>
             <StatNumber>&lt; 20%</StatNumber>
-            <StatLabel>Taux d'humidité</StatLabel>
+            <StatLabel>{t('about.stat3', 'Taux d\'humidité')}</StatLabel>
           </StatCard>
           
           <StatCard>
             <StatNumber>100%</StatNumber>
-            <StatLabel>Bois certifié</StatLabel>
+            <StatLabel>{t('about.stat4', 'Bois certifié')}</StatLabel>
           </StatCard>
         </StatsGrid>
       </TeamSection>

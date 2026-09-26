@@ -1,9 +1,11 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import Profile from './Profile';
 
-// La page Paramètres est désormais unifiée avec Mon Profil
-// et s'ouvre directement sur l'onglet "Sécurité & Préférences"
+// Die Einstellungsseite ist nun mit Mein Profil vereint
+// und öffnet sich direkt im Tab "Sicherheit & Einstellungen"
 const Settings = () => {
+  const { t } = useTranslation();
   return <Profile defaultTab="security" />;
 };
 

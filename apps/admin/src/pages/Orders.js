@@ -380,12 +380,12 @@ function getStatusIcon(status) {
 
 function getStatusText(status) {
   switch (status) {
-    case 'pending': return 'En attente';
-    case 'processing': return 'En cours';
-    case 'shipped': return 'Expédié';
-    case 'delivered': return 'Livré';
-    case 'cancelled': return 'Annulé';
-    default: return status || 'Inconnu';
+    case 'pending': return 'Wartend';
+    case 'processing': return 'In Bearbeitung';
+    case 'shipped': return 'Versendet';
+    case 'delivered': return 'Geliefert';
+    case 'cancelled': return 'Storniert';
+    default: return status || 'Unbekannt';
   }
 }
 
@@ -504,8 +504,8 @@ const Orders = () => {
     <Page>
       <Header>
         <div>
-          <Title>Gestion des Commandes</Title>
-          <Subtitle>{orders.length} commande{orders.length > 1 ? 's' : ''} au total</Subtitle>
+          <Title>Bestellverwaltung</Title>
+          <Subtitle>{orders.length} Bestellung{orders.length > 1 ? 'en' : ''} insgesamt</Subtitle>
         </div>
       </Header>
 
@@ -514,28 +514,28 @@ const Orders = () => {
           <StatIcon bg="#eaf4ee" color="#2c5530"><FiPackage size={20} /></StatIcon>
           <StatInfo>
             <h4>{stats.total}</h4>
-            <span>Total</span>
+            <span>Gesamt</span>
           </StatInfo>
         </StatCard>
         <StatCard>
           <StatIcon bg="#fff3cd" color="#856404"><FiClock size={20} /></StatIcon>
           <StatInfo>
             <h4>{stats.pending}</h4>
-            <span>En attente</span>
+            <span>Ausstehend</span>
           </StatInfo>
         </StatCard>
         <StatCard>
           <StatIcon bg="#d1ecf1" color="#0c5460"><FiTruck size={20} /></StatIcon>
           <StatInfo>
             <h4>{stats.processing}</h4>
-            <span>En cours</span>
+            <span>In Bearbeitung</span>
           </StatInfo>
         </StatCard>
         <StatCard>
           <StatIcon bg="#d4edda" color="#155724"><FiCheckCircle size={20} /></StatIcon>
           <StatInfo>
             <h4>{stats.delivered}</h4>
-            <span>Livrées</span>
+            <span>Geliefert</span>
           </StatInfo>
         </StatCard>
       </StatsBar>
@@ -545,23 +545,23 @@ const Orders = () => {
         <Table>
           <thead>
             <tr>
-              <th>Client</th>
-              <th>Nombre de commandes</th>
-              <th>Montant total</th>
-              <th>Dernière commande</th>
-              <th>Actions</th>
+              <th>Kunde</th>
+              <th>Anzahl Bestellungen</th>
+              <th>Gesamtbetrag</th>
+              <th>Letzte Bestellung</th>
+              <th>Aktionen</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan="5" style={{ textAlign: 'center', padding: '40px' }}>Chargement...</td></tr>
+              <tr><td colSpan="5" style={{ textAlign: 'center', padding: '40px' }}>Wird geladen...</td></tr>
             ) : userOrderGroups.length === 0 ? (
               <tr>
                 <td colSpan="5">
                   <EmptyState>
                     <FiPackage />
-                    <h3>Aucune commande trouvée</h3>
-                    <p>Essayez de modifier vos filtres</p>
+                    <h3>Keine Bestellungen gefunden</h3>
+                    <p>Versuchen Sie, Ihre Filter zu ändern</p>
                   </EmptyState>
                 </td>
               </tr>
@@ -578,7 +578,7 @@ const Orders = () => {
                 const userInfo = userIndex[group.userId] || {};
                 const primary = userInfo.displayName
                   ? userInfo.displayName
-                  : fullNameFromOrder || userInfo.email || emailFromOrder || group.userId || 'Utilisateur';
+                  : fullNameFromOrder || userInfo.email || emailFromOrder || group.userId || 'Benutzer';
                 const secondarySource = userInfo.email || emailFromOrder;
                 const secondary = secondarySource && secondarySource !== primary ? secondarySource : '';
 
@@ -617,7 +617,7 @@ const Orders = () => {
                     <td style={{ width: '90px' }}>
                       <div style={{ fontSize: '10px', whiteSpace: 'nowrap' }}>
                         {order.createdAt?.seconds 
-                          ? new Date(order.createdAt.seconds * 1000).toLocaleDateString('fr-FR', {
+                          ? new Date(order.createdAt.seconds * 1000).toLocaleDateString('de-DE', {
                               day: '2-digit',
                               month: '2-digit'
                             })
@@ -626,7 +626,7 @@ const Orders = () => {
                       </div>
                       <div style={{ fontSize: '9px', color: '#6b7c6d' }}>
                         {order.createdAt?.seconds 
-                          ? new Date(order.createdAt.seconds * 1000).toLocaleTimeString('fr-FR', {
+                          ? new Date(order.createdAt.seconds * 1000).toLocaleTimeString('de-DE', {
                               hour: '2-digit',
                               minute: '2-digit'
                             })
@@ -640,7 +640,7 @@ const Orders = () => {
                         style={{ padding: '6px 8px', fontSize: '10px' }}
                       >
                         <FiEye size={12} />
-                        <span style={{ display: 'none' }}>Gérer les commandes</span>
+                        <span style={{ display: 'none' }}>Bestellungen verwalten</span>
                       </ActionButton>
                     </td>
                   </tr>
@@ -653,12 +653,12 @@ const Orders = () => {
         {/* Mobile Cards : une carte par utilisateur */}
         <MobileOrdersList>
           {loading ? (
-            <div style={{ textAlign: 'center', padding: '40px' }}>Chargement...</div>
+            <div style={{ textAlign: 'center', padding: '40px' }}>Wird geladen...</div>
           ) : userOrderGroups.length === 0 ? (
             <EmptyState>
               <FiPackage />
-              <h3>Aucune commande trouvée</h3>
-              <p>Essayez de modifier vos filtres</p>
+              <h3>Keine Bestellungen gefunden</h3>
+              <p>Versuchen Sie, Ihre Filter zu ändern</p>
             </EmptyState>
           ) : (
             userOrderGroups.map(group => {
@@ -673,7 +673,7 @@ const Orders = () => {
               const userInfo = userIndex[group.userId] || {};
               const primary = userInfo.displayName
                 ? userInfo.displayName
-                : fullNameFromOrder || userInfo.email || emailFromOrder || group.userId || 'Utilisateur';
+                : fullNameFromOrder || userInfo.email || emailFromOrder || group.userId || 'Benutzer';
               const secondarySource = userInfo.email || emailFromOrder;
               const secondary = secondarySource && secondarySource !== primary ? secondarySource : '';
 
@@ -693,15 +693,15 @@ const Orders = () => {
                     )}
 
                     <MobileCardRow>
-                      <MobileCardLabel>Nombre de commandes</MobileCardLabel>
+                      <MobileCardLabel>Anzahl Bestellungen</MobileCardLabel>
                       <MobileCardValue>{group.orders.length}</MobileCardValue>
                     </MobileCardRow>
 
                     <MobileCardRow>
-                      <MobileCardLabel>Dernière commande</MobileCardLabel>
+                      <MobileCardLabel>Letzte Bestellung</MobileCardLabel>
                       <MobileCardValue>
                         {order.createdAt?.seconds
-                          ? new Date(order.createdAt.seconds * 1000).toLocaleDateString('fr-FR', {
+                          ? new Date(order.createdAt.seconds * 1000).toLocaleDateString('de-DE', {
                               day: '2-digit',
                               month: '2-digit',
                               year: 'numeric',
@@ -718,7 +718,7 @@ const Orders = () => {
                       to={group.userId !== 'unknown' ? `/users/${group.userId}` : `/orders/${order.id}`}
                       style={{ flex: 1, justifyContent: 'center' }}
                     >
-                      <FiEye size={14} /> Gérer les commandes
+                      <FiEye size={14} /> Bestellungen verwalten
                     </ActionButton>
                   </MobileCardActions>
                 </MobileOrderCard>

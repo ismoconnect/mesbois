@@ -1,0 +1,24 @@
+{
+  "cart": {
+    "added_success": "Le produit a été ajouté avec succès à votre panier.",
+    "what_next": "Que souhaitez-vous faire ?",
+    "continue_shopping": "Poursuivre les achats",
+    "view_cart": "Voir le panier"
+  },
+  "category": {
+    "wood": "Bois de chauffage",
+    "accessories": "Accessoires",
+    "briquettes": "Bûches densifiées",
+    "pellets": "Pellets",
+    "stoves": "Poêles"
+  },
+  "product": {
+    "decrease_quantity": "Diminuer la quantité",
+    "increase_quantity": "Augmenter la quantité",
+    "fast_delivery_title": "Livraison rapide",
+    "fast_delivery_desc": "Livraison en 24-48h",
+    "quality_guarantee_title": "Qualité garantie",
+    "quality_guarantee_desc": "Produit 100% certifié",
+    "reviews": "avis"
+  }
+}

@@ -1,0 +1,129 @@
+{
+  "dashboard": {
+    "clientArea": "Espace client",
+    "nav": {
+      "home": "Mon espace client",
+      "orders": "Mes commandes",
+      "billing": "Factures & RIB",
+      "tracking": "Suivi de livraison",
+      "settings": "Paramètres",
+      "shop": "Commander du bois",
+      "logout": "Se déconnecter"
+    },
+    "header": {
+      "openMenu": "Ouvrir le menu",
+      "menu": "Menu",
+      "welcome": "Bienvenue",
+      "shopLabel": "Boutique",
+      "profile": "Mon profil",
+      "profileLabel": "Profil"
+    }
+  },
+  "billing": {
+    "copySuccess": "copié !",
+    "copyError": "Erreur de copie",
+    "badges": {
+      "secureTransfer": "Virement bancaire sécurisé",
+      "forklift": "Livraison avec chariot embarqué",
+      "whatsappSupport": "Support WhatsApp 7j/7"
+    },
+    "title": "Paiement & Facturation",
+    "subtitle": "Retrouvez ici les coordonnées officielles pour régler vos commandes de bois de chauffage et déclencher la livraison.",
+    "notice": {
+      "title": "Validation prioritaire de votre commande :",
+      "text": "Dès que vous effectuez votre virement bancaire avec la référence indiquée, votre bois est réservé et le transporteur vous contacte pour une date de livraison."
+    },
+    "pendingOrders": "Commandes en attente",
+    "loading": "Chargement des informations de paiement…",
+    "empty": {
+      "title": "Toutes vos commandes sont à jour !",
+      "text": "Vous n'avez aucun paiement en attente. Votre bois est soit validé, soit déjà en cours de livraison.",
+      "button": "Commander du bois ou des pellets →"
+    },
+    "whatsappCard": {
+      "title": "Obtenir les coordonnées bancaires",
+      "text": "Pour garantir la sécurité de votre transaction, nos coordonnées bancaires officielles vous sont communiquées exclusivement via notre canal WhatsApp vérifié. Cliquez ci-dessous pour les demander.",
+      "message": {
+        "part1": "Bonjour, je souhaite demander les coordonnées bancaires officielles pour payer ma/mes commande(s) en attente :",
+        "part2": "pour un montant total de",
+        "part3": "Merci !"
+      },
+      "button": "Demander les coordonnées bancaires via WhatsApp"
+    },
+    "orderCard": {
+      "order": "Commande",
+      "items": "Articles",
+      "orderedOn": "Commandé le",
+      "recently": "récemment",
+      "toPay": "À payer :",
+      "track": "Suivre",
+      "details": "Détails"
+    },
+    "steps": {
+      "title": "Comment se déroule la validation et la livraison de votre bois ?",
+      "step1": {
+        "title": "Virement bancaire",
+        "text1": "Effectuez le virement avec la référence",
+        "text2": "depuis votre espace bancaire habituel."
+      },
+      "step2": {
+        "title": "Vérification & Préparation",
+        "text": "Notre équipe confirme la réception du paiement sous 24h et prépare vos palettes."
+      },
+      "step3": {
+        "title": "Livraison avec chariot embarqué",
+        "text": "Le chauffeur dépose vos palettes au plus près de votre espace de stockage (carport, garage, jardin)."
+      }
+    }
+  },
+  "orders": {
+    "status": {
+      "pending": "En attente de virement",
+      "processing": "En préparation (Palette)",
+      "shipped": "En livraison (Chariot)",
+      "delivered": "Livré avec chariot",
+      "cancelled": "Annulé",
+      "default": "Enregistré"
+    },
+    "error": {
+      "fetch": "Erreur lors du chargement des commandes",
+      "title": "Erreur"
+    },
+    "cancel": {
+      "reason": "Annulation par le client",
+      "success": "Commande annulée avec succès",
+      "error": "Erreur lors de l'annulation de la commande",
+      "canceling": "Annulation...",
+      "cancel": "Annuler"
+    },
+    "header": {
+      "woodTag": "Espace client Bois de chauffage",
+      "title": "Mes commandes",
+      "subtitle": "Consultez votre historique et suivez vos livraisons de bois de chauffage."
+    },
+    "loading": "Chargement de vos commandes...",
+    "empty": {
+      "title": "Aucune commande pour le moment",
+      "text": "Trouvez des stères, palettes et pellets avec livraison par chariot embarqué dans la boutique.",
+      "button": "Découvrir la boutique de bois de chauffage"
+    },
+    "orderCard": {
+      "order": "Commande",
+      "dateUnknown": "Date inconnue",
+      "pendingPayment": "Virement en attente : Nos coordonnées bancaires officielles sont disponibles.",
+      "showBankDetails": "Voir les coordonnées bancaires →",
+      "forkliftDelivery": "Livraison avec chariot embarqué incluse",
+      "firewood": "Bois de chauffage",
+      "total": "Total (TTC) :",
+      "viewDetails": "Voir les détails",
+      "trackDelivery": "Suivre la livraison",
+      "leaveReview": "Laisser un avis"
+    },
+    "modal": {
+      "title": "Annuler la commande ?",
+      "text": "Cette action est définitive. Votre commande de bois de chauffage sera marquée comme \"Annulée\".",
+      "no": "Non, retour",
+      "yes": "Oui, annuler"
+    }
+  }
+}

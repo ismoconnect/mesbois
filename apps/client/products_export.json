@@ -1,0 +1,857 @@
+[
+  {
+    "id": "1GvCQNHsSUV2u7N0Iu7n",
+    "image": "https://res.cloudinary.com/dxvbuhadg/image/upload/v1763070039/dixneuf-opus-005-10425n3_1_c6qun6.webp",
+    "category": "poeles",
+    "price": 529.9,
+    "type": "pellets",
+    "stock": 6,
+    "name": "Poêle à granulés NOLA 8 Etanche – Invicta",
+    "description": "Produit de qualité premium dans la catégorie poeles.",
+    "vendor": "COUVIN BOIS SRL",
+    "createdAt": {
+      "seconds": 1765061105,
+      "nanoseconds": 677000000
+    },
+    "updatedAt": {
+      "seconds": 1769078475,
+      "nanoseconds": 708000000
+    }
+  },
+  {
+    "id": "1kH3QPMgGRbgV5IGRhtJ",
+    "category": "pellets",
+    "vendor": "VANLER BOIS SRL",
+    "updatedAt": {
+      "seconds": 1769078469,
+      "nanoseconds": 838000000
+    },
+    "stock": 24,
+    "image": "https://res.cloudinary.com/dxvbuhadg/image/upload/v1769075231/granules-de-bois-vrac-dinplus_yiho8n.png",
+    "price": 340,
+    "createdAt": {
+      "seconds": 1765061105,
+      "nanoseconds": 677000000
+    },
+    "description": "Produit de qualité premium dans la catégorie pellets.",
+    "type": "vrac",
+    "name": "Granulés de bois en vrac soufflé 100% résineux"
+  },
+  {
+    "id": "4xnJQb0VbKjQm2y15VtK",
+    "vendor": "COUVIN BOIS SRL",
+    "stock": 42,
+    "image": "https://res.cloudinary.com/dxvbuhadg/image/upload/v1763069810/z1-high-9g8l3e_yr8fdy.webp",
+    "price": 109.9,
+    "updatedAt": {
+      "seconds": 1769078473,
+      "nanoseconds": 514000000
+    },
+    "type": "stere",
+    "name": "Bois de chauffage (Chêne) 30cm 1.7 stères",
+    "createdAt": {
+      "seconds": 1765061105,
+      "nanoseconds": 677000000
+    },
+    "description": "Produit de qualité premium dans la catégorie bois.",
+    "category": "bois"
+  },
+  {
+    "id": "5vRLYaWDgBS7SZdq2zod",
+    "price": 209.9,
+    "image": "https://res.cloudinary.com/dxvbuhadg/image/upload/v1763067524/pallet_suppliers_lzmgis.jpg",
+    "vendor": "COUVIN BOIS SRL",
+    "name": "Bois de chauffage (Chêne) sur palette (30 cm /- 3 stères)",
+    "updatedAt": {
+      "seconds": 1769078469,
+      "nanoseconds": 165000000
+    },
+    "type": "palette",
+    "createdAt": {
+      "seconds": 1765061105,
+      "nanoseconds": 677000000
+    },
+    "stock": 23,
+    "description": "Produit de qualité premium dans la catégorie bois.",
+    "category": "bois"
+  },
+  {
+    "id": "6w51C7zL5oriNyIWDGgi",
+    "image": "https://res.cloudinary.com/dxvbuhadg/image/upload/v1769077347/C-DAGLAN_rouge-web_pwf3c6.jpg",
+    "category": "poeles",
+    "price": 634.9,
+    "type": "pellets",
+    "vendor": "COUVIN BOIS SRL",
+    "description": "Produit de qualité premium dans la catégorie poeles.",
+    "name": "Poêle à granulés DAGLAN SLIM 9 – Invicta",
+    "stock": 12,
+    "createdAt": {
+      "seconds": 1765061105,
+      "nanoseconds": 677000000
+    },
+    "updatedAt": {
+      "seconds": 1769078473,
+      "nanoseconds": 79000000
+    }
+  },
+  {
+    "id": "70ZOY8ejkJtr4gRi4RbO",
+    "image": "https://res.cloudinary.com/dxvbuhadg/image/upload/v1763071041/buches-compressees-100-feuillus-palette_mkl35v.png",
+    "category": "buches-densifiees",
+    "description": "Produit de qualité premium dans la catégorie buches-densifiees.",
+    "vendor": "VANLER BOIS SRL",
+    "type": "palette",
+    "price": 205,
+    "stock": 45,
+    "name": "PALETTE DE BÛCHES DENSIFIÉES WOODSTOCK",
+    "createdAt": {
+      "seconds": 1765061105,
+      "nanoseconds": 677000000
+    },
+    "updatedAt": {
+      "seconds": 1769078469,
+      "nanoseconds": 622000000
+    }
+  },
+  {
+    "id": "DxReN1VcrkjmtlxsLFfu",
+    "vendor": "VANLER BOIS SRL",
+    "description": "Produit de qualité premium dans la catégorie pellets.",
+    "category": "pellets",
+    "createdAt": {
+      "seconds": 1765061105,
+      "nanoseconds": 677000000
+    },
+    "stock": 16,
+    "type": "sac",
+    "image": "https://res.cloudinary.com/dxvbuhadg/image/upload/v1769075415/2359544624_teiy1c.jpg",
+    "name": "Granulés de bois PAULS Pellets 70 sacs -1050kg",
+    "price": 400,
+    "updatedAt": {
+      "seconds": 1769078475,
+      "nanoseconds": 46000000
+    }
+  },
+  {
+    "id": "HtjwWTBbmKYRP4tSRAIn",
+    "updatedAt": {
+      "seconds": 1769078474,
+      "nanoseconds": 164000000
+    },
+    "createdAt": {
+      "seconds": 1765061105,
+      "nanoseconds": 677000000
+    },
+    "vendor": "VANLER BOIS SRL",
+    "stock": 22,
+    "type": "palette",
+    "image": "https://res.cloudinary.com/dxvbuhadg/image/upload/v1769075538/shopping_s7buam.webp",
+    "name": "3 PALETTES + 1 OFFERTE de GRANULÉS DE BOIS WOODSTOCK",
+    "description": "Produit de qualité premium dans la catégorie pellets.",
+    "price": 1010,
+    "category": "pellets"
+  },
+  {
+    "id": "Ij2RgiYOA7hsOQatl3rN",
+    "type": "palette",
+    "updatedAt": {
+      "seconds": 1769078470,
+      "nanoseconds": 312000000
+    },
+    "createdAt": {
+      "seconds": 1765061105,
+      "nanoseconds": 677000000
+    },
+    "name": "Palette de 2st de bois de chauffage sec séchoirs G1H1 - prêt à l'emploi - mélange feuillus",
+    "image": "https://res.cloudinary.com/dxvbuhadg/image/upload/v1763065460/er_gk9soa.jpg",
+    "price": 248,
+    "category": "bois",
+    "stock": 47,
+    "description": "Produit de qualité premium dans la catégorie bois.",
+    "vendor": "VANLER BOIS SRL"
+  },
+  {
+    "id": "K4jT9akyftIOBVN5Ny1b",
+    "updatedAt": {
+      "seconds": 1769078467,
+      "nanoseconds": 330000000
+    },
+    "createdAt": {
+      "seconds": 1765061105,
+      "nanoseconds": 677000000
+    },
+    "stock": 30,
+    "category": "buches-densifiees",
+    "type": "palette",
+    "description": "Produit de qualité premium dans la catégorie buches-densifiees.",
+    "vendor": "COUVIN BOIS SRL",
+    "image": "https://res.cloudinary.com/dxvbuhadg/image/upload/v1763070687/gg_zgp11a.jpg",
+    "price": 174.9,
+    "name": "Bûches de bois compressées Tecsabuch Crépito : 100% naturelles (Palette de 1T)"
+  },
+  {
+    "id": "LWNA3UFw1wkMHd3Toc4c",
+    "updatedAt": {
+      "seconds": 1769078470,
+      "nanoseconds": 745000000
+    },
+    "createdAt": {
+      "seconds": 1765061105,
+      "nanoseconds": 677000000
+    },
+    "category": "poeles",
+    "type": "pellets",
+    "stock": 7,
+    "description": "Produit de qualité premium dans la catégorie poeles.",
+    "vendor": "COUVIN BOIS SRL",
+    "image": "https://res.cloudinary.com/dxvbuhadg/image/upload/v1769077446/DROSERA_bordeaux_LP_et_LPE_1-e1567696734835_fmauni.jpg",
+    "name": "Poêle à granulés DROSERA IP9 – Invicta",
+    "price": 1189.9
+  },
+  {
+    "id": "NnjCiLEuPyjpceDyXQO0",
+    "price": 204.9,
+    "name": "Briquettes de bois vierges",
+    "updatedAt": {
+      "seconds": 1769078468,
+      "nanoseconds": 258000000
+    },
+    "vendor": "COUVIN BOIS SRL",
+    "image": "https://res.cloudinary.com/dxvbuhadg/image/upload/v1763071538/10885e_ad65f5821b744fb58ca168927e357f4b_mv2_bjzgtp.jpg",
+    "type": "briquettes",
+    "createdAt": {
+      "seconds": 1765061105,
+      "nanoseconds": 677000000
+    },
+    "stock": 72,
+    "description": "Produit de qualité premium dans la catégorie buches-densifiees.",
+    "category": "buches-densifiees"
+  },
+  {
+    "id": "ORl6EKPLt2mSsMWFb0GV",
+    "description": "Produit de qualité premium dans la catégorie pellets.",
+    "category": "pellets",
+    "name": "Naturkraft Pellets DIN+ & ENplus A1 à 15 kg 34 sacs (510 kg)",
+    "type": "sac",
+    "vendor": "COUVIN BOIS SRL",
+    "price": 201.9,
+    "createdAt": {
+      "seconds": 1765061105,
+      "nanoseconds": 677000000
+    },
+    "image": "https://res.cloudinary.com/dxvbuhadg/image/upload/v1769075683/shopping_1_dalgcw.webp",
+    "updatedAt": {
+      "seconds": 1769078474,
+      "nanoseconds": 622000000
+    },
+    "stock": 23
+  },
+  {
+    "id": "S11ZwI4gZgZrKQ77DVGE",
+    "description": "Produit de qualité premium dans la catégorie buches-densifiees.",
+    "name": "Bûches compressées 100% feuillus - Palette de 1040kg",
+    "category": "buches-densifiees",
+    "type": "palette",
+    "vendor": "VANLER BOIS SRL",
+    "price": 430,
+    "createdAt": {
+      "seconds": 1765061105,
+      "nanoseconds": 677000000
+    },
+    "image": "https://res.cloudinary.com/dxvbuhadg/image/upload/v1763071041/buches-compressees-100-feuillus-palette_mkl35v.png",
+    "updatedAt": {
+      "seconds": 1769078469,
+      "nanoseconds": 406000000
+    },
+    "stock": 44
+  },
+  {
+    "id": "SaeSGHJTps6aXWkqMg6D",
+    "type": "palette",
+    "name": "BÛCHES DE NUIT DENSIFIÉES OBIFLAM – PALETTE DE 104 PAQUETS DE 5 BÛCHES",
+    "vendor": "VANLER BOIS SRL",
+    "image": "https://res.cloudinary.com/dxvbuhadg/image/upload/v1763071712/Obiflam-palette-buches-nuit-densifiees-1_eqt1do.jpg",
+    "updatedAt": {
+      "seconds": 1769078472,
+      "nanoseconds": 208000000
+    },
+    "category": "buches-densifiees",
+    "price": 380,
+    "description": "Produit de qualité premium dans la catégorie buches-densifiees.",
+    "stock": 21,
+    "createdAt": {
+      "seconds": 1765061105,
+      "nanoseconds": 677000000
+    }
+  },
+  {
+    "id": "TwucTXrkfwuACzm2apoK",
+    "vendor": "VANLER BOIS SRL",
+    "stock": 12,
+    "createdAt": {
+      "seconds": 1765061105,
+      "nanoseconds": 677000000
+    },
+    "category": "pellets",
+    "updatedAt": {
+      "seconds": 1769078470,
+      "nanoseconds": 961000000
+    },
+    "price": 405,
+    "description": "Produit de qualité premium dans la catégorie pellets.",
+    "image": "https://res.cloudinary.com/dxvbuhadg/image/upload/v1763072420/palette_78_sacs_pellets_premium_crepito_zdplcf.jpg",
+    "name": "Granulés de bois Crépito (palette de 72 sacs - 1080kg)",
+    "type": "palette"
+  },
+  {
+    "id": "U2nMYzKlsY7Tmd66kCqQ",
+    "updatedAt": {
+      "seconds": 1769078468,
+      "nanoseconds": 479000000
+    },
+    "stock": 31,
+    "price": 104.9,
+    "createdAt": {
+      "seconds": 1765061105,
+      "nanoseconds": 677000000
+    },
+    "image": "https://res.cloudinary.com/dxvbuhadg/image/upload/v1763070039/dixneuf-opus-005-10425n3_1_c6qun6.webp",
+    "vendor": "COUVIN BOIS SRL",
+    "category": "accessoires",
+    "name": "OPUS – Rangement à granulés",
+    "type": "accessoire",
+    "description": "Produit de qualité premium dans la catégorie accessoires."
+  },
+  {
+    "id": "V7AG3YkpB1dgDoJ2oPIr",
+    "updatedAt": {
+      "seconds": 1769078473,
+      "nanoseconds": 728000000
+    },
+    "stock": 2,
+    "price": 1324.9,
+    "createdAt": {
+      "seconds": 1765061105,
+      "nanoseconds": 677000000
+    },
+    "image": "https://res.cloudinary.com/dxvbuhadg/image/upload/v1769077538/poele-a-granules-nemesia-ipe9-invicta_lw5f2v.webp",
+    "description": "Produit de qualité premium dans la catégorie poeles.",
+    "vendor": "COUVIN BOIS SRL",
+    "name": "Poêle à granulés NEMESIA IPE9 – Invicta",
+    "category": "poeles",
+    "type": "pellets"
+  },
+  {
+    "id": "XBWIkgJqEfHTtL6tuf4P",
+    "vendor": "VANLER BOIS SRL",
+    "updatedAt": {
+      "seconds": 1769078473,
+      "nanoseconds": 951000000
+    },
+    "stock": 97,
+    "price": 420,
+    "createdAt": {
+      "seconds": 1765061105,
+      "nanoseconds": 677000000
+    },
+    "image": "https://res.cloudinary.com/dxvbuhadg/image/upload/v1763071417/1_o8syuk.jpg",
+    "category": "buches-densifiees",
+    "description": "Produit de qualité premium dans la catégorie buches-densifiees.",
+    "name": "WOODSTOCK BOIS DENSIFIÉ – 2 PALETTES",
+    "type": "palette"
+  },
+  {
+    "id": "XEWkhQhgRgr6tmQN9oBe",
+    "vendor": "VANLER BOIS SRL",
+    "stock": 24,
+    "updatedAt": {
+      "seconds": 1769078467,
+      "nanoseconds": 844000000
+    },
+    "createdAt": {
+      "seconds": 1765061105,
+      "nanoseconds": 677000000
+    },
+    "price": 400,
+    "image": "https://res.cloudinary.com/dxvbuhadg/image/upload/v1769075933/granules-de-bois-isko-sacs-15kg-pellets_bubfpp.png",
+    "category": "pellets",
+    "description": "Produit de qualité premium dans la catégorie pellets.",
+    "name": "Granulés de bois ISKO - Palette de 70 sacs 1050kg",
+    "type": "palette"
+  },
+  {
+    "id": "Xgii2G5JvYU7PsLTHsj1",
+    "createdAt": {
+      "seconds": 1765061105,
+      "nanoseconds": 677000000
+    },
+    "category": "poeles",
+    "updatedAt": {
+      "seconds": 1769078467,
+      "nanoseconds": 571000000
+    },
+    "vendor": "COUVIN BOIS SRL",
+    "description": "Produit de qualité premium dans la catégorie poeles.",
+    "stock": 8,
+    "type": "bois",
+    "name": "Poêle à bois CASSINE – INVICTA Poêle à bois CASSINE – INVICTA",
+    "image": "https://res.cloudinary.com/dxvbuhadg/image/upload/v1769077597/NEW-cassine_poele_a_bois_700_1431451498_vi8nbi.jpg",
+    "price": 254.9
+  },
+  {
+    "id": "YA4EljGbSeGYNOoDA2Tz",
+    "createdAt": {
+      "seconds": 1765061105,
+      "nanoseconds": 677000000
+    },
+    "vendor": "VANLER BOIS SRL",
+    "category": "bois",
+    "updatedAt": {
+      "seconds": 1769078472,
+      "nanoseconds": 407000000
+    },
+    "description": "Produit de qualité premium dans la catégorie bois.",
+    "stock": 41,
+    "type": "palette",
+    "name": "Palette de 1st de bois de chauffage en 33cm spécial poêle de masse - sec séchoirs - prêt à l'emploi - résineux/feuillus",
+    "image": "https://res.cloudinary.com/dxvbuhadg/image/upload/v1763070124/10885e_39325597bad1470986241c5fabc89c07_mv2_rlebku.jpg",
+    "price": 170
+  },
+  {
+    "id": "ZuFfBaULE7wxFviKZEzN",
+    "price": 101.9,
+    "name": "Demi-palette – 25 Cm – Mélange De Bois Durs – Palette 1 M3 – 1.5 Stères",
+    "image": "https://res.cloudinary.com/dxvbuhadg/image/upload/v1763068090/rsz_openhaardhout-gigant-20-1-1-354x531-1_en2bxv.jpg",
+    "vendor": "COUVIN BOIS SRL",
+    "type": "palette",
+    "stock": 34,
+    "createdAt": {
+      "seconds": 1765061105,
+      "nanoseconds": 677000000
+    },
+    "description": "Produit de qualité premium dans la catégorie bois.",
+    "updatedAt": {
+      "seconds": 1769078471,
+      "nanoseconds": 379000000
+    },
+    "category": "bois"
+  },
+  {
+    "id": "a9i83iPwdq9FM2ToX2O7",
+    "type": "ballot",
+    "createdAt": {
+      "seconds": 1765061105,
+      "nanoseconds": 677000000
+    },
+    "updatedAt": {
+      "seconds": 1769078475,
+      "nanoseconds": 486000000
+    },
+    "name": "Ballot de bois de chauffage sec séchoirs - prêt à l'emploi - mélange feuillus",
+    "category": "bois",
+    "image": "https://res.cloudinary.com/dxvbuhadg/image/upload/v1763069635/A-36_uztidq.jpg",
+    "description": "Produit de qualité premium dans la catégorie bois.",
+    "price": 199,
+    "stock": 13,
+    "vendor": "VANLER BOIS SRL"
+  },
+  {
+    "id": "auIvyc6nBkbckvJheM0w",
+    "updatedAt": {
+      "seconds": 1769078474,
+      "nanoseconds": 834000000
+    },
+    "category": "poeles",
+    "createdAt": {
+      "seconds": 1765061105,
+      "nanoseconds": 677000000
+    },
+    "name": "Poêle à bois OVE – Invicta Poêle à bois OVE – Invicta",
+    "stock": 2,
+    "description": "Produit de qualité premium dans la catégorie poeles.",
+    "price": 494.9,
+    "vendor": "COUVIN BOIS SRL",
+    "image": "https://res.cloudinary.com/dxvbuhadg/image/upload/v1769077674/ove_cyclo_poele_ntoejy.jpg",
+    "type": "bois"
+  },
+  {
+    "id": "cJCzYcua4fkTLfyhKJdZ",
+    "updatedAt": {
+      "seconds": 1769078474,
+      "nanoseconds": 388000000
+    },
+    "stock": 17,
+    "description": "Produit de qualité premium dans la catégorie bois.",
+    "price": 149.9,
+    "createdAt": {
+      "seconds": 1765061105,
+      "nanoseconds": 677000000
+    },
+    "image": "https://res.cloudinary.com/dxvbuhadg/image/upload/v1763066535/rt_kr7gzp.jpg",
+    "vendor": "COUVIN BOIS SRL",
+    "category": "bois",
+    "name": "BOIS DE CHAUFFAGE – 40 CM – MÉLANGE DE BOIS DUR – PALETTE 2 M3",
+    "type": "palette"
+  },
+  {
+    "id": "dMw8NCGNlN9bTaTWX1XK",
+    "stock": 3,
+    "updatedAt": {
+      "seconds": 1769078471,
+      "nanoseconds": 797000000
+    },
+    "createdAt": {
+      "seconds": 1765061105,
+      "nanoseconds": 677000000
+    },
+    "price": 424.9,
+    "image": "https://res.cloudinary.com/dxvbuhadg/image/upload/v1769077798/C_P912804-PRESTON-web_jfjb4x.jpg",
+    "vendor": "COUVIN BOIS SRL",
+    "name": "Poêle à bois PRESTON – Invicta",
+    "category": "poeles",
+    "description": "Produit de qualité premium dans la catégorie poeles.",
+    "type": "bois"
+  },
+  {
+    "id": "eDk5aVbpe4l1lruyjLjw",
+    "description": "Produit de qualité premium dans la catégorie poeles.",
+    "createdAt": {
+      "seconds": 1765061105,
+      "nanoseconds": 677000000
+    },
+    "stock": 3,
+    "price": 269.9,
+    "category": "poeles",
+    "updatedAt": {
+      "seconds": 1769078473,
+      "nanoseconds": 312000000
+    },
+    "image": "https://res.cloudinary.com/dxvbuhadg/image/upload/v1769077851/modena_gris_poele_ambiance_qw1nwt.jpg",
+    "name": "Poêle à bois MODENA – INVICTA",
+    "vendor": "COUVIN BOIS SRL",
+    "type": "bois"
+  },
+  {
+    "id": "h6bkiWTwmhNQdN2tggW5",
+    "updatedAt": {
+      "seconds": 1769078476,
+      "nanoseconds": 163000000
+    },
+    "name": "Invicta Poêle à bois CAROLO ZEN – Invicta",
+    "category": "poeles",
+    "type": "bois",
+    "createdAt": {
+      "seconds": 1765061105,
+      "nanoseconds": 677000000
+    },
+    "price": 237.9,
+    "image": "https://res.cloudinary.com/dxvbuhadg/image/upload/v1769077996/C-P616249-CAROLO_ZEN_gqvr4s.jpg",
+    "stock": 3,
+    "vendor": "COUVIN BOIS SRL",
+    "description": "Produit de qualité premium dans la catégorie poeles."
+  },
+  {
+    "id": "haWGqYacqgvIVeEkVrxR",
+    "type": "palette",
+    "updatedAt": {
+      "seconds": 1769078470,
+      "nanoseconds": 74000000
+    },
+    "createdAt": {
+      "seconds": 1765061105,
+      "nanoseconds": 677000000
+    },
+    "vendor": "COUVIN BOIS SRL",
+    "name": "Bûches L.50 cm, palette 1.5 stères",
+    "image": "https://res.cloudinary.com/dxvbuhadg/image/upload/v1763068368/A-51_qo7w9o.jpg",
+    "price": 80.9,
+    "stock": 59,
+    "description": "Produit de qualité premium dans la catégorie bois.",
+    "category": "bois"
+  },
+  {
+    "id": "iNP4BmVghZcgjzIT3h1l",
+    "type": "sac",
+    "updatedAt": {
+      "seconds": 1769078472,
+      "nanoseconds": 637000000
+    },
+    "createdAt": {
+      "seconds": 1765061105,
+      "nanoseconds": 677000000
+    },
+    "name": "Sacs de bûches de bois hominées mélangées au four x4",
+    "vendor": "COUVIN BOIS SRL",
+    "image": "https://res.cloudinary.com/dxvbuhadg/image/upload/v1763070124/10885e_39325597bad1470986241c5fabc89c07_mv2_rlebku.jpg",
+    "price": 127.9,
+    "stock": 33,
+    "description": "Produit de qualité premium dans la catégorie accessoires.",
+    "category": "accessoires"
+  },
+  {
+    "id": "jqABEnQcTGTmuBtYZ3yY",
+    "price": 614.9,
+    "name": "Poêle à granulés air Anita 10 Noir Sannover",
+    "image": "https://res.cloudinary.com/dxvbuhadg/image/upload/v1769078086/poele-a-granules-air-anita-10-kw-sannover_tmvgs5.jpg",
+    "vendor": "My Store",
+    "updatedAt": {
+      "seconds": 1769078476,
+      "nanoseconds": 397000000
+    },
+    "createdAt": {
+      "seconds": 1765061105,
+      "nanoseconds": 677000000
+    },
+    "type": "pellets",
+    "stock": 11,
+    "description": "Produit de qualité premium dans la catégorie poeles.",
+    "category": "poeles"
+  },
+  {
+    "id": "lPjWFxMW4zHoKfH84dvM",
+    "type": "pellets",
+    "category": "poeles",
+    "vendor": "My Store",
+    "name": "Poêle à granulés hydro - 20 kW - pour 380 m³ / 25 L d'eau Chauffage à granulés Poêle à pellets",
+    "image": "https://res.cloudinary.com/dxvbuhadg/image/upload/v1769078160/10062530_photo_1_z9nifd.webp",
+    "createdAt": {
+      "seconds": 1765061105,
+      "nanoseconds": 677000000
+    },
+    "price": 1499.9,
+    "stock": 4,
+    "updatedAt": {
+      "seconds": 1769078476,
+      "nanoseconds": 602000000
+    },
+    "description": "Produit de qualité premium dans la catégorie poeles."
+  },
+  {
+    "id": "mrdELcaZljWUCgq8rr2q",
+    "vendor": "VANLER BOIS SRL",
+    "stock": 16,
+    "image": "https://res.cloudinary.com/dxvbuhadg/image/upload/v1763064410/Houtpellets_kopen__Eenvoudig_pellets_kopen_binnen_1_dag_thuisbezorgd_con1a3.jpg",
+    "price": 290,
+    "description": "Produit de qualité premium dans la catégorie pellets.",
+    "updatedAt": {
+      "seconds": 1769078470,
+      "nanoseconds": 526000000
+    },
+    "type": "palette",
+    "category": "pellets",
+    "name": "GRANULÉS DE BOIS VERTDESHY (PALETTE)",
+    "createdAt": {
+      "seconds": 1765061105,
+      "nanoseconds": 677000000
+    }
+  },
+  {
+    "id": "qbOzwEGLD7LJSkeDxauA",
+    "description": "Produit de qualité premium dans la catégorie accessoires.",
+    "vendor": "COUVIN BOIS SRL",
+    "name": "ADAGIO - Set d'entretien poêle à granulés",
+    "stock": 34,
+    "updatedAt": {
+      "seconds": 1769078472,
+      "nanoseconds": 856000000
+    },
+    "createdAt": {
+      "seconds": 1765061105,
+      "nanoseconds": 677000000
+    },
+    "price": 124,
+    "category": "accessoires",
+    "image": "https://res.cloudinary.com/dxvbuhadg/image/upload/v1763069970/set-entretien-poele-adagio_swhxtm.jpg",
+    "type": "set"
+  },
+  {
+    "id": "rZDlEYtqyaiVjzzQfVk6",
+    "category": "pellets",
+    "name": "GRANULÉS DE BOIS EMBR'AZ (PALETTE 68 sacs)",
+    "stock": 7,
+    "createdAt": {
+      "seconds": 1765061105,
+      "nanoseconds": 677000000
+    },
+    "price": 280,
+    "description": "Produit de qualité premium dans la catégorie pellets.",
+    "updatedAt": {
+      "seconds": 1769078468,
+      "nanoseconds": 931000000
+    },
+    "vendor": "VANLER BOIS SRL",
+    "image": "https://res.cloudinary.com/dxvbuhadg/image/upload/v1769076326/eligobois-ELIGO-embraz-1_cngr3m.webp",
+    "type": "palette"
+  },
+  {
+    "id": "sAf9Fn6Wz3a8I6diitoL",
+    "price": 1384.9,
+    "image": "https://res.cloudinary.com/dxvbuhadg/image/upload/v1769078290/product_11717410b_qbl6sd.jpg",
+    "name": "Poêle à granulés ARENGA IPE9 – Invicta Poêle à granulés ARENGA IPE9 – InvictA",
+    "vendor": "COUVIN BOIS SRL",
+    "type": "pellets",
+    "description": "Produit de qualité premium dans la catégorie poeles.",
+    "stock": 14,
+    "updatedAt": {
+      "seconds": 1769078476,
+      "nanoseconds": 912000000
+    },
+    "createdAt": {
+      "seconds": 1765061105,
+      "nanoseconds": 677000000
+    },
+    "category": "poeles"
+  },
+  {
+    "id": "tUiQykklRGXrErQtt9Q5",
+    "createdAt": {
+      "seconds": 1765061105,
+      "nanoseconds": 677000000
+    },
+    "stock": 26,
+    "updatedAt": {
+      "seconds": 1769078475,
+      "nanoseconds": 267000000
+    },
+    "description": "Produit de qualité premium dans la catégorie bois.",
+    "price": 145,
+    "image": "https://res.cloudinary.com/dxvbuhadg/image/upload/v1763069471/err_brabxv.png",
+    "category": "bois",
+    "vendor": "VANLER BOIS SRL",
+    "name": "Palette de 1st de bois de chauffage sec séchoirs - prêt à l'emploi - mélange feuillus",
+    "type": "palette"
+  },
+  {
+    "id": "vIm56w5tx1QIz77YT4vd",
+    "updatedAt": {
+      "seconds": 1769078468,
+      "nanoseconds": 712000000
+    },
+    "category": "pellets",
+    "createdAt": {
+      "seconds": 1765061105,
+      "nanoseconds": 677000000
+    },
+    "stock": 5,
+    "type": "palette",
+    "description": "Produit de qualité premium dans la catégorie pellets.",
+    "vendor": "VANLER BOIS SRL",
+    "image": "https://res.cloudinary.com/dxvbuhadg/image/upload/v1769076566/Pellets-de-bois-azur-pellets-palette-de-65-sacs-de-15-kg_qdiunw.webp",
+    "name": "AZUR PELLET (PALETTE)",
+    "price": 310
+  },
+  {
+    "id": "wIAKQ3Z5OlZp2ox6jHu0",
+    "price": 267.9,
+    "category": "buches-densifiees",
+    "name": "Palette BOIS COMPRESSÉ LONGUE DURÉE – 6 à 8h de braises",
+    "createdAt": {
+      "seconds": 1765061105,
+      "nanoseconds": 677000000
+    },
+    "image": "https://res.cloudinary.com/dxvbuhadg/image/upload/v1763071230/SBN-REF-Bu%CC%82che-densifie%CC%81e-de-Nuit-Bois-compresse%CC%81-longue-dure%CC%81e-768x768_jhzudv.webp",
+    "updatedAt": {
+      "seconds": 1769078472,
+      "nanoseconds": 9000000
+    },
+    "type": "palette",
+    "description": "Produit de qualité premium dans la catégorie buches-densifiees.",
+    "stock": 63,
+    "vendor": "COUVIN BOIS SRL"
+  },
+  {
+    "id": "x2BPM7eiTq9tmnVAg5Uu",
+    "vendor": "COUVIN BOIS SRL",
+    "stock": 10,
+    "createdAt": {
+      "seconds": 1765061105,
+      "nanoseconds": 677000000
+    },
+    "image": "https://res.cloudinary.com/dxvbuhadg/image/upload/v1769078403/new-ALTARA-2_qfcjzh.jpg",
+    "updatedAt": {
+      "seconds": 1769078477,
+      "nanoseconds": 168000000
+    },
+    "price": 427.9,
+    "type": "bois",
+    "category": "poeles",
+    "description": "Produit de qualité premium dans la catégorie poeles.",
+    "name": "Poêle à bois ALTARA – Invicta"
+  },
+  {
+    "id": "xPY8WMqt9rKwFcPYa4hF",
+    "price": 375,
+    "name": "Granulés de bois SCHÜSTER - Palette de 66 sacs de 15kg",
+    "vendor": "VANLER BOIS SRL",
+    "image": "https://res.cloudinary.com/dxvbuhadg/image/upload/v1769076920/pellets-bioforest_wdyjs0.webp",
+    "type": "palette",
+    "stock": 13,
+    "category": "pellets",
+    "createdAt": {
+      "seconds": 1765061105,
+      "nanoseconds": 677000000
+    },
+    "description": "Produit de qualité premium dans la catégorie pellets.",
+    "updatedAt": {
+      "seconds": 1769078475,
+      "nanoseconds": 946000000
+    }
+  },
+  {
+    "id": "xnbjMy0At54hQOBVm82Q",
+    "name": "Palette de 2st 33cm de bois spécial poêle de masse - sec séchoirs - prêt à l'emploi - résineux/feuillus",
+    "type": "palette",
+    "vendor": "VANLER BOIS SRL",
+    "updatedAt": {
+      "seconds": 1769078471,
+      "nanoseconds": 601000000
+    },
+    "price": 261,
+    "image": "https://res.cloudinary.com/dxvbuhadg/image/upload/v1763069810/z1-high-9g8l3e_yr8fdy.webp",
+    "description": "Produit de qualité premium dans la catégorie bois.",
+    "category": "bois",
+    "stock": 26,
+    "createdAt": {
+      "seconds": 1765061105,
+      "nanoseconds": 677000000
+    }
+  },
+  {
+    "id": "y0DfnhikbVZZOyXizxVq",
+    "stock": 11,
+    "createdAt": {
+      "seconds": 1765061105,
+      "nanoseconds": 677000000
+    },
+    "category": "pellets",
+    "image": "https://res.cloudinary.com/dxvbuhadg/image/upload/v1769076898/granules-de-bois-eo2_sv8pyd.webp",
+    "updatedAt": {
+      "seconds": 1769078471,
+      "nanoseconds": 178000000
+    },
+    "price": 315,
+    "vendor": "VANLER BOIS SRL",
+    "type": "palette",
+    "description": "Produit de qualité premium dans la catégorie pellets.",
+    "name": "GRANULÉS DE BOIS EO2 – PALETTE DE 66 SACS DE 15KG SOIT 990KG EO2®"
+  },
+  {
+    "id": "yOwHZLQzM7ZBgcfSMymH",
+    "stock": 14,
+    "createdAt": {
+      "seconds": 1765061105,
+      "nanoseconds": 677000000
+    },
+    "category": "pellets",
+    "image": "https://res.cloudinary.com/dxvbuhadg/image/upload/v1763072420/palette_78_sacs_pellets_premium_crepito_zdplcf.jpg",
+    "updatedAt": {
+      "seconds": 1769078467,
+      "nanoseconds": 128000000
+    },
+    "price": 300,
+    "type": "sac",
+    "vendor": "VANLER BOIS SRL",
+    "description": "Produit de qualité premium dans la catégorie pellets.",
+    "name": "Pellets Premium Crépito®"
+  }
+]

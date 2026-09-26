@@ -611,7 +611,7 @@ const Cart = () => {
   };
 
   const handleClearCart = () => {
-    if (window.confirm("Êtes-vous sûr de vouloir vider l'ensemble de votre panier ?")) {
+    if (window.confirm(t("cart.clear_cart_confirm", "Êtes-vous sûr de vouloir vider l'ensemble de votre panier ?"))) {
       clearCart();
     }
   };
@@ -690,14 +690,14 @@ const Cart = () => {
             <>
               <FiCheckCircle size={16} />
               <span>
-                Félicitations ! Vous bénéficiez de la <strong>livraison sous abri offerte</strong> !
+                {t('cart.free_shipping_congrats', 'Félicitations ! Vous bénéficiez de la livraison sous abri offerte !')}
               </span>
             </>
           ) : (
             <>
               <FiTruck size={16} />
               <span>
-                Plus que <strong>{amountToFreeShipping.toFixed(2)}&nbsp;€</strong> pour débloquer la <strong>livraison sous abri offerte</strong> !
+                {t('cart.free_shipping_almost1', 'Plus que')} <strong>{amountToFreeShipping.toFixed(2)}&nbsp;€</strong> {t('cart.free_shipping_almost2', 'pour débloquer la livraison sous abri offerte !')}
               </span>
             </>
           )}
@@ -794,15 +794,15 @@ const Cart = () => {
             <BreakdownRow>
               <span>{t("cart.shipping", "Livraison sous abri")}</span>
               {isFreeShipping ? (
-                <span className="free-badge">Offerte</span>
+                <span className="free-badge">{t("cart.free_badge", "Offerte")}</span>
               ) : (
                 <strong>{shipping.toFixed(2)}&nbsp;€</strong>
               )}
             </BreakdownRow>
 
             <BreakdownRow>
-              <span>Délai moyen constaté</span>
-              <strong style={{ fontSize: '12px', color: '#142618' }}>2 à 5 jours ouvrés</strong>
+              <span>{t("cart.delivery_delay", "Délai moyen constaté")}</span>
+              <strong style={{ fontSize: '12px', color: '#142618' }}>{t("cart.delay_time", "2 à 5 jours ouvrés")}</strong>
             </BreakdownRow>
 
             <Divider />
@@ -810,14 +810,14 @@ const Cart = () => {
             <TotalRow>
               <div className="label-group">
                 <span className="label">{t("cart.total", "Total TTC")}</span>
-                <span className="subtext">TVA 20% incluse</span>
+                <span className="subtext">{t("cart.vat_included", "TVA 20% incluse")}</span>
               </div>
               <div className="total-amount">{total.toFixed(2)}&nbsp;€</div>
             </TotalRow>
           </SummaryBreakdown>
 
           <PrimaryCheckoutBtn type="button" onClick={handleProceedToCheckout}>
-            <span>Valider mon panier ({total.toFixed(2)}&nbsp;€)</span>
+            <span>{t("cart.validate_cart", "Valider mon panier")} ({total.toFixed(2)}&nbsp;€)</span>
             <FiArrowRight size={16} />
           </PrimaryCheckoutBtn>
 
@@ -829,15 +829,15 @@ const Cart = () => {
           <TrustList>
             <TrustItem>
               <FiTruck size={15} />
-              <span>Livraison directe sous abri par camion avec chariot tout-terrain</span>
+              <span>{t("cart.trust_delivery", "Livraison directe sous abri par camion avec chariot tout-terrain")}</span>
             </TrustItem>
             <TrustItem>
               <FiShield size={15} />
-              <span>Paiement par virement bancaire sécurisé sans risque</span>
+              <span>{t("cart.trust_payment", "Paiement par virement bancaire sécurisé sans risque")}</span>
             </TrustItem>
             <TrustItem>
               <FiCheckCircle size={15} />
-              <span>Bois fendu haute qualité & granulés certifiés DINplus</span>
+              <span>{t("cart.trust_quality", "Bois fendu haute qualité & granulés certifiés DINplus")}</span>
             </TrustItem>
           </TrustList>
         </SummaryCard>

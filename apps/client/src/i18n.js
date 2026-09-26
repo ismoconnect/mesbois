@@ -23,12 +23,10 @@ i18n
     resources,
     // Langue de secours
     fallbackLng: 'de',
-    
-    // Par défaut on force le FR pour le développement (le développeur)
-    // En production on bloquera sur le DE. 
-    // Pour tester l'affichage final, changez 'fr' en 'de' ici :
-    lng: 'fr', 
-
+    detection: {
+      order: ['localStorage', 'navigator'],
+      caches: ['localStorage'],
+    },
     interpolation: {
       escapeValue: false // React s'occupe de l'échappement
     }

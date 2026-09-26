@@ -1,0 +1,77 @@
+const fs = require('fs');
+
+const replacements = {
+  "'Ihre Daten wurden erfolgreich gespeichert!'": "'Vos données ont été enregistrées avec succès !'",
+  "'Fehler beim Speichern des Profils.'": "\"Erreur lors de l'enregistrement du profil.\"",
+  "'Einstellungen gespeichert!'": "'Paramètres enregistrés !'",
+  "'Fehler beim Aktualisieren der Einstellungen'": "'Erreur lors de la mise à jour des paramètres'",
+  "'Bitte füllen Sie alle Passwortfelder aus.'": "'Veuillez remplir tous les champs de mot de passe.'",
+  "'Das neue Passwort muss mindestens 6 Zeichen lang sein.'": "'Le nouveau mot de passe doit comporter au moins 6 caractères.'",
+  "'Die Passwörter stimmen nicht überein.'": "'Les mots de passe ne correspondent pas.'",
+  "'Passwort erfolgreich geändert!'": "'Mot de passe modifié avec succès !'",
+  "'Altes Passwort falsch oder Fehler aufgetreten.'": '"Ancien mot de passe incorrect ou une erreur est survenue."',
+  "'Sie wurden abgemeldet.'": "'Vous avez été déconnecté.'",
+  "'Fehler beim Abmelden.'": "'Erreur lors de la déconnexion.'",
+  "'Mein Kundenprofil'": "'Mon profil client'",
+  "'Verifiziertes Kundenkonto'": "'Compte client vérifié'",
+  "'Kontakt & Lieferung'": "'Contact & Livraison'",
+  "'Sicherheit & Einstellungen'": "'Sécurité & Paramètres'",
+  "'Kontakt- & Rechnungsinformationen'": "'Informations de contact & facturation'",
+  "'Bearbeiten'": "'Modifier'",
+  "'Vor- & Nachname'": "'Prénom & Nom'",
+  "'Nicht angegeben'": "'Non spécifié'",
+  "'Liefertelefon'": "'Téléphone de livraison'",
+  "'Wird vom Spediteur für das Zeitfenster verwendet'": "'Utilisé par le transporteur pour le créneau horaire'",
+  "'Lieferadresse'": "'Adresse de livraison'",
+  "'Keine Adresse hinterlegt'": "'Aucune adresse renseignée'",
+  "'Zugang für Mitnahmestapler'": "'Accès pour chariot embarqué'",
+  "'Lieferung mit Mitnahmestapler:'": "'Livraison avec chariot embarqué :'",
+  "'Unsere Holzpaletten werden so nah wie möglich an Ihrem Lagerort (Schuppen, Garage, Hof) abgestellt, vorausgesetzt, es ist genügend Platz vorhanden (Mindestdurchfahrtsbreite 2,20m).'": "\"Nos palettes de bois sont déposées au plus près de votre lieu de stockage (cabanon, garage, cour), sous réserve d'un espace suffisant (largeur de passage minimum 2,20m).\"",
+  "'Vollständiger Name / Firma'": "'Nom complet / Société'",
+  "'Z.B.: Max Mustermann'": "'Ex. : Jean Dupont'",
+  "'Telefonnummer'": "'Numéro de téléphone'",
+  "'Z.B.: 0151 12345678'": "'Ex. : 06 12 34 56 78'",
+  "'Adresse (Hausnummer und Straße)'": "'Adresse (numéro et rue)'",
+  "'Z.B.: Eichenstraße 15'": "'Ex. : 15 rue des Chênes'",
+  "'Postleitzahl'": "'Code postal'",
+  "'Z.B.: 10115'": "'Ex. : 75001'",
+  "'Stadt'": "'Ville'",
+  "'Z.B.: Berlin'": "'Ex. : Paris'",
+  "'Land'": "'Pays'",
+  "'Frankreich'": "'France'",
+  "'Belgien'": "'Belgique'",
+  "'Luxemburg'": "'Luxembourg'",
+  "'Schweiz'": "'Suisse'",
+  "'Deutschland'": "'Allemagne'",
+  "'Zugangsdetails für den Mitnahmestapler (optional)'": "\"Détails d'accès pour le chariot embarqué (optionnel)\"",
+  "'Z.B.: Schotterweg, 3m Tor, Lagerung vor der Garage links...'": "'Ex. : Chemin en gravier, portail 3m, stockage devant le garage à gauche...'",
+  "'Abbrechen'": "'Annuler'",
+  "'Speichern...'": "'Enregistrement...'",
+  "'Meine Daten speichern'": "'Enregistrer mes données'",
+  "'Kommunikationseinstellungen'": "'Préférences de communication'",
+  "'Bestell- & Lieferbenachrichtigungen'": "'Notifications de commande & livraison'",
+  "'Erhalten Sie per E-Mail Zahlungsbestätigungen und Lieferbenachrichtigungen des LKWs.'": "'Recevez par e-mail les confirmations de paiement et les notifications de livraison du camion.'",
+  "'Sonderangebote & Heiztipps'": "'Offres promotionnelles & conseils de chauffage'",
+  "'Seien Sie über Preise in der Nebensaison und Tipps zur Holzlagerung informiert.'": "'Soyez informé des prix hors saison et des conseils de stockage du bois.'",
+  "'Kontosicherheit & Passwort'": "'Sécurité du compte & mot de passe'",
+  "'Aktuelles Passwort'": "'Mot de passe actuel'",
+  "'Ihr aktuelles Passwort'": "'Votre mot de passe actuel'",
+  "'Anzeigen/verbergen'": "'Afficher/masquer'",
+  "'Neues Passwort'": "'Nouveau mot de passe'",
+  "'Mindestens 6 Zeichen'": "'Au moins 6 caractères'",
+  "'Neues Passwort bestätigen'": "'Confirmer le nouveau mot de passe'",
+  "'Neues Passwort erneut eingeben'": "'Saisir à nouveau le nouveau mot de passe'",
+  "'Wird aktualisiert...'": "'Mise à jour...'",
+  "'Passwort aktualisieren'": "'Mettre à jour le mot de passe'",
+  "'Aktive Sitzung auf diesem Gerät'": "'Session active sur cet appareil'",
+  "'Von Brennholzkaufen abmelden'": "'Se déconnecter'"
+};
+
+let content = fs.readFileSync('apps/client/src/pages/Profile.js', 'utf8');
+
+for (const [k, v] of Object.entries(replacements)) {
+  content = content.replace(k, v);
+}
+
+fs.writeFileSync('apps/client/src/pages/Profile.js', content, 'utf8');
+console.log('Profile updated');

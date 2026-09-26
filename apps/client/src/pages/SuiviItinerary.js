@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
 import { useParams, Link } from 'react-router-dom';
 import { FiArrowLeft, FiPackage, FiTruck, FiCheckCircle, FiClock, FiMapPin, FiCreditCard, FiXCircle, FiDownload } from 'react-icons/fi';
@@ -195,19 +196,19 @@ const Status = styled.span`
   }};
 `;
 
-function getStatusText(status) {
+function getStatusText(status, t) {
   switch (status) {
-    case 'pending': return 'Commande reçue';
-    case 'awaiting_payment': return 'En attente de paiement';
-    case 'processing': return 'Préparation en cours';
-    case 'shipped': return 'Expédié';
-    case 'delivered': return 'Livré';
-    case 'cancelled': return 'Annulé';
-    default: return 'Inconnu';
+    case 'pending': return t('suiviItinerary.status.pending', 'Commande reçue');
+    case 'awaiting_payment': return t('suiviItinerary.status.awaiting_payment', 'En attente de paiement');
+    case 'processing': return t('suiviItinerary.status.processing', 'En préparation');
+    case 'shipped': return t('suiviItinerary.status.shipped', 'Expédié');
+    case 'delivered': return t('suiviItinerary.status.delivered', 'Livré');
+    case 'cancelled': return t('suiviItinerary.status.cancelled', 'Annulé');
+    default: return t('suiviItinerary.status.unknown', 'Inconnu');
   }
 }
 
-function getTimelineSteps(order) {
+function getTimelineSteps(order, t) {
   const currentStatus = order?.status || 'pending';
   const statusOrder = ['pending', 'awaiting_payment', 'processing', 'shipped', 'delivered'];
   const currentIndex = currentStatus === 'cancelled' ? -1 : statusOrder.indexOf(currentStatus);
@@ -215,38 +216,38 @@ function getTimelineSteps(order) {
   const steps = [
     {
       id: 'pending',
-      title: 'Commande reçue',
+      title: t('suiviItinerary.timeline.pending.title', 'Commande reçue'),
       icon: <FiClock />,
-      description: 'Votre commande a été enregistrée avec succès',
-      date: order?.createdAt ? new Date(order.createdAt.seconds * 1000).toLocaleDateString('fr-FR') : '',
+      description: t('suiviItinerary.timeline.pending.desc', 'Votre commande a été enregistrée avec succès'),
+      date: order?.createdAt ? new Date(order.createdAt.seconds * 1000).toLocaleDateString('de-DE') : '',
     },
     {
       id: 'awaiting_payment',
-      title: 'En attente de votre paiement',
+      title: t('suiviItinerary.timeline.awaiting_payment.title', 'En attente de votre paiement'),
       icon: <FiCreditCard />,
-      description: currentIndex >= 1 ? 'Votre paiement a été validé avec succès' : 'Votre paiement est en cours de validation',
-      date: order?.awaitingPaymentDate ? new Date(order.awaitingPaymentDate.seconds * 1000).toLocaleDateString('fr-FR') : '',
+      description: currentIndex >= 1 ? t('suiviItinerary.timeline.awaiting_payment.desc1', 'Votre paiement a été confirmé avec succès') : t('suiviItinerary.timeline.awaiting_payment.desc2', 'Votre paiement est en cours de vérification'),
+      date: order?.awaitingPaymentDate ? new Date(order.awaitingPaymentDate.seconds * 1000).toLocaleDateString('de-DE') : '',
     },
     {
       id: 'processing',
-      title: 'Préparation en cours',
+      title: t('suiviItinerary.timeline.processing.title', 'En préparation'),
       icon: <FiPackage />,
-      description: currentIndex >= 2 ? 'Préparation en cours car le paiement est reçu' : 'Votre commande sera préparée dès réception du paiement',
-      date: order?.processingDate ? new Date(order.processingDate.seconds * 1000).toLocaleDateString('fr-FR') : '',
+      description: currentIndex >= 2 ? t('suiviItinerary.timeline.processing.desc1', 'En préparation suite à la réception du paiement') : t('suiviItinerary.timeline.processing.desc2', 'Votre commande sera préparée après réception du paiement'),
+      date: order?.processingDate ? new Date(order.processingDate.seconds * 1000).toLocaleDateString('de-DE') : '',
     },
     {
       id: 'shipped',
-      title: 'Expédié',
+      title: t('suiviItinerary.timeline.shipped.title', 'Expédié'),
       icon: <FiTruck />,
-      description: currentIndex >= 3 ? 'Votre commande est en cours de livraison' : 'Votre commande sera expédiée après préparation',
-      date: order?.shippedDate ? new Date(order.shippedDate.seconds * 1000).toLocaleDateString('fr-FR') : '',
+      description: currentIndex >= 3 ? t('suiviItinerary.timeline.shipped.desc1', 'Votre commande est en route vers chez vous') : t('suiviItinerary.timeline.shipped.desc2', 'Votre commande sera expédiée après préparation'),
+      date: order?.shippedDate ? new Date(order.shippedDate.seconds * 1000).toLocaleDateString('de-DE') : '',
     },
     {
       id: 'delivered',
-      title: 'Livré',
+      title: t('suiviItinerary.timeline.delivered.title', 'Livré'),
       icon: <FiCheckCircle />,
-      description: currentIndex >= 4 ? 'Votre commande a été livrée avec succès' : 'Votre commande sera livrée à l\'adresse indiquée',
-      date: order?.deliveredDate ? new Date(order.deliveredDate.seconds * 1000).toLocaleDateString('fr-FR') : '',
+      description: currentIndex >= 4 ? t('suiviItinerary.timeline.delivered.desc1', 'Votre commande a été livrée avec succès') : t('suiviItinerary.timeline.delivered.desc2', 'Votre commande sera livrée à l\'adresse indiquée'),
+      date: order?.deliveredDate ? new Date(order.deliveredDate.seconds * 1000).toLocaleDateString('de-DE') : '',
     },
   ];
 
@@ -254,10 +255,10 @@ function getTimelineSteps(order) {
   if (currentStatus === 'cancelled') {
     steps.push({
       id: 'cancelled',
-      title: 'Commande annulée',
+      title: t('suiviItinerary.timeline.cancelled.title', 'Commande annulée'),
       icon: <FiXCircle />,
-      description: 'Votre commande a été annulée',
-      date: order?.cancelledDate ? new Date(order.cancelledDate.seconds * 1000).toLocaleDateString('fr-FR') : '',
+      description: t('suiviItinerary.timeline.cancelled.desc', 'Votre commande a été annulée'),
+      date: order?.cancelledDate ? new Date(order.cancelledDate.seconds * 1000).toLocaleDateString('de-DE') : '',
       active: true,
       isLast: true,
     });
@@ -278,6 +279,7 @@ function getTimelineSteps(order) {
 }
 
 const SuiviItinerary = () => {
+  const { t } = useTranslation();
   const { id } = useParams();
   const { user } = useAuth();
   const [order, setOrder] = useState(null);
@@ -295,23 +297,23 @@ const SuiviItinerary = () => {
 
     doc.setFontSize(10);
     doc.setTextColor(100);
-    doc.text(`Commande ${formatTransferRef(order.id)}`, 14, 30);
-    doc.text(`Date: ${new Date(order.createdAt.seconds * 1000).toLocaleDateString('fr-FR')}`, 14, 35);
-    doc.text(`Statut: ${getStatusText(order.status)}`, 14, 40);
+    doc.text(`${t('suiviItinerary.pdf.order', 'Commande')} ${formatTransferRef(order.id)}`, 14, 30);
+    doc.text(`${t('suiviItinerary.pdf.date', 'Date:')} ${new Date(order.createdAt.seconds * 1000).toLocaleDateString('fr-FR')}`, 14, 35);
+    doc.text(`${t('suiviItinerary.pdf.status', 'Statut:')} ${getStatusText(order.status, t)}`, 14, 40);
 
     // Adresse de livraison
     let startY = 55;
     if (order.shippingAddress) {
       doc.setFontSize(12);
       doc.setTextColor(0);
-      doc.text('Adresse de livraison:', 14, startY);
+      doc.text(t('suiviItinerary.pdf.shippingAddress', 'Adresse de livraison:'), 14, startY);
       doc.setFontSize(10);
       doc.setTextColor(60);
       doc.text(order.shippingAddress.fullName || '', 14, startY + 6);
       doc.text(order.shippingAddress.address || '', 14, startY + 11);
       doc.text(`${order.shippingAddress.postalCode || ''} ${order.shippingAddress.city || ''}`, 14, startY + 16);
       if (order.shippingAddress.phone) {
-        doc.text(`Tél: ${order.shippingAddress.phone}`, 14, startY + 21);
+        doc.text(`${t('suiviItinerary.pdf.phone', 'Tél:')} ${order.shippingAddress.phone}`, 14, startY + 21);
       }
       startY += 30;
     }
@@ -326,7 +328,7 @@ const SuiviItinerary = () => {
 
     autoTable(doc, {
       startY: startY,
-      head: [['Article', 'Qté', 'Prix Unit.', 'Total']],
+      head: [[t('suiviItinerary.pdf.item', 'Article'), t('suiviItinerary.pdf.qty', 'Qté'), t('suiviItinerary.pdf.unitPrice', 'Prix Unit.'), t('suiviItinerary.pdf.total', 'Total')]],
       body: tableRows,
       theme: 'grid',
       headStyles: { fillColor: [44, 85, 48], textColor: 255 },
@@ -341,19 +343,19 @@ const SuiviItinerary = () => {
     const subTotal = order.total - (order.delivery?.cost || 0);
     const deliveryCost = order.delivery?.cost || 0;
 
-    doc.text(`Sous-total: ${subTotal.toFixed(2)} €`, 140, finalY);
-    doc.text(`Livraison: ${deliveryCost.toFixed(2)} €`, 140, finalY + 5);
+    doc.text(`${t('suiviItinerary.pdf.subtotal', 'Sous-total:')} ${subTotal.toFixed(2)} €`, 140, finalY);
+    doc.text(`${t('suiviItinerary.pdf.delivery', 'Livraison:')} ${deliveryCost.toFixed(2)} €`, 140, finalY + 5);
 
     doc.setFontSize(12);
     doc.setFont(undefined, 'bold');
-    doc.text(`Total: ${order.total.toFixed(2)} €`, 140, finalY + 12);
+    doc.text(`${t('suiviItinerary.pdf.totalAmount', 'Total:')} ${order.total.toFixed(2)} €`, 140, finalY + 12);
 
     // Pied de page
     doc.setFontSize(8);
     doc.setFont(undefined, 'normal');
     doc.setTextColor(150);
-    doc.text('Merci de votre confiance.', 14, finalY + 30);
-    doc.text('Document généré automatiquement par Brennholzkaufen.', 14, finalY + 35);
+    doc.text(t('suiviItinerary.pdf.thanks', 'Merci de votre confiance.'), 14, finalY + 30);
+    doc.text(t('suiviItinerary.pdf.generatedAuto', 'Document généré automatiquement par Brennholzkaufen.'), 14, finalY + 35);
 
     doc.save(`facture_${formatTransferRef(order.id).replace('#', '')}.pdf`);
   };
@@ -373,22 +375,22 @@ const SuiviItinerary = () => {
 
   if (!user) return null;
 
-  const timelineSteps = order ? getTimelineSteps(order) : [];
+  const timelineSteps = order ? getTimelineSteps(order, t) : [];
 
   return (
     <DashboardLayout>
       <Container>
         <BackLink to="/dashboard/suivi">
-          <FiArrowLeft /> Retour au suivi
+          <FiArrowLeft /> {t('suiviItinerary.back', 'Retour au suivi')}
         </BackLink>
 
-        <Title>Détails de suivi</Title>
-        <Subtitle>Suivez en temps réel l'évolution de votre commande</Subtitle>
+        <Title>{t('suiviItinerary.title', 'Détails de l\'expédition')}</Title>
+        <Subtitle>{t('suiviItinerary.subtitle', 'Suivez votre commande en temps réel')}</Subtitle>
 
-        {loading && <Card>Chargement des informations...</Card>}
+        {loading && <Card>{t('suiviItinerary.loading', 'Chargement des informations...')}</Card>}
 
         {!loading && !order && (
-          <Card>Commande introuvable.</Card>
+          <Card>{t('suiviItinerary.notFound', 'Commande introuvable.')}</Card>
         )}
 
         {!loading && order && (
@@ -396,14 +398,14 @@ const SuiviItinerary = () => {
             <Card>
               <OrderInfo>
                 <InfoRow>
-                  <Label>Numéro de commande</Label>
+                  <Label>{t('suiviItinerary.orderNumber', 'Numéro de commande')}</Label>
                   <Value>{formatTransferRef(order.id)}</Value>
                 </InfoRow>
                 <InfoRow>
-                  <Label>Date de commande</Label>
+                  <Label>{t('suiviItinerary.orderDate', 'Date de commande')}</Label>
                   <Value>
                     {order.createdAt
-                      ? new Date(order.createdAt.seconds * 1000).toLocaleDateString('fr-FR', {
+                      ? new Date(order.createdAt.seconds * 1000).toLocaleDateString('de-DE', {
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric'
@@ -412,13 +414,13 @@ const SuiviItinerary = () => {
                   </Value>
                 </InfoRow>
                 <InfoRow>
-                  <Label>Montant total</Label>
+                  <Label>{t('suiviItinerary.totalAmount', 'Montant total')}</Label>
                   <Value>{order.total?.toFixed(2) || '0.00'} €</Value>
                 </InfoRow>
                 <InfoRow>
-                  <Label>Statut</Label>
+                  <Label>{t('suiviItinerary.statusLabel', 'Statut')}</Label>
                   <Status status={order.status}>
-                    {getStatusText(order.status)}
+                    {getStatusText(order.status, t)}
                   </Status>
                 </InfoRow>
               </OrderInfo>
@@ -426,7 +428,7 @@ const SuiviItinerary = () => {
               {order.shippingAddress && (
                 <div>
                   <Label style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
-                    <FiMapPin size={16} /> Adresse de livraison
+                    <FiMapPin size={16} /> {t('suiviItinerary.shippingAddress', 'Adresse de livraison')}
                   </Label>
                   <div style={{ fontSize: '14px', lineHeight: '1.6' }}>
                     <div>{order.shippingAddress.fullName}</div>
@@ -435,7 +437,7 @@ const SuiviItinerary = () => {
                       {order.shippingAddress.postalCode} {order.shippingAddress.city}
                     </div>
                     {order.shippingAddress.phone && (
-                      <div>Tél: {order.shippingAddress.phone}</div>
+                      <div>{t('suiviItinerary.phone', 'Tél :')} {order.shippingAddress.phone}</div>
                     )}
                   </div>
                 </div>
@@ -443,7 +445,7 @@ const SuiviItinerary = () => {
             </Card>
 
             <Card>
-              <h2 style={{ fontSize: '20px', marginBottom: '20px' }}>Historique de livraison</h2>
+              <h2 style={{ fontSize: '20px', marginBottom: '20px' }}>{t('suiviItinerary.timelineTitle', 'Historique de livraison')}</h2>
               <Timeline>
                 {timelineSteps.map((step) => (
                   <TimelineItem key={step.id} active={step.active} isLast={step.isLast}>
@@ -460,7 +462,7 @@ const SuiviItinerary = () => {
               </Timeline>
 
               <DownloadButton onClick={generatePDF}>
-                <FiDownload /> Télécharger le PDF
+                <FiDownload /> {t('suiviItinerary.downloadPdf', 'Télécharger le PDF')}
               </DownloadButton>
             </Card>
           </>
