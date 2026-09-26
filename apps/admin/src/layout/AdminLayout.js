@@ -38,6 +38,10 @@ const HeaderBar = styled.header`
   height: 56px;
   z-index: 100;
   
+  @media (max-width: 767px) {
+    display: none;
+  }
+  
   @media (min-width: 768px) {
     padding: 0 24px;
     height: 64px;
@@ -232,6 +236,11 @@ const Content = styled.main`
   padding-top: calc(56px + 16px);
   padding-left: 16px;
   min-height: 100vh;
+
+  @media (max-width: 767px) {
+    padding: 12px 10px 20px;
+    padding-top: 12px;
+  }
   
   @media (min-width: 768px) {
     padding: 32px 48px;

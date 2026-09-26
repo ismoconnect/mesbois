@@ -9,14 +9,14 @@ const Field = ({ label, value, onChange, type = 'text', textarea }) => (
       <textarea
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        style={{ width: '100%', minHeight: 100, padding: 10, border: '1px solid #e5e7eb', borderRadius: 8 }}
+        style={{ width: '100%', minHeight: 100, padding: 10, border: '1px solid #e5e7eb', borderRadius: 8, boxSizing: 'border-box' }}
       />
     ) : (
       <input
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        style={{ width: '100%', padding: 10, border: '1px solid #e5e7eb', borderRadius: 8 }}
+        style={{ width: '100%', padding: 10, border: '1px solid #e5e7eb', borderRadius: 8, boxSizing: 'border-box' }}
       />
     )}
   </div>
@@ -145,14 +145,77 @@ export default function PaymentSettings() {
   if (loading) return <div style={{ padding: 20 }}>Chargement…</div>;
 
   return (
-    <div style={{ padding: 24, maxWidth: 1100, margin: '0 auto' }}>
+    <div className="payment-settings-page" style={{ padding: 24, maxWidth: 1100, margin: '0 auto', width: '100%' }}>
+      <style>{`
+        @media (max-width: 768px) {
+          .payment-settings-page {
+            padding: 10px 10px 18px !important;
+            max-width: 100% !important;
+          }
+
+          .payment-settings-page h1 {
+            font-size: 22px !important;
+            line-height: 1.25;
+          }
+
+          .payment-settings-page p {
+            font-size: 13px;
+          }
+
+          .payment-settings-toggle {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            padding: 16px 14px !important;
+          }
+
+          .payment-settings-toggle > div:first-child {
+            min-width: 0 !important;
+            width: 100%;
+          }
+
+          .payment-settings-toggle button {
+            width: 100% !important;
+            justify-content: center;
+            white-space: normal !important;
+          }
+
+          .payment-settings-grid {
+            grid-template-columns: 1fr !important;
+            gap: 18px !important;
+          }
+
+          .payment-settings-card {
+            padding: 16px !important;
+            min-width: 0 !important;
+          }
+
+          .payment-settings-card input,
+          .payment-settings-card textarea {
+            font-size: 16px !important;
+          }
+
+          .payment-settings-actions {
+            flex-direction: column !important;
+            align-items: stretch !important;
+          }
+
+          .payment-settings-actions button {
+            width: 100%;
+          }
+
+          .payment-settings-message {
+            width: 100%;
+            text-align: center;
+          }
+        }
+      `}</style>
       <h1 style={{ margin: '0 0 6px 0', color: '#2c5530', fontSize: 26 }}>Moyens de paiement & WhatsApp Pro</h1>
       <p style={{ color: '#6b7280', marginTop: 0, marginBottom: 24 }}>
         Configurez ici la stratégie d'encaissement, les coordonnées RIB publiques ou le mode WhatsApp Pro pour les commandes clients et invités.
       </p>
 
       {/* Switch Toggle pour activer/désactiver le RIB public */}
-      <div style={{
+      <div className="payment-settings-toggle" style={{
         background: rib.enabled ? '#f0fdf4' : '#fffbeb',
         border: `2px solid ${rib.enabled ? '#86efac' : '#fcd34d'}`,
         borderRadius: 14,
@@ -207,9 +270,8 @@ export default function PaymentSettings() {
         </button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 24 }}>
-        {/* Paramètres Virement & WhatsApp */}
-        <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 14, boxShadow: '0 4px 20px rgba(0,0,0,0.05)', padding: 22 }}>
+      <div className="payment-settings-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 24 }}>
+        <div className="payment-settings-card" style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 14, boxShadow: '0 4px 20px rgba(0,0,0,0.05)', padding: 22 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
             <span style={{ fontSize: 20 }}>🏦</span>
             <h2 style={{ margin: 0, color: '#2c5530', fontSize: 18 }}>Coordonnées Bancaires & WhatsApp Pro</h2>
@@ -231,19 +293,9 @@ export default function PaymentSettings() {
           <Field label="IBAN" value={rib.iban} onChange={(v)=> setRib({ ...rib, iban: v })} />
           <Field label="BIC / SWIFT" value={rib.bic} onChange={(v)=> setRib({ ...rib, bic: v })} />
         </div>
-
-        {/* Paramètres PayPal */}
-        <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 14, boxShadow: '0 4px 20px rgba(0,0,0,0.05)', padding: 22 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-            <span style={{ fontSize: 20 }}>💳</span>
-            <h2 style={{ margin: 0, color: '#2c5530', fontSize: 18 }}>Paiement PayPal</h2>
-          </div>
-          <Field label="Email du compte PayPal" value={pp.email} onChange={(v)=> setPp({ ...pp, email: v })} />
-          <Field label="Instructions à afficher aux clients" value={pp.instructions} onChange={(v)=> setPp({ ...pp, instructions: v })} textarea />
-        </div>
       </div>
 
-      <div style={{ marginTop: 24, display: 'flex', alignItems: 'center', gap: 16 }}>
+      <div className="payment-settings-actions" style={{ marginTop: 24, display: 'flex', alignItems: 'center', gap: 16 }}>
         <button 
           onClick={save} 
           disabled={saving} 
@@ -262,7 +314,7 @@ export default function PaymentSettings() {
           {saving ? 'Enregistrement en cours…' : 'Enregistrer les modifications'}
         </button>
         {message && (
-          <span style={{ 
+          <span className="payment-settings-message" style={{ 
             color: message.startsWith('Échec') ? '#b91c1c' : '#15803d', 
             fontWeight: 700,
             fontSize: 14,

@@ -127,12 +127,23 @@ const TableWrapper = styled.div`
   @media (min-width: 768px) {
     border-radius: 16px;
   }
+
+  @media (max-width: 767px) {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    overflow-x: hidden;
+  }
 `;
 
 const Table = styled.table`
   width: 100%;
   border-collapse: collapse;
   min-width: 650px;
+  
+  @media (max-width: 767px) {
+    display: none;
+  }
   
   th, td {
     padding: 14px;
@@ -340,6 +351,90 @@ const EmptyState = styled.div`
   }
 `;
 
+const MobileUsersList = styled.div`
+  display: none;
+
+  @media (max-width: 767px) {
+    display: grid;
+    gap: 12px;
+  }
+`;
+
+const MobileUserCard = styled.div`
+  background: #fff;
+  border: 1px solid #e6eae7;
+  border-radius: 12px;
+  padding: 14px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+`;
+
+const MobileUserHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #f0f0f0;
+`;
+
+const MobileUserMeta = styled.div`
+  min-width: 0;
+  flex: 1;
+  div:first-child {
+    font-weight: 800;
+    color: #2c5530;
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  div:last-child {
+    font-size: 11px;
+    color: #6b7c6d;
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+`;
+
+const MobileUserBody = styled.div`
+  display: grid;
+  gap: 10px;
+`;
+
+const MobileUserRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+`;
+
+const MobileUserLabel = styled.div`
+  font-size: 11px;
+  color: #6b7c6d;
+  font-weight: 600;
+  flex-shrink: 0;
+`;
+
+const MobileUserValue = styled.div`
+  font-size: 12px;
+  color: #1f2d1f;
+  text-align: right;
+  max-width: 62%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`;
+
+const MobileUserActions = styled.div`
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #f0f0f0;
+`;
+
 const Users = () => {
   const { isSuperAdmin } = useAdminAuth();
   const [loading, setLoading] = useState(true);
@@ -504,6 +599,71 @@ const Users = () => {
             )}
           </tbody>
         </Table>
+
+        <MobileUsersList>
+          {loading ? (
+            <MobileUserCard>
+              <div style={{ textAlign: 'center', padding: '12px 0', color: '#6b7c6d' }}>Chargement...</div>
+            </MobileUserCard>
+          ) : filteredUsers.length === 0 ? (
+            <MobileUserCard>
+              <EmptyState>
+                <FiUsers />
+                <h3>Aucun utilisateur trouvé</h3>
+                <p>Essayez de modifier votre recherche</p>
+              </EmptyState>
+            </MobileUserCard>
+          ) : (
+            filteredUsers.map(user => {
+              const initial = (user.displayName || user.email || 'U').charAt(0).toUpperCase();
+              const displayName = user.displayName
+                ? user.displayName
+                : (user.firstName && user.lastName)
+                  ? `${user.firstName} ${user.lastName}`
+                  : (user.email?.split('@')[0] || 'Utilisateur');
+
+              return (
+                <MobileUserCard key={user.id}>
+                  <MobileUserHeader>
+                    <Avatar style={{ width: 34, height: 34, fontSize: 13 }}>{initial}</Avatar>
+                    <MobileUserMeta>
+                      <div>{displayName}</div>
+                      {user.email && <div>{user.email}</div>}
+                    </MobileUserMeta>
+                  </MobileUserHeader>
+
+                  <MobileUserBody>
+                    <MobileUserRow>
+                      <MobileUserLabel>Email</MobileUserLabel>
+                      <MobileUserValue>{user.email || 'N/A'}</MobileUserValue>
+                    </MobileUserRow>
+                    <MobileUserRow>
+                      <MobileUserLabel>Inscription</MobileUserLabel>
+                      <MobileUserValue>
+                        {user.createdAt?.seconds
+                          ? new Date(user.createdAt.seconds * 1000).toLocaleDateString('fr-FR')
+                          : user.initializedAt?.seconds
+                          ? new Date(user.initializedAt.seconds * 1000).toLocaleDateString('fr-FR')
+                          : 'N/A'}
+                      </MobileUserValue>
+                    </MobileUserRow>
+                  </MobileUserBody>
+
+                  <MobileUserActions>
+                    <ActionButton to={`/users/${user.id}`} style={{ flex: 1, justifyContent: 'center' }}>
+                      <FiEye size={14} /> Voir
+                    </ActionButton>
+                    {isSuperAdmin && (
+                      <DeleteButton onClick={() => handleDelete(user.id)} style={{ flex: 1, justifyContent: 'center' }}>
+                        <FiTrash2 size={14} /> Supprimer
+                      </DeleteButton>
+                    )}
+                  </MobileUserActions>
+                </MobileUserCard>
+              );
+            })
+          )}
+        </MobileUsersList>
       </TableWrapper>
     </Page>
   );

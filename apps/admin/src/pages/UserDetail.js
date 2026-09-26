@@ -7,6 +7,15 @@ import { doc, getDoc, setDoc, collection, getDocs, query, where, orderBy } from 
 const Page = styled.div`
   display: grid;
   gap: 16px;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px 10px 24px;
+  box-sizing: border-box;
+
+  @media (min-width: 768px) {
+    padding: 24px 16px 32px;
+  }
 `;
 
 const Card = styled.div`
@@ -14,6 +23,10 @@ const Card = styled.div`
   border: 1px solid #e6eae7;
   border-radius: 12px;
   padding: 16px;
+
+  @media (max-width: 767px) {
+    padding: 14px;
+  }
 `;
 
 const Title = styled.h1`
@@ -21,6 +34,12 @@ const Title = styled.h1`
   color: #2c5530;
   word-break: break-word;
   max-width: 100%;
+  font-size: 24px;
+  line-height: 1.2;
+
+  @media (min-width: 768px) {
+    font-size: 32px;
+  }
 `;
 
 // eslint-disable-next-line no-unused-vars
@@ -59,7 +78,8 @@ const OrderRow = styled.div`
   @media (max-width: 767px) {
     grid-template-columns: 1fr;
     align-items: flex-start;
-    padding: 10px 0;
+    padding: 12px 0;
+    gap: 6px;
   }
 `;
 
@@ -154,8 +174,8 @@ const UserDetail = () => {
           <div style={{ display: 'grid', gap: 8 }}>
             {orders.map(order => (
               <OrderRow key={order.id}>
-                <div style={{ fontWeight: 700, color: '#2c5530' }}>#{order.id.slice(-8)}</div>
-                <div style={{ fontSize: 13, color: '#1f2d1f' }}>
+                <div style={{ fontWeight: 700, color: '#2c5530', overflow: 'hidden', textOverflow: 'ellipsis' }}>#{order.id.slice(-8)}</div>
+                <div style={{ fontSize: 13, color: '#1f2d1f', fontWeight: 600 }}>
                   {order.total?.toFixed(2) || '0.00'} €
                 </div>
                 <div style={{ fontSize: 12, color: '#6b7c6d' }}>
@@ -178,7 +198,9 @@ const UserDetail = () => {
                     fontSize: 12,
                     fontWeight: 700,
                     textDecoration: 'none',
-                    textAlign: 'center'
+                    textAlign: 'center',
+                    minWidth: 0,
+                    width: '100%'
                   }}
                 >
                   Voir la commande

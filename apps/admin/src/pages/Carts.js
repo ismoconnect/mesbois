@@ -34,6 +34,9 @@ const Header = styled.div`
     align-items: center;
     justify-content: space-between;
   }
+  @media (max-width: 767px) {
+    gap: 12px;
+  }
 `;
 
 const Title = styled.h1`
@@ -77,6 +80,12 @@ const StatCard = styled.div`
   display: flex;
   align-items: center;
   gap: 12px;
+  min-height: 88px;
+  
+  @media (max-width: 767px) {
+    padding: 12px 14px;
+    gap: 10px;
+  }
   
   @media (min-width: 768px) {
     border-radius: 12px;
@@ -109,6 +118,10 @@ const StatInfo = styled.div`
     font-size: 20px; 
     font-weight: 800; 
     color: #2c5530;
+    @media (max-width: 767px) {
+      font-size: 28px;
+      line-height: 1.1;
+    }
     @media (min-width: 768px) {
       font-size: 24px;
     }
@@ -116,6 +129,11 @@ const StatInfo = styled.div`
   span { 
     font-size: 12px; 
     color: #6b7c6d;
+    @media (max-width: 767px) {
+      display: block;
+      font-size: 13px;
+      line-height: 1.3;
+    }
     @media (min-width: 768px) {
       font-size: 13px;
     }
@@ -123,21 +141,24 @@ const StatInfo = styled.div`
 `;
 
 const TableWrapper = styled.div`
-  background: #fff;
-  border: 1px solid #e6eae7;
-  border-radius: 12px;
-  overflow-x: auto;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+  background: transparent;
   
   @media (min-width: 768px) {
+    background: #fff;
+    border: 1px solid #e6eae7;
     border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.04);
   }
 `;
 
 const Table = styled.table`
   width: 100%;
   border-collapse: collapse;
-  min-width: 600px;
+  
+  @media (max-width: 767px) {
+    display: none;
+  }
   
   th, td {
     padding: 14px;
@@ -186,6 +207,75 @@ const Table = styled.table`
       font-size: 14px;
     }
   }
+`;
+
+const MobileCartsList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  
+  @media (min-width: 768px) {
+    display: none;
+  }
+`;
+
+const MobileCartCard = styled.div`
+  background: #fff;
+  border: 1px solid #e6eae7;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+`;
+
+const MobileCartHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #f0f0f0;
+`;
+
+const MobileCartId = styled.div`
+  font-size: 14px;
+  font-weight: 800;
+  color: #2c5530;
+`;
+
+const MobileCartBody = styled.div`
+  display: grid;
+  gap: 10px;
+`;
+
+const MobileCartRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+`;
+
+const MobileCartLabel = styled.div`
+  font-size: 12px;
+  color: #6b7c6d;
+  font-weight: 600;
+  flex-shrink: 0;
+`;
+
+const MobileCartValue = styled.div`
+  font-size: 12.5px;
+  color: #1f2d1f;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 65%;
+`;
+
+const MobileCartActions = styled.div`
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid #f0f0f0;
 `;
 
 const Actions = styled.div`
@@ -266,6 +356,11 @@ const DeleteAllButton = styled.button`
   font-size: 13px;
   cursor: pointer;
   transition: all 0.2s;
+  
+  @media (max-width: 767px) {
+    width: 100%;
+    justify-content: center;
+  }
   
   &:hover {
     background: #c0392b;
@@ -620,6 +715,68 @@ const Carts = () => {
             )}
           </tbody>
         </Table>
+
+        <MobileCartsList>
+          {loading ? (
+            <MobileCartCard>
+              <div style={{ textAlign: 'center', padding: '12px 0', color: '#6b7c6d' }}>Chargement...</div>
+            </MobileCartCard>
+          ) : filteredCarts.length === 0 ? (
+            <MobileCartCard>
+              <EmptyState>
+                <FiShoppingCart />
+                <h3>Aucun panier trouvé</h3>
+                <p>Essayez de modifier votre recherche</p>
+              </EmptyState>
+            </MobileCartCard>
+          ) : (
+            filteredCarts.map(cart => (
+              <MobileCartCard key={cart.id}>
+                <MobileCartHeader>
+                  <MobileCartId>#{cart.id.slice(-8)}</MobileCartId>
+                  <Badge>
+                    <FiPackage size={14} />
+                    {cart.items?.length || 0}
+                  </Badge>
+                </MobileCartHeader>
+
+                <MobileCartBody>
+                  <MobileCartRow>
+                    <MobileCartLabel>Articles</MobileCartLabel>
+                    <MobileCartValue>
+                      {cart.items?.length || 0} article{(cart.items?.length || 0) > 1 ? 's' : ''}
+                    </MobileCartValue>
+                  </MobileCartRow>
+                  <MobileCartRow>
+                    <MobileCartLabel>Dernière modif.</MobileCartLabel>
+                    <MobileCartValue>
+                      {cart.updatedAt?.seconds
+                        ? new Date(cart.updatedAt.seconds * 1000).toLocaleDateString('fr-FR', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })
+                        : 'N/A'}
+                    </MobileCartValue>
+                  </MobileCartRow>
+                </MobileCartBody>
+
+                <MobileCartActions>
+                  <ActionButton to={`/carts/${cart.id}`}>
+                    <FiEye size={14} /> Voir
+                  </ActionButton>
+                  {isSuperAdmin && (
+                    <DeleteButton onClick={() => setDeleteModal({ type: 'single', cartId: cart.id })}>
+                      <FiTrash2 size={14} /> Supprimer
+                    </DeleteButton>
+                  )}
+                </MobileCartActions>
+              </MobileCartCard>
+            ))
+          )}
+        </MobileCartsList>
       </TableWrapper>
     </Page>
   );
