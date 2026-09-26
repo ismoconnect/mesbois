@@ -436,11 +436,13 @@
       "ref": "RÉFÉRENCE DE VIREMENT",
       "amount": "MONTANT EXACT À VIRER",
       "copy": "Copier",
-      "multiple_refs_note": "Veuillez utiliser la référence de la commande que vous souhaitez régler."
+      "multiple_refs_note": "Veuillez utiliser la référence de la commande que vous souhaitez régler.",
+      "multiple_amounts_note": "Consultez le montant de votre commande ci-dessous"
     },
     "whatsappProof": "Bonjour, je viens d'effectuer le virement de",
     "whatsappProof2": "Voici la preuve de paiement :",
-    "send_proof": "Envoyer la preuve de virement"
+    "send_proof": "Envoyer la preuve de virement",
+    "whatsappProof_multiple": "Bonjour, je viens d'effectuer un virement pour ma commande. Voici la preuve de paiement :"
   },
   "orders": {
     "status": {

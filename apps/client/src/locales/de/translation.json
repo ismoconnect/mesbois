@@ -443,11 +443,13 @@
       "ref": "VERWENDUNGSZWECK",
       "amount": "GENAUER ÜBERWEISUNGSBETRAG",
       "copy": "Kopieren",
-      "multiple_refs_note": "Bitte verwenden Sie die Bestellnummer der Bestellung, die Sie bezahlen möchten."
+      "multiple_refs_note": "Bitte verwenden Sie die Bestellnummer der Bestellung, die Sie bezahlen möchten.",
+      "multiple_amounts_note": "Bitte entnehmen Sie den Betrag Ihrer Bestellung weiter unten"
     },
     "whatsappProof": "Guten Tag, ich habe soeben die Überweisung in Höhe von",
     "whatsappProof2": "getätigt. Hier ist der Zahlungsbeleg:",
-    "send_proof": "Zahlungsbeleg senden"
+    "send_proof": "Zahlungsbeleg senden",
+    "whatsappProof_multiple": "Guten Tag, ich habe soeben eine Überweisung für meine Bestellung getätigt. Hier ist der Zahlungsbeleg:"
   },
   "orders": {
     "status": {
