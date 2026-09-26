@@ -1100,7 +1100,7 @@ Merci !`;
           }} />
           <style>{`@keyframes bt-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
           <div style={{ color: '#2c5530', fontWeight: 800, fontSize: 16 }}>
-            Validation de votre commande…
+            {t('bank_transfer.validating_order', 'Validation de votre commande…')}
           </div>
           <div style={{ color: '#6b7280', fontSize: 13, marginTop: 4 }}>
             {t('bank_transfer.securing_details', 'Sécurisation des coordonnées et synchronisation logistique')}
