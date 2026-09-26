@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
-import { collection, getDocs, orderBy, query, deleteDoc, doc } from 'firebase/firestore';
+import { collection, getDocs, orderBy, query, deleteDoc, doc, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase/config';
-import { FiShoppingCart, FiPackage, FiCalendar, FiEye, FiTrash2 } from 'react-icons/fi';
+import { FiShoppingCart, FiPackage, FiCalendar, FiEye, FiTrash2, FiAlertTriangle } from 'react-icons/fi';
 
 const Page = styled.div`
   max-width: 1200px;
@@ -28,6 +28,11 @@ const Header = styled.div`
   display: flex;
   flex-direction: column;
   gap: 8px;
+  @media (min-width: 768px) {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
 `;
 
 const Title = styled.h1`
@@ -224,9 +229,9 @@ const DeleteButton = styled.button`
   gap: 4px;
   padding: 6px 10px;
   border-radius: 6px;
-  background: #fff;
-  color: #e74c3c;
-  border: 1px solid #e74c3c;
+  background: #fff0f0;
+  color: #c0392b;
+  border: 1px solid #f5c6c6;
   font-weight: 600;
   font-size: 11px;
   cursor: pointer;
@@ -241,9 +246,113 @@ const DeleteButton = styled.button`
   }
   
   &:hover {
-    background: #e74c3c;
+    background: #c0392b;
     color: #fff;
+    border-color: #c0392b;
   }
+`;
+
+const DeleteAllButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 8px;
+  background: #fff0f0;
+  color: #c0392b;
+  border: 1.5px solid #f5c6c6;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  
+  &:hover {
+    background: #c0392b;
+    color: #fff;
+    border-color: #c0392b;
+  }
+`;
+
+const ModalOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+`;
+
+const ModalBox = styled.div`
+  background: #fff;
+  border-radius: 16px;
+  padding: 28px 24px 24px;
+  max-width: 420px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+  display: grid;
+  gap: 16px;
+`;
+
+const ModalIcon = styled.div`
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #fff0f0;
+  color: #c0392b;
+  display: grid;
+  place-items: center;
+  margin: 0 auto;
+`;
+
+const ModalTitle = styled.h3`
+  margin: 0;
+  text-align: center;
+  color: #1f2d1f;
+  font-size: 18px;
+`;
+
+const ModalText = styled.p`
+  margin: 0;
+  text-align: center;
+  color: #6b7c6d;
+  font-size: 14px;
+  line-height: 1.5;
+`;
+
+const ModalActions = styled.div`
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 4px;
+`;
+
+const BtnCancel = styled.button`
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: 1.5px solid #e0e0e0;
+  background: #fff;
+  color: #444;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+  &:hover { background: #f5f5f5; }
+`;
+
+const BtnConfirmDelete = styled.button`
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: none;
+  background: #c0392b;
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+  &:hover { background: #a93226; }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
 `;
 
 const Badge = styled.span`
@@ -290,6 +399,9 @@ const Carts = () => {
     withItems: 0,
     totalItems: 0
   });
+  // Modal : type = 'single' | 'all'  |  cartId pour 'single'
+  const [deleteModal, setDeleteModal] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchCarts = async () => {
     setLoading(true);
@@ -299,7 +411,6 @@ const Carts = () => {
       const snap = await getDocs(qr);
       const cartsList = snap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-      // Trier les paniers par UID (id) pour les regrouper par utilisateur
       const sortedByUser = [...cartsList].sort((a, b) => {
         const ua = (a.id || '').toString();
         const ub = (b.id || '').toString();
@@ -308,7 +419,6 @@ const Carts = () => {
       
       setCarts(sortedByUser);
       
-      // Calculer stats
       const withItems = cartsList.filter(c => c.items?.length > 0).length;
       const totalItems = cartsList.reduce((sum, c) => sum + (c.items?.length || 0), 0);
       
@@ -328,29 +438,86 @@ const Carts = () => {
     fetchCarts();
   }, []);
 
-  const handleDelete = async (cartId) => {
-    if (!window.confirm('Êtes-vous sûr de vouloir supprimer ce panier ?')) {
-      return;
-    }
-    
+  // Supprimer un seul panier
+  const handleDeleteSingle = async (cartId) => {
+    setDeleting(true);
     try {
       await deleteDoc(doc(db, 'carts', cartId));
+      setDeleteModal(null);
       fetchCarts();
     } catch (error) {
-      alert('Erreur lors de la suppression');
+      console.error('Erreur suppression panier:', error);
+    } finally {
+      setDeleting(false);
     }
   };
 
-  // Pas de filtre de recherche côté UI, on affiche tous les paniers
+  // Supprimer tous les paniers
+  const handleDeleteAll = async () => {
+    setDeleting(true);
+    try {
+      const batch = writeBatch(db);
+      carts.forEach(cart => {
+        batch.delete(doc(db, 'carts', cart.id));
+      });
+      await batch.commit();
+      setDeleteModal(null);
+      fetchCarts();
+    } catch (error) {
+      console.error('Erreur suppression totale:', error);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const filteredCarts = carts;
 
   return (
     <Page>
+      {/* Modal de confirmation */}
+      {deleteModal && (
+        <ModalOverlay onClick={() => !deleting && setDeleteModal(null)}>
+          <ModalBox onClick={e => e.stopPropagation()}>
+            <ModalIcon><FiAlertTriangle size={26} /></ModalIcon>
+            <ModalTitle>
+              {deleteModal.type === 'all'
+                ? 'Supprimer tous les paniers ?'
+                : 'Supprimer ce panier ?'}
+            </ModalTitle>
+            <ModalText>
+              {deleteModal.type === 'all'
+                ? `Cette action supprimera définitivement les ${carts.length} panier${carts.length > 1 ? 's' : ''} de la base de données. Cette action est irréversible.`
+                : 'Ce panier sera définitivement supprimé de la base de données. Cette action est irréversible.'}
+            </ModalText>
+            <ModalActions>
+              <BtnCancel onClick={() => setDeleteModal(null)} disabled={deleting}>
+                Annuler
+              </BtnCancel>
+              <BtnConfirmDelete
+                disabled={deleting}
+                onClick={() =>
+                  deleteModal.type === 'all'
+                    ? handleDeleteAll()
+                    : handleDeleteSingle(deleteModal.cartId)
+                }
+              >
+                {deleting ? 'Suppression...' : 'Confirmer la suppression'}
+              </BtnConfirmDelete>
+            </ModalActions>
+          </ModalBox>
+        </ModalOverlay>
+      )}
+
       <Header>
         <div>
           <Title>Gestion des Paniers</Title>
           <Subtitle>{carts.length} panier{carts.length > 1 ? 's' : ''} actif{carts.length > 1 ? 's' : ''}</Subtitle>
         </div>
+        {carts.length > 0 && (
+          <DeleteAllButton onClick={() => setDeleteModal({ type: 'all' })}>
+            <FiTrash2 size={16} /> Tout supprimer
+          </DeleteAllButton>
+        )}
       </Header>
 
       <StatsBar>
@@ -437,7 +604,7 @@ const Carts = () => {
                       <ActionButton to={`/carts/${cart.id}`}>
                         <FiEye size={14} /> Voir
                       </ActionButton>
-                      <DeleteButton onClick={() => handleDelete(cart.id)}>
+                      <DeleteButton onClick={() => setDeleteModal({ type: 'single', cartId: cart.id })}>
                         <FiTrash2 size={14} /> Supprimer
                       </DeleteButton>
                     </Actions>

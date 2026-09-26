@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
-import { collection, getDocs, orderBy, query, deleteDoc, doc } from 'firebase/firestore';
+import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { FiUsers, FiMail, FiCalendar, FiEye, FiTrash2, FiUserCheck, FiShoppingBag } from 'react-icons/fi';
 
@@ -303,6 +303,7 @@ const DeleteButton = styled.button`
   }
 `;
 
+// eslint-disable-next-line no-unused-vars
 const Badge = styled.span`
   display: inline-flex;
   align-items: center;

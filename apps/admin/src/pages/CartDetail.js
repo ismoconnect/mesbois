@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { useParams, useNavigate } from 'react-router-dom';
 import { db } from '../firebase/config';
-import { doc, getDoc, setDoc, deleteField } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 const Page = styled.div`display: grid; gap: 16px;`;
 const Title = styled.h1`margin: 0; color: #2c5530;`;

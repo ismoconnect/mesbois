@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 import { FiShoppingBag, FiUsers, FiDollarSign, FiPackage, FiArrowRight, FiTrendingUp } from 'react-icons/fi';
-import { collection, getDocs, query, where } from 'firebase/firestore';
-import { db, auth } from '../firebase/config';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../firebase/config';
 
 const Page = styled.div`
   max-width: 1400px;

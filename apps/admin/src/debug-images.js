@@ -6,11 +6,10 @@ export const debugImages = async () => {
     const homeRef = doc(db, 'settings', 'home');
     const homeSnap = await getDoc(homeRef);
     if (homeSnap.exists()) {
-      const data = homeSnap.data();
-      // no-op
+      homeSnap.data();
     }
     
-    const productsSnap = await getDocs(collection(db, 'products'));
+    await getDocs(collection(db, 'products'));
     
   } catch (error) {
     

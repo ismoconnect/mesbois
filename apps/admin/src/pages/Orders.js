@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
-import { collection, getDocs, orderBy, query, updateDoc, doc } from 'firebase/firestore';
+import { collection, getDocs, orderBy, query, updateDoc, doc, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase/config';
-import { FiPackage, FiClock, FiTruck, FiCheckCircle, FiXCircle, FiEye } from 'react-icons/fi';
+import { FiPackage, FiClock, FiTruck, FiCheckCircle, FiXCircle, FiEye, FiTrash2, FiAlertTriangle } from 'react-icons/fi';
 
 const Page = styled.div`
   max-width: 1400px;
@@ -203,6 +203,7 @@ const Table = styled.table`
   }
 `;
 
+// eslint-disable-next-line no-unused-vars
 const Badge = styled.span`
   display: inline-flex;
   align-items: center;
@@ -253,6 +254,7 @@ const ActionButton = styled(Link)`
   }
 `;
 
+// eslint-disable-next-line no-unused-vars
 const StatusSelect = styled.select`
   padding: 3px 4px;
   border: 1px solid #e0e0e0;
@@ -273,6 +275,139 @@ const StatusSelect = styled.select`
     outline: none;
     border-color: #2c5530;
   }
+`;
+
+const DeleteButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: #fff0f0;
+  color: #c0392b;
+  border: 1px solid #f5c6c6;
+  font-weight: 600;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
+  
+  @media (min-width: 768px) {
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    gap: 6px;
+  }
+  
+  &:hover {
+    background: #c0392b;
+    color: #fff;
+    border-color: #c0392b;
+  }
+`;
+
+const DeleteAllButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 8px;
+  background: #fff0f0;
+  color: #c0392b;
+  border: 1.5px solid #f5c6c6;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  
+  &:hover {
+    background: #c0392b;
+    color: #fff;
+    border-color: #c0392b;
+  }
+`;
+
+const ModalOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+`;
+
+const ModalBox = styled.div`
+  background: #fff;
+  border-radius: 16px;
+  padding: 28px 24px 24px;
+  max-width: 420px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+  display: grid;
+  gap: 16px;
+`;
+
+const ModalIcon = styled.div`
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #fff0f0;
+  color: #c0392b;
+  display: grid;
+  place-items: center;
+  margin: 0 auto;
+`;
+
+const ModalTitle = styled.h3`
+  margin: 0;
+  text-align: center;
+  color: #1f2d1f;
+  font-size: 18px;
+`;
+
+const ModalText = styled.p`
+  margin: 0;
+  text-align: center;
+  color: #6b7c6d;
+  font-size: 14px;
+  line-height: 1.5;
+`;
+
+const ModalActions = styled.div`
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 4px;
+`;
+
+const BtnCancel = styled.button`
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: 1.5px solid #e0e0e0;
+  background: #fff;
+  color: #444;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+  &:hover { background: #f5f5f5; }
+`;
+
+const BtnConfirmDelete = styled.button`
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: none;
+  background: #c0392b;
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+  &:hover { background: #a93226; }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
 `;
 
 const EmptyState = styled.div`
@@ -368,6 +503,7 @@ const MobileCardActions = styled.div`
   border-top: 1px solid #f0f0f0;
 `;
 
+// eslint-disable-next-line no-unused-vars
 function getStatusIcon(status) {
   switch (status) {
     case 'delivered': return <FiCheckCircle size={14} />;
@@ -378,14 +514,15 @@ function getStatusIcon(status) {
   }
 }
 
+// eslint-disable-next-line no-unused-vars
 function getStatusText(status) {
   switch (status) {
-    case 'pending': return 'Wartend';
-    case 'processing': return 'In Bearbeitung';
-    case 'shipped': return 'Versendet';
-    case 'delivered': return 'Geliefert';
-    case 'cancelled': return 'Storniert';
-    default: return status || 'Unbekannt';
+    case 'pending': return 'En attente';
+    case 'processing': return 'En cours';
+    case 'shipped': return 'Expédiée';
+    case 'delivered': return 'Livrée';
+    case 'cancelled': return 'Annulée';
+    default: return status || 'Inconnu';
   }
 }
 
@@ -399,6 +536,10 @@ const Orders = () => {
     processing: 0,
     delivered: 0
   });
+  // Modal de confirmation de suppression
+  // type: 'group' | 'all'  |  group: objet groupe utilisateur
+  const [deleteModal, setDeleteModal] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -457,6 +598,7 @@ const Orders = () => {
     loadUsers();
   }, []);
 
+  // eslint-disable-next-line no-unused-vars
   const handleStatusChange = async (orderId, newStatus) => {
     try {
       await updateDoc(doc(db, 'orders', orderId), {
@@ -467,6 +609,42 @@ const Orders = () => {
       fetchOrders();
     } catch (error) {
       
+    }
+  };
+
+  // Supprimer toutes les commandes d'un groupe (utilisateur)
+  const handleDeleteGroup = async (group) => {
+    setDeleting(true);
+    try {
+      const batch = writeBatch(db);
+      group.orders.forEach(order => {
+        batch.delete(doc(db, 'orders', order.id));
+      });
+      await batch.commit();
+      setDeleteModal(null);
+      fetchOrders();
+    } catch (error) {
+      console.error('Erreur suppression:', error);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  // Supprimer TOUTES les commandes
+  const handleDeleteAll = async () => {
+    setDeleting(true);
+    try {
+      const batch = writeBatch(db);
+      orders.forEach(order => {
+        batch.delete(doc(db, 'orders', order.id));
+      });
+      await batch.commit();
+      setDeleteModal(null);
+      fetchOrders();
+    } catch (error) {
+      console.error('Erreur suppression totale:', error);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -502,11 +680,46 @@ const Orders = () => {
 
   return (
     <Page>
+      {/* Modal de confirmation */}
+      {deleteModal && (
+        <ModalOverlay onClick={() => !deleting && setDeleteModal(null)}>
+          <ModalBox onClick={e => e.stopPropagation()}>
+            <ModalIcon><FiAlertTriangle size={26} /></ModalIcon>
+            <ModalTitle>
+              {deleteModal.type === 'all'
+                ? 'Supprimer toutes les commandes ?'
+                : `Supprimer les commandes de ce client ?`}
+            </ModalTitle>
+            <ModalText>
+              {deleteModal.type === 'all'
+                ? `Cette action supprimera définitivement les ${orders.length} commande${orders.length > 1 ? 's' : ''} de la base de données. Cette action est irréversible.`
+                : `Cette action supprimera définitivement ${deleteModal.group.orders.length} commande${deleteModal.group.orders.length > 1 ? 's' : ''} pour ce client. Cette action est irréversible.`}
+            </ModalText>
+            <ModalActions>
+              <BtnCancel onClick={() => setDeleteModal(null)} disabled={deleting}>
+                Annuler
+              </BtnCancel>
+              <BtnConfirmDelete
+                disabled={deleting}
+                onClick={() => deleteModal.type === 'all' ? handleDeleteAll() : handleDeleteGroup(deleteModal.group)}
+              >
+                {deleting ? 'Suppression...' : 'Confirmer la suppression'}
+              </BtnConfirmDelete>
+            </ModalActions>
+          </ModalBox>
+        </ModalOverlay>
+      )}
+
       <Header>
         <div>
-          <Title>Bestellverwaltung</Title>
-          <Subtitle>{orders.length} Bestellung{orders.length > 1 ? 'en' : ''} insgesamt</Subtitle>
+          <Title>Gestion des commandes</Title>
+          <Subtitle>{orders.length} commande{orders.length > 1 ? 's' : ''} au total</Subtitle>
         </div>
+        {orders.length > 0 && (
+          <DeleteAllButton onClick={() => setDeleteModal({ type: 'all' })}>
+            <FiTrash2 size={16} /> Tout supprimer
+          </DeleteAllButton>
+        )}
       </Header>
 
       <StatsBar>
@@ -514,28 +727,28 @@ const Orders = () => {
           <StatIcon bg="#eaf4ee" color="#2c5530"><FiPackage size={20} /></StatIcon>
           <StatInfo>
             <h4>{stats.total}</h4>
-            <span>Gesamt</span>
+            <span>Total</span>
           </StatInfo>
         </StatCard>
         <StatCard>
           <StatIcon bg="#fff3cd" color="#856404"><FiClock size={20} /></StatIcon>
           <StatInfo>
             <h4>{stats.pending}</h4>
-            <span>Ausstehend</span>
+            <span>En attente</span>
           </StatInfo>
         </StatCard>
         <StatCard>
           <StatIcon bg="#d1ecf1" color="#0c5460"><FiTruck size={20} /></StatIcon>
           <StatInfo>
             <h4>{stats.processing}</h4>
-            <span>In Bearbeitung</span>
+            <span>En cours</span>
           </StatInfo>
         </StatCard>
         <StatCard>
           <StatIcon bg="#d4edda" color="#155724"><FiCheckCircle size={20} /></StatIcon>
           <StatInfo>
             <h4>{stats.delivered}</h4>
-            <span>Geliefert</span>
+            <span>Livrées</span>
           </StatInfo>
         </StatCard>
       </StatsBar>
@@ -545,23 +758,23 @@ const Orders = () => {
         <Table>
           <thead>
             <tr>
-              <th>Kunde</th>
-              <th>Anzahl Bestellungen</th>
-              <th>Gesamtbetrag</th>
-              <th>Letzte Bestellung</th>
-              <th>Aktionen</th>
+              <th>Client</th>
+              <th>Nb commandes</th>
+              <th>Montant total</th>
+              <th>Dernière commande</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan="5" style={{ textAlign: 'center', padding: '40px' }}>Wird geladen...</td></tr>
+              <tr><td colSpan="5" style={{ textAlign: 'center', padding: '40px' }}>Chargement...</td></tr>
             ) : userOrderGroups.length === 0 ? (
               <tr>
                 <td colSpan="5">
                   <EmptyState>
                     <FiPackage />
-                    <h3>Keine Bestellungen gefunden</h3>
-                    <p>Versuchen Sie, Ihre Filter zu ändern</p>
+                    <h3>Aucune commande trouvée</h3>
+                    <p>Essayez de modifier vos filtres</p>
                   </EmptyState>
                 </td>
               </tr>
@@ -578,7 +791,7 @@ const Orders = () => {
                 const userInfo = userIndex[group.userId] || {};
                 const primary = userInfo.displayName
                   ? userInfo.displayName
-                  : fullNameFromOrder || userInfo.email || emailFromOrder || group.userId || 'Benutzer';
+                  : fullNameFromOrder || userInfo.email || emailFromOrder || group.userId || 'Utilisateur';
                 const secondarySource = userInfo.email || emailFromOrder;
                 const secondary = secondarySource && secondarySource !== primary ? secondarySource : '';
 
@@ -617,7 +830,7 @@ const Orders = () => {
                     <td style={{ width: '90px' }}>
                       <div style={{ fontSize: '10px', whiteSpace: 'nowrap' }}>
                         {order.createdAt?.seconds 
-                          ? new Date(order.createdAt.seconds * 1000).toLocaleDateString('de-DE', {
+                          ? new Date(order.createdAt.seconds * 1000).toLocaleDateString('fr-FR', {
                               day: '2-digit',
                               month: '2-digit'
                             })
@@ -626,7 +839,7 @@ const Orders = () => {
                       </div>
                       <div style={{ fontSize: '9px', color: '#6b7c6d' }}>
                         {order.createdAt?.seconds 
-                          ? new Date(order.createdAt.seconds * 1000).toLocaleTimeString('de-DE', {
+                          ? new Date(order.createdAt.seconds * 1000).toLocaleTimeString('fr-FR', {
                               hour: '2-digit',
                               minute: '2-digit'
                             })
@@ -634,14 +847,23 @@ const Orders = () => {
                         }
                       </div>
                     </td>
-                    <td style={{ width: '80px', padding: '8px 4px' }}>
-                      <ActionButton
-                        to={group.userId !== 'unknown' ? `/users/${group.userId}` : `/orders/${order.id}`}
-                        style={{ padding: '6px 8px', fontSize: '10px' }}
-                      >
-                        <FiEye size={12} />
-                        <span style={{ display: 'none' }}>Bestellungen verwalten</span>
-                      </ActionButton>
+                    <td style={{ width: '120px', padding: '8px 4px' }}>
+                      <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                        <ActionButton
+                          to={group.userId !== 'unknown' ? `/users/${group.userId}` : `/orders/${order.id}`}
+                          style={{ padding: '6px 8px', fontSize: '10px' }}
+                        >
+                          <FiEye size={12} />
+                          <span style={{ display: 'none' }}>Gérer les commandes</span>
+                        </ActionButton>
+                        <DeleteButton
+                          onClick={() => setDeleteModal({ type: 'group', group })}
+                          style={{ padding: '6px 8px', fontSize: '10px' }}
+                          title="Supprimer les commandes de ce client"
+                        >
+                          <FiTrash2 size={12} />
+                        </DeleteButton>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -653,12 +875,12 @@ const Orders = () => {
         {/* Mobile Cards : une carte par utilisateur */}
         <MobileOrdersList>
           {loading ? (
-            <div style={{ textAlign: 'center', padding: '40px' }}>Wird geladen...</div>
+            <div style={{ textAlign: 'center', padding: '40px' }}>Chargement...</div>
           ) : userOrderGroups.length === 0 ? (
             <EmptyState>
               <FiPackage />
-              <h3>Keine Bestellungen gefunden</h3>
-              <p>Versuchen Sie, Ihre Filter zu ändern</p>
+              <h3>Aucune commande trouvée</h3>
+              <p>Essayez de modifier vos filtres</p>
             </EmptyState>
           ) : (
             userOrderGroups.map(group => {
@@ -673,7 +895,7 @@ const Orders = () => {
               const userInfo = userIndex[group.userId] || {};
               const primary = userInfo.displayName
                 ? userInfo.displayName
-                : fullNameFromOrder || userInfo.email || emailFromOrder || group.userId || 'Benutzer';
+                : fullNameFromOrder || userInfo.email || emailFromOrder || group.userId || 'Utilisateur';
               const secondarySource = userInfo.email || emailFromOrder;
               const secondary = secondarySource && secondarySource !== primary ? secondarySource : '';
 
@@ -693,15 +915,15 @@ const Orders = () => {
                     )}
 
                     <MobileCardRow>
-                      <MobileCardLabel>Anzahl Bestellungen</MobileCardLabel>
+                      <MobileCardLabel>Nb commandes</MobileCardLabel>
                       <MobileCardValue>{group.orders.length}</MobileCardValue>
                     </MobileCardRow>
 
                     <MobileCardRow>
-                      <MobileCardLabel>Letzte Bestellung</MobileCardLabel>
+                      <MobileCardLabel>Dernière commande</MobileCardLabel>
                       <MobileCardValue>
                         {order.createdAt?.seconds
-                          ? new Date(order.createdAt.seconds * 1000).toLocaleDateString('de-DE', {
+                          ? new Date(order.createdAt.seconds * 1000).toLocaleDateString('fr-FR', {
                               day: '2-digit',
                               month: '2-digit',
                               year: 'numeric',
@@ -718,8 +940,14 @@ const Orders = () => {
                       to={group.userId !== 'unknown' ? `/users/${group.userId}` : `/orders/${order.id}`}
                       style={{ flex: 1, justifyContent: 'center' }}
                     >
-                      <FiEye size={14} /> Bestellungen verwalten
+                      <FiEye size={14} /> Voir
                     </ActionButton>
+                    <DeleteButton
+                      onClick={() => setDeleteModal({ type: 'group', group })}
+                      style={{ padding: '8px 14px' }}
+                    >
+                      <FiTrash2 size={14} /> Supprimer
+                    </DeleteButton>
                   </MobileCardActions>
                 </MobileOrderCard>
               );

@@ -23,6 +23,7 @@ const Title = styled.h1`
   max-width: 100%;
 `;
 
+// eslint-disable-next-line no-unused-vars
 const Grid2 = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -30,16 +31,19 @@ const Grid2 = styled.div`
   @media (max-width: 900px) { grid-template-columns: 1fr; }
 `;
 
+// eslint-disable-next-line no-unused-vars
 const Field = styled.div`
   display: grid; gap: 6px;
   label { font-weight: 700; color: #2c5530; font-size: 13px; }
   input { border: 2px solid #e0e0e0; border-radius: 8px; padding: 10px 12px; }
 `;
 
+// eslint-disable-next-line no-unused-vars
 const Actions = styled.div`
   margin-top: 12px; display: flex; gap: 10px;
 `;
 
+// eslint-disable-next-line no-unused-vars
 const Button = styled.button`
   background: #2c5530; color: #fff; border: none; padding: 10px 14px; border-radius: 8px; font-weight: 800; cursor: pointer;
 `;
@@ -62,6 +66,7 @@ const OrderRow = styled.div`
 const UserDetail = () => {
   const { uid } = useParams();
   const [data, setData] = useState(null);
+  // eslint-disable-next-line no-unused-vars
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [orders, setOrders] = useState([]);
@@ -100,8 +105,10 @@ const UserDetail = () => {
     loadOrders();
   }, [uid]);
 
+  // eslint-disable-next-line no-unused-vars
   const updateField = (k, v) => setData(s => ({ ...s, [k]: v }));
 
+  // eslint-disable-next-line no-unused-vars
   const save = async () => {
     try {
       setSaving(true);
