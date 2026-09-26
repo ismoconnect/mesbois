@@ -3,7 +3,20 @@ import styled from 'styled-components';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase/config';
-import { FiHome, FiUsers, FiShoppingBag, FiShoppingCart, FiImage, FiLogOut, FiMenu, FiX, FiSettings } from 'react-icons/fi';
+import { useAdminAuth } from '../contexts/AdminAuthContext';
+import { 
+  FiHome, 
+  FiUsers, 
+  FiShoppingBag, 
+  FiShoppingCart, 
+  FiImage, 
+  FiLogOut, 
+  FiMenu, 
+  FiX, 
+  FiSettings, 
+  FiShield,
+  FiCreditCard
+} from 'react-icons/fi';
 
 const Shell = styled.div`
   min-height: 100vh;
@@ -63,6 +76,45 @@ const HeaderActions = styled.div`
   gap: 12px;
 `;
 
+const UserPill = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f5f7f6;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid #e2e8e4;
+  font-size: 12px;
+  font-weight: 600;
+  color: #2b3b2d;
+
+  @media (max-width: 600px) {
+    display: none;
+  }
+`;
+
+const RoleTag = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+
+  ${props => props.$super ? `
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fde68a;
+  ` : `
+    background: #eaf4ee;
+    color: #2c5530;
+    border: 1px solid #cfe3d4;
+  `}
+`;
+
 const MenuButton = styled.button`
   display: none;
   align-items: center;
@@ -118,7 +170,7 @@ const Overlay = styled.div`
 `;
 
 const NavSection = styled.div`
-  margin-bottom: 32px;
+  margin-bottom: 28px;
   
   h3 {
     font-size: 11px;
@@ -127,7 +179,20 @@ const NavSection = styled.div`
     color: #6b7c6d;
     margin: 0 0 12px 12px;
     font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
   }
+`;
+
+const SectionBadge = styled.span`
+  font-size: 9px;
+  font-weight: 800;
+  background: #fef3c7;
+  color: #92400e;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
 `;
 
 const NavItem = styled(Link)`
@@ -220,6 +285,7 @@ const AdminLayout = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { user, adminDoc, isSuperAdmin } = useAdminAuth();
   
   const onLogout = async () => {
     try {
@@ -243,6 +309,16 @@ const AdminLayout = ({ children }) => {
           </Brand>
         </div>
         <HeaderActions>
+          {user && (
+            <UserPill>
+              <span>{adminDoc?.displayName || user.email}</span>
+              <RoleTag $super={isSuperAdmin}>
+                {isSuperAdmin ? <FiShield size={10} /> : null}
+                {isSuperAdmin ? 'Super Admin' : 'Admin'}
+              </RoleTag>
+            </UserPill>
+          )}
+
           <LogoutBtn onClick={onLogout}>
             <FiLogOut size={18} />
             <span>Déconnexion</span>
@@ -253,6 +329,7 @@ const AdminLayout = ({ children }) => {
       <Overlay $open={sidebarOpen} onClick={() => setSidebarOpen(false)} />
       
       <Sidebar $open={sidebarOpen}>
+        {/* SECTION 1: NAVIGATION STANDARD (ACCESSIBLE À TOUS LES ADMINS) */}
         <NavSection>
           <h3>Navigation</h3>
           <NavItem 
@@ -287,35 +364,49 @@ const AdminLayout = ({ children }) => {
             <FiShoppingCart size={18} />
             Paniers
           </NavItem>
-        </NavSection>
-        
-        <NavSection>
-          <h3>Contenu</h3>
-          <NavItem 
-            to="/images" 
-            $active={isActive('/images')}
-            onClick={() => setSidebarOpen(false)}
-          >
-            <FiImage size={18} />
-            Gestion des images
-          </NavItem>
-          <NavItem 
-            to="/settings/site" 
-            $active={isActive('/settings/site')}
-            onClick={() => setSidebarOpen(false)}
-          >
-            <FiSettings size={18} />
-            Paramètres du site
-          </NavItem>
           <NavItem 
             to="/settings/payments" 
             $active={isActive('/settings/payments')}
             onClick={() => setSidebarOpen(false)}
           >
-            <FiSettings size={18} />
+            <FiCreditCard size={18} />
             Moyens de paiement
           </NavItem>
         </NavSection>
+        
+        {/* SECTION 2: CONTENU & ADMINISTRATION (VISIBLE UNIQUEMENT POUR LE SUPER ADMIN) */}
+        {isSuperAdmin && (
+          <NavSection>
+            <h3>
+              <span>Contenu</span>
+              <SectionBadge>Super Admin</SectionBadge>
+            </h3>
+            <NavItem 
+              to="/images" 
+              $active={isActive('/images')}
+              onClick={() => setSidebarOpen(false)}
+            >
+              <FiImage size={18} />
+              Gestion des images
+            </NavItem>
+            <NavItem 
+              to="/settings/site" 
+              $active={isActive('/settings/site')}
+              onClick={() => setSidebarOpen(false)}
+            >
+              <FiSettings size={18} />
+              Paramètres du site
+            </NavItem>
+            <NavItem 
+              to="/admins" 
+              $active={isActive('/admins')}
+              onClick={() => setSidebarOpen(false)}
+            >
+              <FiShield size={18} />
+              Gestion des admins
+            </NavItem>
+          </NavSection>
+        )}
       </Sidebar>
       
       <Content>

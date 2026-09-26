@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase/config';
+import { useAdminAuth } from '../contexts/AdminAuthContext';
 import { FiUsers, FiMail, FiCalendar, FiEye, FiTrash2, FiUserCheck, FiShoppingBag } from 'react-icons/fi';
 
 const Page = styled.div`
@@ -340,6 +341,7 @@ const EmptyState = styled.div`
 `;
 
 const Users = () => {
+  const { isSuperAdmin } = useAdminAuth();
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState([]);
   const [stats, setStats] = useState({
@@ -375,6 +377,7 @@ const Users = () => {
   }, []);
 
   const handleDelete = async (userId) => {
+    if (!isSuperAdmin) return;
     if (!window.confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?')) {
       return;
     }
@@ -488,9 +491,11 @@ const Users = () => {
                         <ActionButton to={`/users/${user.id}`}>
                           <FiEye size={14} /> Voir
                         </ActionButton>
-                        <DeleteButton onClick={() => handleDelete(user.id)}>
-                          <FiTrash2 size={14} /> Supprimer
-                        </DeleteButton>
+                        {isSuperAdmin && (
+                          <DeleteButton onClick={() => handleDelete(user.id)}>
+                            <FiTrash2 size={14} /> Supprimer
+                          </DeleteButton>
+                        )}
                       </Actions>
                     </td>
                   </tr>

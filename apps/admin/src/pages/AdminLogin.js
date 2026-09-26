@@ -149,17 +149,68 @@ const AdminLogin = () => {
           { merge: true }
         );
       } catch {}
-      // Check admin gate
+      // Check admin gate by UID or by Email
       try {
-        const ref = doc(db, 'admins', cred.user.uid);
-        const snap = await getDoc(ref);
-        const data = snap.exists() ? snap.data() : null;
+        const cleanEmail = (cred.user.email || email).toLowerCase().trim();
+        const uidRef = doc(db, 'admins', cred.user.uid);
+        const emailDocId = `admin_${cleanEmail.replace(/[^a-zA-Z0-9]/g, '_')}`;
+        const emailRef = doc(db, 'admins', emailDocId);
+
+        let data = null;
+
+        // 1. Check by UID
+        try {
+          const snap = await getDoc(uidRef);
+          if (snap.exists()) data = snap.data();
+        } catch {}
+
+        // 2. Check by email doc ID
+        if (!data) {
+          try {
+            const emailSnap = await getDoc(emailRef);
+            if (emailSnap.exists()) {
+              data = emailSnap.data();
+              // Auto-migrate to UID doc
+              try {
+                await setDoc(uidRef, {
+                  ...data,
+                  uid: cred.user.uid,
+                  email: cleanEmail,
+                  migratedAt: new Date()
+                }, { merge: true });
+              } catch {}
+            }
+          } catch {}
+        }
+
+        // 3. Check by query on email
+        if (!data) {
+          try {
+            const { collection: col, query: qry, where: whr, getDocs: gDocs } = await import('firebase/firestore');
+            const q = qry(col(db, 'admins'), whr('email', '==', cleanEmail));
+            const qSnap = await gDocs(q);
+            if (!qSnap.empty) {
+              data = qSnap.docs[0].data();
+              try {
+                await setDoc(uidRef, {
+                  ...data,
+                  uid: cred.user.uid,
+                  email: cleanEmail
+                }, { merge: true });
+              } catch {}
+            }
+          } catch {}
+        }
+
         if (data && (data.enabled === undefined || data.enabled === true)) {
           navigate('/dashboard', { replace: true });
+        } else if (data && data.enabled === false) {
+          setError("Votre compte administrateur a été désactivé");
         } else {
           setError("Votre compte n'est pas autorisé pour l'administration");
         }
-      } catch {
+      } catch (checkErr) {
+        console.error('Admin check error:', checkErr);
         setError('Vérification des droits impossible');
       }
     } catch (e) {

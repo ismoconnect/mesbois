@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 import { collection, getDocs, orderBy, query, updateDoc, doc, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase/config';
+import { useAdminAuth } from '../contexts/AdminAuthContext';
 import { FiPackage, FiClock, FiTruck, FiCheckCircle, FiXCircle, FiEye, FiTrash2, FiAlertTriangle } from 'react-icons/fi';
 
 const Page = styled.div`
@@ -527,6 +528,7 @@ function getStatusText(status) {
 }
 
 const Orders = () => {
+  const { isSuperAdmin } = useAdminAuth();
   const [loading, setLoading] = useState(true);
   const [orders, setOrders] = useState([]);
   const [userIndex, setUserIndex] = useState({}); // index des utilisateurs par uid
@@ -715,7 +717,7 @@ const Orders = () => {
           <Title>Gestion des commandes</Title>
           <Subtitle>{orders.length} commande{orders.length > 1 ? 's' : ''} au total</Subtitle>
         </div>
-        {orders.length > 0 && (
+        {isSuperAdmin && orders.length > 0 && (
           <DeleteAllButton onClick={() => setDeleteModal({ type: 'all' })}>
             <FiTrash2 size={16} /> Tout supprimer
           </DeleteAllButton>
@@ -856,13 +858,15 @@ const Orders = () => {
                           <FiEye size={12} />
                           <span style={{ display: 'none' }}>Gérer les commandes</span>
                         </ActionButton>
-                        <DeleteButton
-                          onClick={() => setDeleteModal({ type: 'group', group })}
-                          style={{ padding: '6px 8px', fontSize: '10px' }}
-                          title="Supprimer les commandes de ce client"
-                        >
-                          <FiTrash2 size={12} />
-                        </DeleteButton>
+                        {isSuperAdmin && (
+                          <DeleteButton
+                            onClick={() => setDeleteModal({ type: 'group', group })}
+                            style={{ padding: '6px 8px', fontSize: '10px' }}
+                            title="Supprimer les commandes de ce client"
+                          >
+                            <FiTrash2 size={12} />
+                          </DeleteButton>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -942,12 +946,14 @@ const Orders = () => {
                     >
                       <FiEye size={14} /> Voir
                     </ActionButton>
-                    <DeleteButton
-                      onClick={() => setDeleteModal({ type: 'group', group })}
-                      style={{ padding: '8px 14px' }}
-                    >
-                      <FiTrash2 size={14} /> Supprimer
-                    </DeleteButton>
+                    {isSuperAdmin && (
+                      <DeleteButton
+                        onClick={() => setDeleteModal({ type: 'group', group })}
+                        style={{ padding: '8px 14px' }}
+                      >
+                        <FiTrash2 size={14} /> Supprimer
+                      </DeleteButton>
+                    )}
                   </MobileCardActions>
                 </MobileOrderCard>
               );

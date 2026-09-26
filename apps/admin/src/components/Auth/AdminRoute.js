@@ -1,43 +1,27 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { auth, db } from '../../firebase/config';
-import { doc, getDoc } from 'firebase/firestore';
-import { onAuthStateChanged } from 'firebase/auth';
+import { useAdminAuth } from '../../contexts/AdminAuthContext';
 
-const AdminRoute = ({ children }) => {
+const AdminRoute = ({ children, requireSuperAdmin = false }) => {
   const location = useLocation();
-  const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState(null);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const { user, isAdmin, isSuperAdmin, loading } = useAdminAuth();
 
-  useEffect(() => {
-    // Écouter l'état d'authentification pour que la session
-    // soit restaurée correctement après un rafraîchissement.
-    const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
-      setUser(fbUser || null);
-
-      if (!fbUser) {
-        setIsAdmin(false);
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const ref = doc(db, 'admins', fbUser.uid);
-        const snap = await getDoc(ref);
-        const data = snap.exists() ? snap.data() : null;
-        setIsAdmin(!!data && (data.enabled === undefined || data.enabled === true));
-      } catch (e) {
-        setIsAdmin(false);
-      } finally {
-        setLoading(false);
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
-
-  if (loading) return null;
+  if (loading) {
+    return (
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100vh',
+        background: '#f5f7f6',
+        color: '#2c5530',
+        fontWeight: 600,
+        fontSize: 15
+      }}>
+        Chargement de l'espace administrateur...
+      </div>
+    );
+  }
 
   if (!user) {
     return <Navigate to="/login" replace state={{ from: location }} />;
@@ -45,6 +29,10 @@ const AdminRoute = ({ children }) => {
 
   if (!isAdmin) {
     return <Navigate to="/login" replace />;
+  }
+
+  if (requireSuperAdmin && !isSuperAdmin) {
+    return <Navigate to="/dashboard" replace />;
   }
 
   return children;

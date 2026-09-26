@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 import { collection, getDocs, orderBy, query, deleteDoc, doc, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase/config';
+import { useAdminAuth } from '../contexts/AdminAuthContext';
 import { FiShoppingCart, FiPackage, FiCalendar, FiEye, FiTrash2, FiAlertTriangle } from 'react-icons/fi';
 
 const Page = styled.div`
@@ -392,6 +393,7 @@ const EmptyState = styled.div`
 `;
 
 const Carts = () => {
+  const { isSuperAdmin } = useAdminAuth();
   const [carts, setCarts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -440,6 +442,7 @@ const Carts = () => {
 
   // Supprimer un seul panier
   const handleDeleteSingle = async (cartId) => {
+    if (!isSuperAdmin) return;
     setDeleting(true);
     try {
       await deleteDoc(doc(db, 'carts', cartId));
@@ -454,6 +457,7 @@ const Carts = () => {
 
   // Supprimer tous les paniers
   const handleDeleteAll = async () => {
+    if (!isSuperAdmin) return;
     setDeleting(true);
     try {
       const batch = writeBatch(db);
@@ -513,7 +517,7 @@ const Carts = () => {
           <Title>Gestion des Paniers</Title>
           <Subtitle>{carts.length} panier{carts.length > 1 ? 's' : ''} actif{carts.length > 1 ? 's' : ''}</Subtitle>
         </div>
-        {carts.length > 0 && (
+        {isSuperAdmin && carts.length > 0 && (
           <DeleteAllButton onClick={() => setDeleteModal({ type: 'all' })}>
             <FiTrash2 size={16} /> Tout supprimer
           </DeleteAllButton>
@@ -604,9 +608,11 @@ const Carts = () => {
                       <ActionButton to={`/carts/${cart.id}`}>
                         <FiEye size={14} /> Voir
                       </ActionButton>
-                      <DeleteButton onClick={() => setDeleteModal({ type: 'single', cartId: cart.id })}>
-                        <FiTrash2 size={14} /> Supprimer
-                      </DeleteButton>
+                      {isSuperAdmin && (
+                        <DeleteButton onClick={() => setDeleteModal({ type: 'single', cartId: cart.id })}>
+                          <FiTrash2 size={14} /> Supprimer
+                        </DeleteButton>
+                      )}
                     </Actions>
                   </td>
                 </tr>
