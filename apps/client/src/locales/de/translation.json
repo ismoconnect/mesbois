@@ -442,8 +442,12 @@
       "bic": "BIC / SWIFT CODE",
       "ref": "VERWENDUNGSZWECK",
       "amount": "GENAUER ÜBERWEISUNGSBETRAG",
-      "copy": "Kopieren"
-    }
+      "copy": "Kopieren",
+      "multiple_refs_note": "Bitte verwenden Sie die Bestellnummer der Bestellung, die Sie bezahlen möchten."
+    },
+    "whatsappProof": "Guten Tag, ich habe soeben die Überweisung in Höhe von",
+    "whatsappProof2": "getätigt. Hier ist der Zahlungsbeleg:",
+    "send_proof": "Zahlungsbeleg senden"
   },
   "orders": {
     "status": {

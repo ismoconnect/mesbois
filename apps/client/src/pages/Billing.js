@@ -590,7 +590,8 @@ const Billing = () => {
                   const totalAmount = orders.reduce((sum, o) => sum + (o.total || 0), 0).toFixed(2);
                   const refs = orders.length > 1 ? t('billing.ribBlock.multiple_refs', 'Indiquez l\'une de vos références au choix') : (orders.length === 1 ? formatTransferRef(orders[0].id) : '');
                   return (
-                    <RIBGrid>
+                      <>
+                      <RIBGrid>
                       <RIBField>
                         <span className="label">{t('billing.ribBlock.holder', 'Titulaire du compte')}</span>
                         <div className="val-row">
@@ -605,13 +606,19 @@ const Billing = () => {
                           <CopyButton onClick={() => copy(rib.bank, t('billing.ribBlock.bank', 'Banque'))}><FaCopy /> {t('billing.ribBlock.copy', 'Copier')}</CopyButton>
                         </div>
                       </RIBField>
-                      <RIBField className="highlight">
-                        <span className="label">{t('billing.ribBlock.iban', 'IBAN Officiel')}</span>
-                        <div className="val-row">
-                          <span className="val-text" style={{ letterSpacing: '0.5px' }}>{rib.iban}</span>
-                          <CopyButton onClick={() => copy(rib.iban, 'IBAN')}><FaCopy /> {t('billing.ribBlock.copy', 'Copier')}</CopyButton>
-                        </div>
-                      </RIBField>
+                                              <RIBField className="highlight">
+                          <span className="label">{t('billing.ribBlock.ref', 'Référence de virement')}</span>
+                          <div className="val-row">
+                            <span className="val-text" style={{ color: '#166534', fontSize: orders.length > 1 ? '13px' : '15px', fontWeight: orders.length > 1 ? 500 : 800 }}>
+                              {orders.length > 1 ? t('billing.ribBlock.multiple_refs_note', 'Veuillez utiliser la référence de la commande que vous souhaitez régler.') : formatTransferRef(orders[0].id)}
+                            </span>
+                            {orders.length === 1 && (
+                              <CopyButton onClick={() => copy(formatTransferRef(orders[0].id), t('billing.ribBlock.ref', 'Référence'))}>
+                                <FaCopy /> {t('billing.ribBlock.copy', 'Copier')}
+                              </CopyButton>
+                            )}
+                          </div>
+                        </RIBField>
                       <RIBField>
                         <span className="label">{t('billing.ribBlock.bic', 'Code BIC / SWIFT')}</span>
                         <div className="val-row">
@@ -633,9 +640,23 @@ const Billing = () => {
                           <CopyButton onClick={() => copy(totalAmount, t('billing.ribBlock.amount', 'Montant'))}><FaCopy /> {t('billing.ribBlock.copy', 'Copier')}</CopyButton>
                         </div>
                       </RIBField>
-                    </RIBGrid>
-                  );
-                })()}
+                    
+                      </RIBGrid>
+                      <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'center' }}>
+                        <WhatsAppBtn
+                          className="big-btn"
+                          style={{ padding: '12px 20px', fontSize: '14px', borderRadius: '8px' }}
+                          href={`https://wa.me/${whatsappNum}?text=${encodeURIComponent(t('billing.whatsappProof', 'Bonjour, je viens d\'effectuer le virement de') + ' ' + totalAmount + ' €. ' + t('billing.whatsappProof2', 'Voici la preuve de paiement :'))}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <FaWhatsapp size={20} />
+                          {t('billing.send_proof', 'Envoyer la preuve de virement')}
+                        </WhatsAppBtn>
+                      </div>
+                      </>
+                    );
+                  })()}
               </div>
             )}
 

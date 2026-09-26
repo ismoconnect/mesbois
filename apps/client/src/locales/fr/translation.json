@@ -435,8 +435,12 @@
       "bic": "CODE BIC / SWIFT",
       "ref": "RÉFÉRENCE DE VIREMENT",
       "amount": "MONTANT EXACT À VIRER",
-      "copy": "Copier"
-    }
+      "copy": "Copier",
+      "multiple_refs_note": "Veuillez utiliser la référence de la commande que vous souhaitez régler."
+    },
+    "whatsappProof": "Bonjour, je viens d'effectuer le virement de",
+    "whatsappProof2": "Voici la preuve de paiement :",
+    "send_proof": "Envoyer la preuve de virement"
   },
   "orders": {
     "status": {
