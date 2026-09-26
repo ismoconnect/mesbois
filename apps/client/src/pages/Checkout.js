@@ -22,7 +22,7 @@ import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { createOrder } from '../firebase/orders';
-import { createUser, signInUser, resetPassword, getUserData } from '../firebase/auth';
+import { createUser, signInUser, resetPassword, getUserData, updateUserData } from '../firebase/auth';
 import { sendEmailVerification } from 'firebase/auth';
 import toast from 'react-hot-toast';
 import { getCouponByCode, validateAndComputeDiscount } from '../firebase/coupons';
@@ -1640,6 +1640,21 @@ const Checkout = () => {
       const result = await createOrder(orderData);
 
       if (result.success) {
+        // Enregistrer automatiquement l'adresse dans le profil utilisateur pour ses prochaines commandes
+        if (currentUser) {
+          try {
+            await updateUserData(currentUser.uid, {
+              displayName: `${formData.firstName} ${formData.lastName}`.trim(),
+              phone: formData.phone.trim(),
+              address: formData.address.trim(),
+              address2: (formData.address2 || '').trim(),
+              city: formData.city.trim(),
+              postalCode: formData.postalCode.trim(),
+              country: formData.country || 'France'
+            });
+          } catch { }
+        }
+
         // Envoi asynchrone du mail de confirmation
         try {
           const emailPayload = {
