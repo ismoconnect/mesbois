@@ -131,7 +131,7 @@ const PageSubtitle = styled.p`
     font-size: 12px;
     margin-top: 0;
     margin-bottom: 6px;
-    white-space: normal;
+    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
@@ -609,7 +609,7 @@ const ProductStock = styled.div`
   border: 1px solid ${props => props.inStock ? '#a7f3d0' : '#fecaca'};
   padding: 2px 7px;
   border-radius: 999px;
-  white-space: normal;
+  white-space: nowrap;
   flex-shrink: 0;
 
   &::before {
@@ -663,8 +663,9 @@ const ProductActions = styled.div`
   padding-top: 6px;
   
   @media (max-width: 768px) {
-    gap: 4px;
-    padding-top: 4px;
+    flex-direction: column;
+    gap: 8px;
+    padding-top: 8px;
   }
 `;
 
@@ -673,38 +674,31 @@ const AddToCartButton = styled.button`
   background: #1b3b22;
   color: white;
   border: none;
-  padding: 8px 6px;
-  border-radius: 8px;
-  font-weight: 700;
-  cursor: pointer;
-  display: inline-flex;
+  border-radius: 6px;
+  padding: 8px;
+  display: flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
-  transition: all 0.2s ease;
-  font-size: 12px;
-  white-space: normal;
-  
-  &:hover {
-    background: #142c19;
-    transform: translateY(-1px);
+  gap: 6px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  text-align: center;
+
+  &:hover:not(:disabled) {
+    background: #104c27;
   }
-  
+
   &:disabled {
-    background: #cbd5e1;
+    background: #e2e8f0;
+    color: #94a3b8;
     cursor: not-allowed;
   }
-  
-  @media (max-width: 768px) {
-    padding: 6px 4px;
-    font-size: 11px;
-    border-radius: 6px;
-    gap: 3px;
 
-    svg {
-      width: 12px;
-      height: 12px;
-    }
+  @media (max-width: 768px) {
+    font-size: 12px;
   }
 `;
 
@@ -721,7 +715,7 @@ const QuickViewButton = styled.button`
   transition: all 0.2s ease;
   font-size: 12px;
   cursor: pointer;
-  white-space: normal;
+  white-space: nowrap;
   
   &:hover {
     background: #f8fafc;
@@ -831,7 +825,7 @@ const CategoryPillsScroll = styled.div`
   width: 100%;
   gap: 10px;
   overflow-x: auto;
-  white-space: normal;
+  white-space: nowrap;
   padding-bottom: 8px;
   margin-bottom: 16px;
   -webkit-overflow-scrolling: touch;
@@ -842,7 +836,7 @@ const CategoryPillsScroll = styled.div`
     overflow: visible;
     overflow-x: visible;
     flex-wrap: wrap;
-    white-space: normal;
+    white-space: nowrap;
     gap: 5px;
     margin-left: 0;
     margin-right: 0;
@@ -870,7 +864,7 @@ const CategoryChip = styled.button`
   background: ${p => p.$active ? '#1b3b22' : '#ffffff'};
   color: ${p => p.$active ? '#ffffff' : '#334155'};
   box-shadow: ${p => p.$active ? '0 4px 12px rgba(27, 59, 34, 0.25)' : '0 1px 3px rgba(0,0,0,0.04)'};
-  white-space: normal;
+  white-space: nowrap;
 
   &:hover {
     border-color: #1b3b22;
@@ -894,7 +888,7 @@ const CategoryChip = styled.button`
     gap: 4px;
     box-shadow: none;
     line-height: 1.2;
-    white-space: normal;
+    white-space: nowrap;
   }
 `;
 
@@ -985,7 +979,7 @@ const FilterTriggerBtn = styled.button`
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  white-space: normal;
+  white-space: nowrap;
   flex-shrink: 0;
   transition: all 0.2s ease;
 

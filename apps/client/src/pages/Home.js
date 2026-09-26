@@ -726,7 +726,7 @@ const ProductStock = styled.div`
   border: 1px solid ${props => props.$inStock ? '#a7f3d0' : '#fecaca'};
   padding: 2px 7px;
   border-radius: 999px;
-  white-space: nowrap;
+  
   flex-shrink: 0;
 
   &::before {
@@ -757,8 +757,9 @@ const ProductActions = styled.div`
   padding-top: 6px;
 
   @media (max-width: 768px) {
-    gap: 4px;
-    padding-top: 4px;
+    flex-direction: column;
+    gap: 8px;
+    padding-top: 8px;
   }
 `;
 
@@ -777,7 +778,7 @@ const AddToCartBtn = styled.button`
   gap: 5px;
   transition: all 0.2s ease;
   font-size: 12px;
-  white-space: nowrap;
+  
 
   &:hover {
     background: #142c19;
@@ -815,7 +816,7 @@ const QuickViewBtn = styled.button`
   transition: all 0.2s ease;
   font-size: 12px;
   cursor: pointer;
-  white-space: nowrap;
+  
 
   &:hover {
     background: #f8fafc;
@@ -1048,7 +1049,7 @@ const NewsletterSubmit = styled.button`
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
-  white-space: nowrap;
+  
 
   &:hover {
     background: #b45309;
