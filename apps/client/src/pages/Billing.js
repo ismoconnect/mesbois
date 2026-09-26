@@ -132,7 +132,8 @@ const SectionTitle = styled.h2`
   @media (max-width: 600px) {
     font-size: 15px;
     gap: 6px;
-    white-space: nowrap;
+    white-space: normal;
+  text-align: center;
     overflow: hidden;
     text-overflow: ellipsis;
   }
@@ -325,7 +326,8 @@ const WhatsAppBtn = styled.a`
   text-decoration: none;
   box-shadow: 0 2px 8px rgba(37, 211, 102, 0.25);
   transition: all 0.2s ease;
-  white-space: nowrap;
+  white-space: normal;
+  text-align: center;
 
   &:hover {
     background: #20ba5a;
@@ -545,7 +547,9 @@ const Billing = () => {
 
         {!loading && orders.length > 0 && (
           <>
-            {/* Bloc WhatsApp Unique et Centralisé */}
+            {!rib.enabled ? (
+              <>
+                {/* Bloc WhatsApp Unique et Centralisé */}
             <div style={{ background: '#f0fdf4', border: '1px solid #86efac', borderRadius: '14px', padding: '24px', textAlign: 'center', margin: '0 0 24px 0', boxShadow: '0 4px 12px rgba(22, 163, 74, 0.08)' }}>
               <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '56px', height: '56px', borderRadius: '50%', background: '#dcfce7', color: '#16a34a', marginBottom: '16px' }}>
                 <FaShieldAlt size={28} />
@@ -575,6 +579,65 @@ const Billing = () => {
                 );
               })()}
             </div>
+              </>
+            ) : (
+              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '24px', margin: '0 0 24px 0', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
+                <div style={{ fontWeight: 800, fontSize: '16px', color: '#1e293b', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <FaUniversity color="#334155" size={20} />
+                  {t('billing.ribBlock.title', 'Coordonnées bancaires pour le virement')}
+                </div>
+                {(() => {
+                  const totalAmount = orders.reduce((sum, o) => sum + (o.total || 0), 0).toFixed(2);
+                  const refs = orders.map(o => formatTransferRef(o.id)).join(', ');
+                  return (
+                    <RIBGrid>
+                      <RIBField>
+                        <span className="label">{t('billing.ribBlock.holder', 'Titulaire du compte')}</span>
+                        <div className="val-row">
+                          <span className="val-text">{rib.holder || 'Brennholzkaufen SAS'}</span>
+                          <CopyButton onClick={() => copy(rib.holder, t('billing.ribBlock.holder', 'Titulaire'))}><FaCopy /> {t('billing.ribBlock.copy', 'Copier')}</CopyButton>
+                        </div>
+                      </RIBField>
+                      <RIBField>
+                        <span className="label">{t('billing.ribBlock.bank', 'Établissement bancaire')}</span>
+                        <div className="val-row">
+                          <span className="val-text">{rib.bank || 'Banque'}</span>
+                          <CopyButton onClick={() => copy(rib.bank, t('billing.ribBlock.bank', 'Banque'))}><FaCopy /> {t('billing.ribBlock.copy', 'Copier')}</CopyButton>
+                        </div>
+                      </RIBField>
+                      <RIBField className="highlight">
+                        <span className="label">{t('billing.ribBlock.iban', 'IBAN Officiel')}</span>
+                        <div className="val-row">
+                          <span className="val-text" style={{ letterSpacing: '0.5px' }}>{rib.iban}</span>
+                          <CopyButton onClick={() => copy(rib.iban, 'IBAN')}><FaCopy /> {t('billing.ribBlock.copy', 'Copier')}</CopyButton>
+                        </div>
+                      </RIBField>
+                      <RIBField>
+                        <span className="label">{t('billing.ribBlock.bic', 'Code BIC / SWIFT')}</span>
+                        <div className="val-row">
+                          <span className="val-text">{rib.bic}</span>
+                          <CopyButton onClick={() => copy(rib.bic, 'BIC')}><FaCopy /> {t('billing.ribBlock.copy', 'Copier')}</CopyButton>
+                        </div>
+                      </RIBField>
+                      <RIBField className="highlight">
+                        <span className="label">{t('billing.ribBlock.ref', 'Référence de virement')}</span>
+                        <div className="val-row">
+                          <span className="val-text" style={{ color: '#166534', fontSize: '15px', fontWeight: 800 }}>{refs}</span>
+                          <CopyButton onClick={() => copy(refs, t('billing.ribBlock.ref', 'Référence'))}><FaCopy /> {t('billing.ribBlock.copy', 'Copier')}</CopyButton>
+                        </div>
+                      </RIBField>
+                      <RIBField>
+                        <span className="label">{t('billing.ribBlock.amount', 'Montant exact à virer')}</span>
+                        <div className="val-row">
+                          <span className="val-text" style={{ color: '#166534', fontSize: '15px', fontWeight: 800 }}>{totalAmount} €</span>
+                          <CopyButton onClick={() => copy(totalAmount, t('billing.ribBlock.amount', 'Montant'))}><FaCopy /> {t('billing.ribBlock.copy', 'Copier')}</CopyButton>
+                        </div>
+                      </RIBField>
+                    </RIBGrid>
+                  );
+                })()}
+              </div>
+            )}
 
             {/* Liste des commandes simplifiées */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>

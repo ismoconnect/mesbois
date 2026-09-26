@@ -292,7 +292,11 @@
     "address_comp_ph": "Wohnung, Ortsteil, Zugangscode...",
     "optional": "(Optional)",
     "item": "Artikel",
-    "items": "Artikel"
+    "items": "Artikel",
+    "step1": "1. Lieferung",
+    "step2": "2. Zahlung & Gesamtbetrag",
+    "delivery": "Lieferung",
+    "logged_in_as": "Eingeloggt als"
   },
   "footer": {
     "about_title": "Mes Bois Brennholz",
@@ -883,6 +887,14 @@
     "back_home": "Zurück zur Startseite",
     "email_sent": "Eine Bestätigungs-E-Mail mit diesen Informationen wurde ebenfalls gesendet.",
     "copied_exclam": "Kopiert!",
-    "copied": "Kopiert"
+    "copied": "Kopiert",
+    "success_public": "Bestellung erfolgreich registriert",
+    "success_private": "Ihre Bestellung wurde erfolgreich registriert!",
+    "quick_tip": "Kurzer Tipp:",
+    "tip_prefix": "Bevorzugen Sie eine ",
+    "view_in_client_area": "Meine Bestellung im Kundenbereich ansehen",
+    "security_title": "Banksicherheit & Geländestapler-Zugang:",
+    "security_text": "unsere Bankdaten werden Ihnen direkt über WhatsApp von unserem Berater übermittelt.",
+    "step_click": "1 Berater-Klick"
   }
 }

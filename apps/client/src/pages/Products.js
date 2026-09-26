@@ -131,7 +131,7 @@ const PageSubtitle = styled.p`
     font-size: 12px;
     margin-top: 0;
     margin-bottom: 6px;
-    white-space: nowrap;
+    white-space: normal;
     overflow: hidden;
     text-overflow: ellipsis;
   }
@@ -609,7 +609,7 @@ const ProductStock = styled.div`
   border: 1px solid ${props => props.inStock ? '#a7f3d0' : '#fecaca'};
   padding: 2px 7px;
   border-radius: 999px;
-  white-space: nowrap;
+  white-space: normal;
   flex-shrink: 0;
 
   &::before {
@@ -683,7 +683,7 @@ const AddToCartButton = styled.button`
   gap: 5px;
   transition: all 0.2s ease;
   font-size: 12px;
-  white-space: nowrap;
+  white-space: normal;
   
   &:hover {
     background: #142c19;
@@ -721,7 +721,7 @@ const QuickViewButton = styled.button`
   transition: all 0.2s ease;
   font-size: 12px;
   cursor: pointer;
-  white-space: nowrap;
+  white-space: normal;
   
   &:hover {
     background: #f8fafc;
@@ -831,7 +831,7 @@ const CategoryPillsScroll = styled.div`
   width: 100%;
   gap: 10px;
   overflow-x: auto;
-  white-space: nowrap;
+  white-space: normal;
   padding-bottom: 8px;
   margin-bottom: 16px;
   -webkit-overflow-scrolling: touch;
@@ -870,7 +870,7 @@ const CategoryChip = styled.button`
   background: ${p => p.$active ? '#1b3b22' : '#ffffff'};
   color: ${p => p.$active ? '#ffffff' : '#334155'};
   box-shadow: ${p => p.$active ? '0 4px 12px rgba(27, 59, 34, 0.25)' : '0 1px 3px rgba(0,0,0,0.04)'};
-  white-space: nowrap;
+  white-space: normal;
 
   &:hover {
     border-color: #1b3b22;
@@ -894,7 +894,7 @@ const CategoryChip = styled.button`
     gap: 4px;
     box-shadow: none;
     line-height: 1.2;
-    white-space: nowrap;
+    white-space: normal;
   }
 `;
 
@@ -985,7 +985,7 @@ const FilterTriggerBtn = styled.button`
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  white-space: nowrap;
+  white-space: normal;
   flex-shrink: 0;
   transition: all 0.2s ease;
 

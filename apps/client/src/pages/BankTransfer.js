@@ -1118,7 +1118,7 @@ Merci !`;
           <FiCheckCircle />
         </IconBadge>
         <MainTitle>
-          {isRibPublic ? 'Commande enregistrée avec succès' : 'Votre commande a bien été enregistrée !'}
+          {isRibPublic ? t('bank_transfer.success_public', 'Commande enregistrée avec succès') : t('bank_transfer.success_private', 'Votre commande a bien été enregistrée !')}
         </MainTitle>
         <Subtitle>
           {t('bank_transfer.success_desc', 'Votre réservation de bois de chauffage a été validée dans notre système.')}
@@ -1159,7 +1159,7 @@ Merci !`;
               <ReassurancePill>
                 <span className="pill-icon">🛡️</span>
                 <div>
-                  <strong>Sécurité bancaire & accès chariot tout-terrain :</strong> nos coordonnées bancaires vous sont transmises directement sur WhatsApp par notre conseiller.
+                  <strong>{t('bank_transfer.security_title', 'Sécurité bancaire & accès chariot tout-terrain :')}</strong> {t('bank_transfer.security_text', 'nos coordonnées bancaires vous sont transmises directement sur WhatsApp par notre conseiller.')}
                 </div>
               </ReassurancePill>
 
@@ -1200,7 +1200,7 @@ Merci !`;
                 <StepperItem active>
                   <span className="step-num">2</span>
                   <div className="step-name">WhatsApp</div>
-                  <div className="step-sub">1 clic conseiller</div>
+                  <div className="step-sub">{t('bank_transfer.step_click', '1 clic conseiller')}</div>
                 </StepperItem>
 
                 <StepperItem>
@@ -1264,7 +1264,7 @@ Merci !`;
             }}>
               <FiClock style={{ fontSize: 16, flexShrink: 0 }} />
               <div>
-                <strong>Conseil rapide :</strong> Privilégiez un <strong>{t('bank_transfer.tip_bold', 'virement instantané')}</strong>{t('bank_transfer.tip2', ' pour une préparation immédiate en entrepôt.')}
+                <strong>{t('bank_transfer.quick_tip', 'Conseil rapide :')}</strong> {t('bank_transfer.tip_prefix', 'Privilégiez un ')}<strong>{t('bank_transfer.tip_bold', 'virement instantané')}</strong>{t('bank_transfer.tip2', ' pour une préparation immédiate en entrepôt.')}
               </div>
             </div>
 
@@ -1462,7 +1462,7 @@ Merci !`;
         {user ? (
           <BottomPrimaryButton to="/dashboard/orders">
             <FiUser />
-            <span>Consulter ma commande dans mon espace client</span>
+            <span>{t('bank_transfer.view_in_client_area', 'Consulter ma commande dans mon espace client')}</span>
           </BottomPrimaryButton>
         ) : (
           <BottomPrimaryButton to={`/${i18n.language || 'fr'}/${routeMapping.products[i18n.language || 'fr']}`}>

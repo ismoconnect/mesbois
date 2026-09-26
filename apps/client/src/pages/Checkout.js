@@ -2007,7 +2007,7 @@ const Checkout = () => {
           onClick={() => setMobileStep(1)}
         >
           <div className="step-num">{mobileStep > 1 ? <FiCheck size={12} /> : '1'}</div>
-          <span className="step-label">1. Livraison</span>
+          <span className="step-label">{t('checkout.step1', '1. Livraison')}</span>
         </StepItem>
 
         <StepDivider $done={mobileStep > 1} />
@@ -2020,7 +2020,7 @@ const Checkout = () => {
           }}
         >
           <div className="step-num">2</div>
-          <span className="step-label">2. Paiement & Total</span>
+          <span className="step-label">{t('checkout.step2', '2. Paiement & Total')}</span>
         </StepItem>
       </MobileStepper>
 
@@ -2359,7 +2359,7 @@ const Checkout = () => {
             {/* Sur mobile, rappel de l'adresse choisie avec bouton modifier */}
             <DeliveryRecapChip>
               <div className="info">
-                <div>Livraison : <strong>{formData.firstName || 'Client'} {formData.lastName}</strong></div>
+                <div>{t('checkout.delivery', 'Livraison')} : <strong>{formData.firstName || 'Client'} {formData.lastName}</strong></div>
                 <div style={{ color: '#55695a', fontSize: 12 }}>{formData.address || 'Adresse renseignée'}, {formData.postalCode} {formData.city}</div>
               </div>
               <button type="button" onClick={() => setMobileStep(1)}>

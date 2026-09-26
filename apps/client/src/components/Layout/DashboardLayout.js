@@ -335,7 +335,7 @@ const DashboardLayout = ({ children }) => {
       <HeaderBar>
         <HeaderTitle>
           <Burger onClick={() => setOpen(v => !v)} aria-label={t('dashboard.header.openMenu', 'Ouvrir le menu')}>
-            <FiMenu /> {t('dashboard.header.menu', 'Menu')}
+            <FiMenu />
           </Burger>
           <span className="header-name">{t('dashboard.header.welcome', 'Bienvenue')}, {displayName}</span>
         </HeaderTitle>

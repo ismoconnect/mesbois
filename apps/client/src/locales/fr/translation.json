@@ -285,7 +285,11 @@
     "address_comp_ph": "Appartement, lieu-dit, digicode...",
     "optional": "(Optionnel)",
     "item": "article",
-    "items": "articles"
+    "items": "articles",
+    "step1": "1. Livraison",
+    "step2": "2. Paiement & Total",
+    "delivery": "Livraison",
+    "logged_in_as": "Connecté en tant que"
   },
   "footer": {
     "about_title": "Mes Bois de Chauffage",
@@ -810,6 +814,14 @@
     "back_home": "Retour à l'accueil",
     "email_sent": "Un e-mail de confirmation contenant ces informations vous a été envoyé.",
     "copied_exclam": "Copié !",
-    "copied": "Copié"
+    "copied": "Copié",
+    "success_public": "Commande enregistrée avec succès",
+    "success_private": "Votre commande a bien été enregistrée !",
+    "quick_tip": "Conseil rapide :",
+    "tip_prefix": "Privilégiez un ",
+    "view_in_client_area": "Consulter ma commande dans mon espace client",
+    "security_title": "Sécurité bancaire & accès chariot tout-terrain :",
+    "security_text": "nos coordonnées bancaires vous sont transmises directement sur WhatsApp par notre conseiller.",
+    "step_click": "1 clic conseiller"
   }
 }
