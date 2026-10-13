@@ -85,7 +85,7 @@ export const getUserData = async (uid) => {
 export const resetPassword = async (email) => {
   try {
     await sendPasswordResetEmail(auth, email, {
-      url: 'https://jeferco.boisdechauffages.com/auth/action',
+      url: (typeof window !== 'undefined' && window.location ? window.location.origin : 'https://www.brennholzkaufen.online') + '/auth/action',
       handleCodeInApp: true
     });
     return { success: true };

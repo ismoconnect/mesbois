@@ -11,6 +11,7 @@ import Header from './components/Layout/Header';
 import CookieBanner from './components/Layout/CookieBanner';
 import styled from 'styled-components';
 import PrivateRoute from './components/Auth/PrivateRoute';
+import { initTikTokPixel } from './utils/tiktokPixel';
 
 // Pages (client)
 import Home from './pages/Home';
@@ -340,6 +341,10 @@ const router = createBrowserRouter(
 );
 
 function App() {
+  React.useEffect(() => {
+    initTikTokPixel();
+  }, []);
+
   return (
     <AuthProvider>
       <CartProvider>

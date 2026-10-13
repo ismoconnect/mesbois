@@ -256,7 +256,7 @@ const Register = () => {
       if (result.success) {
         try {
           await sendEmailVerification(result.user, {
-            url: 'https://jeferco.boisdechauffages.com/auth/action',
+            url: (typeof window !== 'undefined' && window.location ? window.location.origin : 'https://www.brennholzkaufen.online') + '/auth/action',
             handleCodeInApp: true
           });
           toast.success(t('register.account_created_verify', "Compte créé ! Vérifiez votre email pour valider votre adresse."));

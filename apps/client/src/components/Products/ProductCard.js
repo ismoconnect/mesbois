@@ -5,6 +5,9 @@ import { FiShoppingCart, FiStar } from 'react-icons/fi';
 import { useCart } from '../../contexts/CartContext';
 import { getCategoryImage } from '../../utils/categoryImages';
 import { useProductImages } from '../../hooks/useProductImages';
+import { useTranslation } from 'react-i18next';
+import { getLocalizedProduct } from '../../utils/productLocalization';
+import { trackTikTokEvent } from '../../utils/tiktokPixel';
 import toast from 'react-hot-toast';
 
 const CardContainer = styled.div`
@@ -28,12 +31,10 @@ const CardContainer = styled.div`
 
 const ImageContainer = styled.div`
   position: relative;
+  width: 100%;
   height: 200px;
   overflow: hidden;
-  
-  @media (max-width: 480px) {
-    height: 150px;
-  }
+  background-color: #f7fafc;
 `;
 
 const ProductImage = styled.img`
@@ -47,16 +48,17 @@ const ProductImage = styled.img`
   }
 `;
 
-const Badge = styled.div`
+const Badge = styled.span`
   position: absolute;
   top: 10px;
-  left: 10px;
-  background: ${props => props.type === 'sale' ? '#e74c3c' : '#2c5530'};
+  right: 10px;
+  background: ${props => props.type === 'sale' ? '#e53e3e' : '#319795'};
   color: white;
   padding: 4px 8px;
   border-radius: 4px;
   font-size: 12px;
   font-weight: 600;
+  text-transform: uppercase;
 `;
 
 const CardContent = styled.div`
@@ -70,22 +72,17 @@ const CardContent = styled.div`
 const ProductName = styled.h3`
   font-size: 18px;
   font-weight: 600;
+  color: #2d3748;
   margin-bottom: 8px;
-  color: #2c5530;
   line-height: 1.4;
-  
-  @media (max-width: 480px) {
-    font-size: 16px;
-    margin-bottom: 6px;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 `;
 
 const ProductDescription = styled.p`
-  color: #666;
+  color: #718096;
   font-size: 14px;
   line-height: 1.5;
   margin-bottom: 15px;
@@ -93,10 +90,6 @@ const ProductDescription = styled.p`
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  
-  @media (max-width: 480px) {
-    display: none;
-  }
 `;
 
 const ProductInfo = styled.div`
@@ -104,90 +97,82 @@ const ProductInfo = styled.div`
   justify-content: space-between;
   align-items: center;
   margin-bottom: 15px;
-  
-  @media (max-width: 480px) {
-    margin-bottom: 10px;
-  }
 `;
 
-const Price = styled.div`
+const Price = styled.span`
   font-size: 20px;
   font-weight: 700;
   color: #2c5530;
-  
-  @media (max-width: 480px) {
-    font-size: 18px;
-  }
 `;
 
 const Rating = styled.div`
   display: flex;
   align-items: center;
   gap: 4px;
-  color: #f39c12;
+  color: #d69e2e;
   font-size: 14px;
-  
-  @media (max-width: 480px) {
-    display: none;
-  }
 `;
 
-const StockInfo = styled.div`
+const StockInfo = styled.span`
   font-size: 12px;
-  color: ${props => props.inStock ? '#27ae60' : '#e74c3c'};
-  margin-bottom: 15px;
+  color: ${props => props.inStock ? '#38a169' : '#e53e3e'};
   font-weight: 500;
-  
-  @media (max-width: 480px) {
-    display: none;
-  }
+  display: block;
+  margin-bottom: 12px;
 `;
 
 const AddToCartButton = styled.button`
   width: 100%;
-  background: #2c5530;
+  background: ${props => props.disabled ? '#cbd5e0' : '#2c5530'};
   color: white;
   border: none;
   padding: 12px;
   border-radius: 8px;
   font-weight: 600;
-  cursor: pointer;
+  font-size: 14px;
+  cursor: ${props => props.disabled ? 'not-allowed' : 'pointer'};
+  transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  transition: background-color 0.3s ease;
 
-  &:hover {
-    background: #1e3a22;
-  }
-
-  &:disabled {
-    background: #ccc;
-    cursor: not-allowed;
+  &:hover:not(:disabled) {
+    background: #1e3a21;
+    transform: translateY(-2px);
   }
   
   @media (max-width: 480px) {
     padding: 10px;
-    border-radius: 10px;
-    font-weight: 700;
+    font-size: 13px;
   }
 `;
 
 const ProductCard = ({ product }) => {
   const { addToCart, isInCart } = useCart();
   const navigate = useNavigate();
-  const isInCartItem = isInCart(product.id);
+  const { t, i18n } = useTranslation();
+  const locProduct = getLocalizedProduct(product, i18n.language);
 
-  const { productImages, loading } = useProductImages();
+  const isInCartItem = isInCart(locProduct.id);
+  const { productImages } = useProductImages();
 
-  // Choix de l'image (priorité): image centralisée produit > image produit > image catégorie > placeholder picsum
-  const imageUrl = productImages[product.id] || product.image || getCategoryImage(product.category) || `https://picsum.photos/seed/${product.id}/600/400`;
+  const imageUrl = productImages[locProduct.id] || locProduct.image || getCategoryImage(locProduct.category) || `https://picsum.photos/seed/${locProduct.id}/600/400`;
 
   const handleAddToCart = () => {
-    addToCart(product, 1);
+    addToCart(locProduct, 1);
+
+    // Événement TikTok Ads AddToCart
+    trackTikTokEvent('AddToCart', {
+      content_id: locProduct.id,
+      content_name: locProduct.name,
+      value: locProduct.price,
+      currency: 'EUR',
+      quantity: 1
+    });
+
     toast.dismiss('add-to-cart');
-    toast.custom((t) => (
+    toast.custom((tToast) => (
       <div
         style={{
           position: 'fixed',
@@ -212,10 +197,10 @@ const ProductCard = ({ product }) => {
           }}
         >
           <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>
-            Le produit a été ajouté avec succès à votre panier.
+            {t('product.added_toast_title', 'Le produit a été ajouté avec succès à votre panier.')}
           </div>
           <div style={{ fontSize: 13, color: '#555', marginBottom: 16 }}>
-            Que souhaitez-vous faire ?
+            {t('product.added_toast_question', 'Que souhaitez-vous faire ?')}
           </div>
           <div
             style={{
@@ -227,7 +212,7 @@ const ProductCard = ({ product }) => {
           >
             <button
               type="button"
-              onClick={() => toast.dismiss(t.id)}
+              onClick={() => toast.dismiss(tToast.id)}
               style={{
                 flex: 1,
                 minWidth: 120,
@@ -241,12 +226,12 @@ const ProductCard = ({ product }) => {
                 cursor: 'pointer'
               }}
             >
-              Poursuivre les achats
+              {t('product.continue_shopping', 'Poursuivre les achats')}
             </button>
             <button
               type="button"
               onClick={() => {
-                toast.dismiss(t.id);
+                toast.dismiss(tToast.id);
                 navigate('/cart');
               }}
               style={{
@@ -262,7 +247,7 @@ const ProductCard = ({ product }) => {
                 cursor: 'pointer'
               }}
             >
-              Voir le panier
+              {t('product.view_cart', 'Voir le panier')}
             </button>
           </div>
         </div>
@@ -279,42 +264,46 @@ const ProductCard = ({ product }) => {
       <ImageContainer>
         <ProductImage
           src={imageUrl}
-          alt={product.name}
+          alt={locProduct.name}
           onError={(e) => {
             e.target.src = 'https://picsum.photos/seed/fallback/600/400';
           }}
         />
         
-        {product.sale && (
-          <Badge type="sale">Promo</Badge>
+        {locProduct.sale && (
+          <Badge type="sale">{t('product.badge_sale', 'Promo')}</Badge>
         )}
-        {product.new && (
-          <Badge type="new">Nouveau</Badge>
+        {locProduct.new && (
+          <Badge type="new">{t('product.badge_new', 'Nouveau')}</Badge>
         )}
       </ImageContainer>
 
       <CardContent>
-        <ProductName>{product.name}</ProductName>
-        <ProductDescription>{product.description}</ProductDescription>
+        <ProductName>{locProduct.name}</ProductName>
+        <ProductDescription>{locProduct.description}</ProductDescription>
 
         <ProductInfo>
-          <Price>{product.price}€</Price>
+          <Price>{locProduct.price}€</Price>
           <Rating>
             <FiStar size={14} />
-            <span>{product.rating || 4.5}</span>
+            <span>{locProduct.rating || 4.8}</span>
           </Rating>
         </ProductInfo>
 
-        <StockInfo inStock={product.stock > 0}>
-          {product.stock > 0 ? `En stock (${product.stock})` : 'Rupture de stock'}
+        <StockInfo inStock={locProduct.stock > 0}>
+          {locProduct.stock > 0 
+            ? t('product.in_stock', 'En stock ({{count}})', { count: locProduct.stock }) 
+            : t('product.out_of_stock', 'Rupture de stock')}
         </StockInfo>
 
         <AddToCartButton
           onClick={handleAddToCart}
-          disabled={product.stock === 0 || isInCartItem}
+          disabled={locProduct.stock === 0 || isInCartItem}
         >
           <FiShoppingCart size={16} />
-          {isInCartItem ? 'Dans le panier' : 'Ajouter au panier'}
+          {isInCartItem 
+            ? t('product.in_cart', 'Dans le panier') 
+            : t('product.add_to_cart', 'Ajouter au panier')}
         </AddToCartButton>
       </CardContent>
     </CardContainer>

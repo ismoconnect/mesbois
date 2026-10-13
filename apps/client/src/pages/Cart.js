@@ -14,6 +14,8 @@ import {
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
+import SEO from '../components/SEO/SEO';
+import { getLocalizedProduct } from '../utils/productLocalization';
 import LocalizedLink from '../components/LocalizedLink/LocalizedLink';
 import { useLocalizedNavigate } from '../hooks/useLocalizedNavigate';
 
@@ -597,7 +599,7 @@ const ShopNowButton = styled(LocalizedLink)`
    ========================================================================== */
 
 const Cart = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { cartItems, updateQuantity, removeFromCart, getCartTotal, clearCart } = useCart();
   const { user } = useAuth();
   const localizedNavigate = useLocalizedNavigate();
@@ -635,6 +637,7 @@ const Cart = () => {
   if (cartItems.length === 0) {
     return (
       <CartPageContainer>
+      <SEO title={t('cart.title', 'Mon Panier')} path="/warenkorb" />
         <CartNavHeader>
           <BackLink routeKey="products">
             <FiArrowLeft size={16} />

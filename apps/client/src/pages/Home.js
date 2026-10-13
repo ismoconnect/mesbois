@@ -13,6 +13,9 @@ import {
 } from 'react-icons/fi';
 import { FaFire } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
+import SEO from '../components/SEO/SEO';
+import { getLocalizedProducts } from '../utils/productLocalization';
+import { trackTikTokEvent } from '../utils/tiktokPixel';
 import { useLocalizedNavigate } from '../hooks/useLocalizedNavigate';
 import toast from 'react-hot-toast';
 import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
@@ -1107,7 +1110,7 @@ const getCachedFeaturedProducts = () => {
 };
 
 const Home = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { addToCart } = useCart();
   const localizedNavigate = useLocalizedNavigate();
   const [newsletterEmail, setNewsletterEmail] = useState('');
@@ -1305,6 +1308,13 @@ const Home = () => {
 
   const handleAddToCart = (product) => {
     addToCart(product, 1);
+    trackTikTokEvent('AddToCart', {
+      content_id: product.id,
+      content_name: product.name,
+      value: product.price,
+      currency: 'EUR',
+      quantity: 1
+    });
     toast.success(`${product.name || 'Produit'} ${t('cart.added_to_cart', 'ajouté au panier !')}`);
   };
 
@@ -1318,6 +1328,7 @@ const Home = () => {
 
   return (
     <HomeContainer>
+      <SEO path="/" type="website" />
       {/* 1. HERO SECTION */}
       <HeroSection>
         <HeroBadge>
@@ -1451,7 +1462,7 @@ const Home = () => {
           </BestsellersHeader>
 
           <ProductsGrid>
-            {featuredProducts.map((p) => {
+            {getLocalizedProducts(featuredProducts, i18n.language).map((p) => {
               const rating = p.rating || 4.5;
               const isAvailable = p.stock === undefined || p.stock === null ? true : p.stock > 0;
               return (

@@ -1,5 +1,7 @@
 import i18n from '../i18n';
 import { useTranslation } from 'react-i18next';
+import SEO from '../components/SEO/SEO';
+import { trackTikTokEvent } from '../utils/tiktokPixel';
 import routeMapping from '../utils/routeMapping.json';
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
@@ -960,6 +962,18 @@ export default function BankTransfer() {
   const orderId = stateOrderId || queryOrderId || '';
 
   const [order, setOrder] = useState(location.state?.orderData || null);
+
+  useEffect(() => {
+    if (order && orderId) {
+      trackTikTokEvent('CompletePayment', {
+        content_id: orderId,
+        value: order.total || order.totalPrice || 0,
+        currency: 'EUR',
+        order_id: orderId
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [order?.id, orderId]);
   const [rib, setRib] = useState({
     holder: '',
     iban: '',
@@ -1080,6 +1094,7 @@ Merci !`;
   if (loading) {
     return (
       <PageContainer>
+      <SEO title={t('bank_transfer.title', 'Virement Bancaire')} path="/virement-bancaire" />
         <div style={{
           display: 'flex',
           flexDirection: 'column',

@@ -21,6 +21,8 @@ import {
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
+import SEO from '../components/SEO/SEO';
+import { trackTikTokEvent } from '../utils/tiktokPixel';
 import { createOrder } from '../firebase/orders';
 import { createUser, signInUser, resetPassword, getUserData, updateUserData } from '../firebase/auth';
 import { sendEmailVerification } from 'firebase/auth';
@@ -1324,6 +1326,22 @@ const parseCustomerNames = (data, authUser) => {
 const Checkout = () => {
   const { t } = useTranslation();
   const { cartItems, getCartTotal, clearCart } = useCart();
+
+  useEffect(() => {
+    if (cartItems.length > 0) {
+      trackTikTokEvent('InitiateCheckout', {
+        value: getCartTotal(),
+        currency: 'EUR',
+        contents: cartItems.map(item => ({
+          content_id: item.id,
+          content_name: item.name,
+          quantity: item.quantity,
+          price: item.price
+        }))
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const { user, userData } = useAuth();
   const localizedNavigate = useLocalizedNavigate();
 
@@ -1640,6 +1658,18 @@ const Checkout = () => {
       const result = await createOrder(orderData);
 
       if (result.success) {
+        trackTikTokEvent('CompletePayment', {
+          content_id: result.id,
+          value: orderData.total,
+          currency: 'EUR',
+          order_id: result.id,
+          contents: orderData.items.map(it => ({
+            content_id: it.id,
+            content_name: it.name,
+            quantity: it.quantity,
+            price: it.price
+          }))
+        });
         // Enregistrer automatiquement l'adresse dans le profil utilisateur pour ses prochaines commandes
         if (currentUser) {
           try {
@@ -1699,6 +1729,7 @@ const Checkout = () => {
   if (cartItems.length === 0) {
     return (
       <PageContainer>
+      <SEO title={t('checkout.title', 'Paiement sécurisé')} path="/kasse" />
         <PageHeader>
           <Title>{t('checkout.empty_cart_title', 'Votre panier est vide')}</Title>
           <Subtitle>Ajoutez des produits de qualité à votre panier pour finaliser votre commande.</Subtitle>

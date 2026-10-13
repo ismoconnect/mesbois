@@ -11,6 +11,9 @@ import toast from 'react-hot-toast';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { useTranslation } from 'react-i18next';
+import SEO from '../components/SEO/SEO';
+import { getLocalizedProducts } from '../utils/productLocalization';
+import { trackTikTokEvent } from '../utils/tiktokPixel';
 
 const ProductsContainer = styled.div`
   max-width: 1200px;
@@ -1187,7 +1190,7 @@ const SkeletonShimmer = styled.div`
 `;
 
 const Products = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const localizedNavigate = useLocalizedNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
@@ -1373,7 +1376,8 @@ const Products = () => {
 
   const usingFS = fsProducts.length > 0;
   // Ne JAMAIS afficher le catalogue mock pendant le chargement des vrais produits !
-  const allProducts = usingFS ? fsMapped : (fsLoading ? [] : catMapped);
+  const rawProducts = usingFS ? fsMapped : (fsLoading ? [] : catMapped);
+  const allProducts = getLocalizedProducts(rawProducts, i18n.language);
 
   const handleFilterChange = (key, value) => {
     const newFilters = { ...filters, [key]: value };
@@ -1424,6 +1428,13 @@ const Products = () => {
 
   const handleAddToCart = (product) => {
     addToCart(product, 1);
+    trackTikTokEvent('AddToCart', {
+      content_id: product.id,
+      content_name: product.name,
+      value: product.price,
+      currency: 'EUR',
+      quantity: 1
+    });
     toast.dismiss('add-to-cart');
     toast.custom((tToast) => (
       <div
@@ -1624,6 +1635,11 @@ const Products = () => {
   // Vue lorsqu'une catégorie est sélectionnée: filtres + produits
   return (
     <ProductsContainer>
+      <SEO 
+        title={t("products.title", "Nos Combustibles & Bois de Chauffage")} 
+        description={t("products.subtitle", "Sélectionnez vos stères de bois dur fendu (chêne, hêtre, charme) ou vos granulés certifiés DINplus.")}
+        path="/produkte"
+      />
       
       {/* 1. HEADER ÉPURÉ & TRUST BAR */}
       <CatalogHeader>

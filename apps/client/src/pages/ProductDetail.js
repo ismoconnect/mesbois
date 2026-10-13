@@ -6,9 +6,12 @@ import { FiStar, FiShoppingCart, FiTruck, FiShield, FiArrowLeft, FiPlus, FiMinus
 import { useCart } from '../contexts/CartContext';
 import { useProductImages } from '../hooks/useProductImages';
 import { getProductById } from '../firebase/products';
-import { products as catalogue } from '../data/catalogue.js';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
+import SEO from '../components/SEO/SEO';
+import { getLocalizedProduct } from '../utils/productLocalization';
+import { trackTikTokEvent } from '../utils/tiktokPixel';
+import { products as catalogue } from '../data/catalogue.js';
 
 const ProductDetailContainer = styled.div`
   max-width: 1040px;
@@ -536,7 +539,7 @@ const ProductDetail = () => {
   const localizedNavigate = useLocalizedNavigate();
   const { addToCart, isInCart, getCartItem } = useCart();
   const { productImages } = useProductImages();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   // Instant pre-load from sessionStorage cache if available to prevent any flashing
   const [product, setProduct] = useState(() => {
@@ -631,6 +634,20 @@ const ProductDetail = () => {
     return () => { active = false; };
   }, [id]);
 
+  const locProduct = product ? getLocalizedProduct(product, i18n.language) : null;
+
+  useEffect(() => {
+    if (locProduct && locProduct.id) {
+      trackTikTokEvent('ViewContent', {
+        content_id: locProduct.id,
+        content_name: locProduct.name,
+        value: locProduct.price,
+        currency: 'EUR'
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [locProduct?.id]);
+
   const handleQuantityChange = (newQuantity) => {
     if (!product) return;
     const max = product?.stock ?? 99;
@@ -641,6 +658,13 @@ const ProductDetail = () => {
 
   const handleAddToCart = () => {
     addToCart(product, quantity);
+    trackTikTokEvent('AddToCart', {
+      content_id: locProduct?.id || product?.id || id,
+      content_name: locProduct?.name || product?.name,
+      value: locProduct?.price || product?.price,
+      currency: 'EUR',
+      quantity
+    });
     toast.dismiss('add-to-cart');
     toast.custom((tItem) => (
       <div
@@ -740,7 +764,7 @@ const ProductDetail = () => {
     );
   }
 
-  const view = product || {
+  const view = locProduct || product || {
     id,
     name: 'Produit',
     description: '',
@@ -757,6 +781,14 @@ const ProductDetail = () => {
 
   return (
     <ProductDetailContainer>
+      <SEO 
+        title={view.name}
+        description={view.description}
+        image={productImages[view.id] || view.image}
+        path={`/produkt/${view.id}`}
+        type="product"
+        product={view}
+      />
       <BackButton onClick={() => navigate(-1)}>
         <FiArrowLeft size={16} />
         {t('cart.back_to_products', 'Retour aux produits')}
