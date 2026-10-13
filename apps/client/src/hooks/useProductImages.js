@@ -101,14 +101,14 @@ export const useProductImages = () => {
 
         // Fallback: si onSnapshot n'a pas répondu dans X ms, tenter getDoc mais ne pas écraser l'état si absent
         const fallbackDelay = 1200;
-        setTimeout(async () => {
+        fallbackTimer = setTimeout(async () => {
           if (onSnapshotFired) return;
           try {
             const snap = await getDoc(ref);
             if (snap.exists()) {
               const data = snap.data() || {};
               const images = data.images || {};
-              console.log('✅ getDoc fallback: images chargées', Object.keys(images).length);
+              console.debug('✅ getDoc fallback: images chargées', Object.keys(images).length);
               setProductImages(images);
               saveCache(images);
             } else {
@@ -127,9 +127,11 @@ export const useProductImages = () => {
       }
     };
 
+    let fallbackTimer;
     setupListener();
 
     return () => {
+      if (fallbackTimer) clearTimeout(fallbackTimer);
       if (unsubscribe) unsubscribe();
     };
   }, []);
