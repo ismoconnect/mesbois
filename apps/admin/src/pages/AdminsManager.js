@@ -308,6 +308,13 @@ const TableCard = styled.div`
   border-radius: 14px;
   overflow: hidden;
   box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+
+  @media (max-width: 768px) {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    border-radius: 0;
+  }
 `;
 
 const Table = styled.table`
@@ -342,10 +349,65 @@ const Table = styled.table`
     background: #fafcfa;
   }
 
-  @media (max-width: 850px) {
-    display: block;
-    overflow-x: auto;
+  @media (max-width: 768px) {
+    display: none;
   }
+`;
+
+const MobileAdminsList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  @media (min-width: 769px) {
+    display: none;
+  }
+`;
+
+const MobileAdminCard = styled.div`
+  background: #ffffff;
+  border: 1px solid #e6eae7;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+`;
+
+const MobileAdminHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #f0f3f1;
+`;
+
+const MobileAdminBody = styled.div`
+  display: grid;
+  gap: 9px;
+`;
+
+const MobileAdminRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+`;
+
+const MobileAdminLabel = styled.span`
+  color: #6b7c6d;
+  font-weight: 600;
+  font-size: 11.5px;
+`;
+
+const MobileAdminActions = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid #f0f3f1;
 `;
 
 const UserAvatar = styled.div`
@@ -1033,17 +1095,105 @@ export default function AdminsManager() {
             <p>Essayez de modifier vos critères de recherche ou ajoutez un nouvel administrateur.</p>
           </EmptyState>
         ) : (
-          <Table>
-            <thead>
-              <tr>
-                <th>Administrateur</th>
-                <th>Rôle & Accès</th>
-                <th>Statut</th>
-                <th>UID Firestore</th>
-                <th style={{ textAlign: 'right' }}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
+          <>
+            <Table>
+              <thead>
+                <tr>
+                  <th>Administrateur</th>
+                  <th>Rôle & Accès</th>
+                  <th>Statut</th>
+                  <th>UID Firestore</th>
+                  <th style={{ textAlign: 'right' }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredAdmins.map((admin) => {
+                  const isSuper = admin.role === 'superadmin' || admin.role === 'super_admin' || !admin.role;
+                  const isEnabled = admin.enabled === undefined || admin.enabled === true;
+                  const isMe = admin.id === currentUser?.uid;
+                  const initials = (admin.displayName || admin.email || 'A')
+                    .substring(0, 2)
+                    .toUpperCase();
+
+                  return (
+                    <tr key={admin.id}>
+                      <td>
+                        <UserMeta>
+                          <UserAvatar $super={isSuper}>
+                            {initials}
+                          </UserAvatar>
+                          <div className="text">
+                            <div className="name">
+                              {admin.displayName || 'Administrateur'}
+                              {isMe && <span style={{ color: '#2c5530', fontSize: 11, fontWeight: 700 }}>(Vous)</span>}
+                            </div>
+                            <div className="email">{admin.email}</div>
+                          </div>
+                        </UserMeta>
+                      </td>
+
+                      <td>
+                        <RoleBadge $role={isSuper ? 'superadmin' : 'admin'}>
+                          {isSuper ? <FiShield size={12} /> : <FiUserCheck size={12} />}
+                          {isSuper ? 'Super Admin' : 'Admin standard'}
+                        </RoleBadge>
+                      </td>
+
+                      <td>
+                        <StatusBadge $enabled={isEnabled}>
+                          {isEnabled ? <FiCheckCircle size={12} /> : <FiXCircle size={12} />}
+                          {isEnabled ? 'Actif' : 'Désactivé'}
+                        </StatusBadge>
+                      </td>
+
+                      <td>
+                        <code style={{ fontSize: 11.5, background: '#f5f7f6', padding: '2px 6px', borderRadius: 4, color: '#4b5563' }}>
+                          {admin.id}
+                        </code>
+                      </td>
+
+                      <td>
+                        <ActionButtons style={{ justifyContent: 'flex-end' }}>
+                          {/* Bouton de bascule de rôle */}
+                          <ActionBtn 
+                            $variant="toggle-role" 
+                            onClick={() => handleToggleRole(admin)}
+                            title={isSuper ? 'Rétrograder en Admin standard' : 'Promouvoir en Super Admin'}
+                          >
+                            <FiShield size={12} />
+                            {isSuper ? 'Rétrograder Admin' : 'Promouvoir Super Admin'}
+                          </ActionBtn>
+
+                          {/* Bouton Activer/Désactiver */}
+                          <ActionBtn 
+                            $variant="toggle-status"
+                            $enabled={isEnabled}
+                            disabled={isMe && isEnabled}
+                            onClick={() => handleToggleStatus(admin)}
+                            title={isEnabled ? 'Désactiver le compte' : 'Activer le compte'}
+                          >
+                            {isEnabled ? <FiXCircle size={12} /> : <FiCheckCircle size={12} />}
+                            {isEnabled ? 'Désactiver' : 'Activer'}
+                          </ActionBtn>
+
+                          {/* Bouton Supprimer */}
+                          <ActionBtn 
+                            $variant="delete" 
+                            disabled={isMe}
+                            onClick={() => handleDeleteAdmin(admin)}
+                            title="Révoquer l'accès administrateur"
+                          >
+                            <FiTrash2 size={13} />
+                          </ActionBtn>
+                        </ActionButtons>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </Table>
+
+            <MobileAdminsList>
               {filteredAdmins.map((admin) => {
                 const isSuper = admin.role === 'superadmin' || admin.role === 'super_admin' || !admin.role;
                 const isEnabled = admin.enabled === undefined || admin.enabled === true;
@@ -1053,8 +1203,8 @@ export default function AdminsManager() {
                   .toUpperCase();
 
                 return (
-                  <tr key={admin.id}>
-                    <td>
+                  <MobileAdminCard key={admin.id}>
+                    <MobileAdminHeader>
                       <UserMeta>
                         <UserAvatar $super={isSuper}>
                           {initials}
@@ -1067,68 +1217,69 @@ export default function AdminsManager() {
                           <div className="email">{admin.email}</div>
                         </div>
                       </UserMeta>
-                    </td>
+                    </MobileAdminHeader>
 
-                    <td>
-                      <RoleBadge $role={isSuper ? 'superadmin' : 'admin'}>
-                        {isSuper ? <FiShield size={12} /> : <FiUserCheck size={12} />}
-                        {isSuper ? 'Super Admin' : 'Admin standard'}
-                      </RoleBadge>
-                    </td>
+                    <MobileAdminBody>
+                      <MobileAdminRow>
+                        <MobileAdminLabel>Rôle & Accès</MobileAdminLabel>
+                        <RoleBadge $role={isSuper ? 'superadmin' : 'admin'}>
+                          {isSuper ? <FiShield size={12} /> : <FiUserCheck size={12} />}
+                          {isSuper ? 'Super Admin' : 'Admin standard'}
+                        </RoleBadge>
+                      </MobileAdminRow>
 
-                    <td>
-                      <StatusBadge $enabled={isEnabled}>
-                        {isEnabled ? <FiCheckCircle size={12} /> : <FiXCircle size={12} />}
-                        {isEnabled ? 'Actif' : 'Désactivé'}
-                      </StatusBadge>
-                    </td>
+                      <MobileAdminRow>
+                        <MobileAdminLabel>Statut</MobileAdminLabel>
+                        <StatusBadge $enabled={isEnabled}>
+                          {isEnabled ? <FiCheckCircle size={12} /> : <FiXCircle size={12} />}
+                          {isEnabled ? 'Actif' : 'Désactivé'}
+                        </StatusBadge>
+                      </MobileAdminRow>
 
-                    <td>
-                      <code style={{ fontSize: 11.5, background: '#f5f7f6', padding: '2px 6px', borderRadius: 4, color: '#4b5563' }}>
-                        {admin.id}
-                      </code>
-                    </td>
+                      <MobileAdminRow>
+                        <MobileAdminLabel>UID Firestore</MobileAdminLabel>
+                        <code style={{ fontSize: 11, background: '#f5f7f6', padding: '2px 6px', borderRadius: 4, color: '#4b5563', maxWidth: '60%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {admin.id}
+                        </code>
+                      </MobileAdminRow>
+                    </MobileAdminBody>
 
-                    <td>
-                      <ActionButtons style={{ justifyContent: 'flex-end' }}>
-                        {/* Bouton de bascule de rôle */}
-                        <ActionBtn 
-                          $variant="toggle-role" 
-                          onClick={() => handleToggleRole(admin)}
-                          title={isSuper ? 'Rétrograder en Admin standard' : 'Promouvoir en Super Admin'}
-                        >
-                          <FiShield size={12} />
-                          {isSuper ? 'Rétrograder Admin' : 'Promouvoir Super Admin'}
-                        </ActionBtn>
+                    <MobileAdminActions>
+                      <ActionBtn 
+                        $variant="toggle-role" 
+                        onClick={() => handleToggleRole(admin)}
+                        style={{ flex: 1, justifyContent: 'center' }}
+                      >
+                        <FiShield size={12} />
+                        {isSuper ? 'Rétrograder Admin' : 'Promouvoir Super Admin'}
+                      </ActionBtn>
 
-                        {/* Bouton Activer/Désactiver */}
-                        <ActionBtn 
-                          $variant="toggle-status"
-                          $enabled={isEnabled}
-                          disabled={isMe && isEnabled}
-                          onClick={() => handleToggleStatus(admin)}
-                          title={isEnabled ? 'Désactiver le compte' : 'Activer le compte'}
-                        >
-                          {isEnabled ? <FiXCircle size={12} /> : <FiCheckCircle size={12} />}
-                          {isEnabled ? 'Désactiver' : 'Activer'}
-                        </ActionBtn>
+                      <ActionBtn 
+                        $variant="toggle-status"
+                        $enabled={isEnabled}
+                        disabled={isMe && isEnabled}
+                        onClick={() => handleToggleStatus(admin)}
+                        style={{ flex: 1, justifyContent: 'center' }}
+                      >
+                        {isEnabled ? <FiXCircle size={12} /> : <FiCheckCircle size={12} />}
+                        {isEnabled ? 'Désactiver' : 'Activer'}
+                      </ActionBtn>
 
-                        {/* Bouton Supprimer */}
-                        <ActionBtn 
-                          $variant="delete" 
-                          disabled={isMe}
-                          onClick={() => handleDeleteAdmin(admin)}
-                          title="Révoquer l'accès administrateur"
-                        >
-                          <FiTrash2 size={13} />
-                        </ActionBtn>
-                      </ActionButtons>
-                    </td>
-                  </tr>
+                      <ActionBtn 
+                        $variant="delete" 
+                        disabled={isMe}
+                        onClick={() => handleDeleteAdmin(admin)}
+                        style={{ padding: '8px 12px' }}
+                        title="Révoquer l'accès administrateur"
+                      >
+                        <FiTrash2 size={13} />
+                      </ActionBtn>
+                    </MobileAdminActions>
+                  </MobileAdminCard>
                 );
               })}
-            </tbody>
-          </Table>
+            </MobileAdminsList>
+          </>
         )}
       </TableCard>
 
