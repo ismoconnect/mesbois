@@ -1,4 +1,4 @@
-import i18n from '../../i18n';
+import i18n, { getCleanLang } from '../../i18n';
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { Link, useNavigate } from 'react-router-dom';
@@ -274,6 +274,8 @@ const DashboardLayout = ({ children }) => {
   const appName = settings.siteName || 'Bois de Chauffage';
   const displayName = userData?.displayName || appName;
   const headerInitial = displayName?.charAt(0)?.toUpperCase() || 'C';
+  const cleanLang = getCleanLang(i18n.language);
+  const productsLink = //;
 
   return (
     <>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { createBrowserRouter, createRoutesFromElements, RouterProvider, Route, Outlet, Navigate } from 'react-router-dom';
 import routeMapping from './utils/routeMapping.json';
-import i18n from './i18n';
+import i18n, { getCleanLang } from './i18n';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
@@ -134,7 +134,7 @@ function DashboardRootLayout() {
 
 // Composant pour rediriger la racine / vers la bonne langue
 function LanguageRedirector() {
-  const lang = i18n.language || 'fr';
+  const lang = getCleanLang(i18n.language);
   return <Navigate to={`/${lang}`} replace />;
 }
 
@@ -334,7 +334,7 @@ const router = createBrowserRouter(
       {/* ========================================================
           4. FALLBACK ROUTE
           ======================================================== */}
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<LanguageRedirector />} />
     </>
   )
 );

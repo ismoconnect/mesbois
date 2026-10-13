@@ -14,6 +14,12 @@ const resources = {
   }
 };
 
+export const getCleanLang = (lang) => {
+  if (!lang) return 'fr';
+  const clean = String(lang).toLowerCase().trim();
+  return clean.startsWith('de') ? 'de' : 'fr';
+};
+
 i18n
   // Détecte la langue du navigateur
   .use(LanguageDetector)
@@ -21,11 +27,15 @@ i18n
   .use(initReactI18next)
   .init({
     resources,
-    // Langue de secours
-    fallbackLng: 'de',
+    fallbackLng: 'fr',
+    supportedLngs: ['fr', 'de'],
+    load: 'languageOnly',
+    cleanCode: true,
     detection: {
-      order: ['localStorage', 'navigator'],
+      order: ['path', 'localStorage', 'navigator'],
       caches: ['localStorage'],
+      lookupFromPathIndex: 0,
+      checkWhitelist: true
     },
     interpolation: {
       escapeValue: false // React s'occupe de l'échappement
