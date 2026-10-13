@@ -275,7 +275,8 @@ const DashboardLayout = ({ children }) => {
   const displayName = userData?.displayName || appName;
   const headerInitial = displayName?.charAt(0)?.toUpperCase() || 'C';
   const cleanLang = getCleanLang(i18n.language);
-  const productsLink = //;
+  const productsSlug = routeMapping.products?.[cleanLang] || 'produits';
+  const productsLink = `/${cleanLang}/${productsSlug}`;
 
   return (
     <>
@@ -314,7 +315,7 @@ const DashboardLayout = ({ children }) => {
 
           <NavDivider />
 
-          <BoutiqueNavItem to={`/${i18n.language || 'fr'}/${routeMapping.products[i18n.language || 'fr']}`} onClick={() => setOpen(false)}>
+          <BoutiqueNavItem to={productsLink} onClick={() => setOpen(false)}>
             <FiShoppingBag />
             <span>{t('dashboard.nav.shop', 'Commander du bois')}</span>
           </BoutiqueNavItem>
@@ -342,7 +343,7 @@ const DashboardLayout = ({ children }) => {
           <span className="header-name">{t('dashboard.header.welcome', 'Bienvenue')}, {displayName}</span>
         </HeaderTitle>
         <HeaderActions>
-          <Link to={`/${i18n.language || 'fr'}/${routeMapping.products[i18n.language || 'fr']}`} style={{ textDecoration: 'none' }}>
+          <Link to={productsLink} style={{ textDecoration: 'none' }}>
             <HeaderButton title={t('dashboard.nav.shop', 'Commander du bois')}>
               <FiShoppingBag /> <span className="label">{t('dashboard.header.shopLabel', 'Boutique')}</span>
             </HeaderButton>
