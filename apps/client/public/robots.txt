@@ -1,9 +1,20 @@
 User-agent: *
 Allow: /
+
+# Protection des données et optimisation du crawl budget Google
 Disallow: /dashboard/
 Disallow: /checkout/
+Disallow: /kasse/
+Disallow: /panier/
+Disallow: /cart/
 Disallow: /payment/
+Disallow: /virement-bancaire/
+Disallow: /bestellbestaetigung/
 Disallow: /suivi/
+Disallow: /profil/
+Disallow: /profile/
+Disallow: /login/
+Disallow: /connexion/
 Disallow: /billing/
 
 Sitemap: https://www.brennholzkaufen.online/sitemap.xml
