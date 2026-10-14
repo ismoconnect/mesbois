@@ -1512,9 +1512,9 @@ const Checkout = () => {
       setLoginLoading(false);
 
       if (hasSavedAddress) {
-        toast.success(`Ravi de vous revoir ${fName ? fName : ''} ! Vos coordonnées sont prêtes.`);
+        toast.success(t('checkout.welcome_back', { name: fName ? fName : '', defaultValue: `Ravi de vous revoir ${fName ? fName : ''} ! Vos coordonnées sont prêtes.` }));
       } else {
-        toast.success('Connexion réussie ! Veuillez vérifier votre adresse de livraison.');
+        toast.success(t('checkout.login_success_verify', 'Connexion réussie ! Veuillez vérifier votre adresse de livraison.'));
       }
     } catch {
       toast.error(t('checkout.err_login', 'Erreur lors de la connexion'));
@@ -1564,7 +1564,7 @@ const Checkout = () => {
       setDiscount(Number(d.toFixed(2)));
       toast.success(t('checkout.coupon_applied', 'Code promo appliqué avec succès !'));
     } catch {
-      toast.error('Impossible d’appliquer ce code promo');
+      toast.error(t('checkout.err_coupon_failed', "Impossible d'appliquer ce code promo"));
     } finally {
       setApplyingCoupon(false);
     }
@@ -1590,19 +1590,19 @@ const Checkout = () => {
     // Validation des champs essentiels
     if (!formData.firstName.trim() || !formData.lastName.trim()) {
       setMobileStep(1);
-      return toast.error('Veuillez renseigner vos prénom et nom.');
+      return toast.error(t('checkout.err_name', 'Veuillez renseigner vos prénom et nom.'));
     }
     if (!formData.email.trim() || !formData.email.includes('@')) {
       setMobileStep(1);
-      return toast.error('Veuillez renseigner une adresse email valide.');
+      return toast.error(t('checkout.err_email', 'Veuillez renseigner une adresse email valide.'));
     }
     if (!formData.address.trim()) {
       setMobileStep(1);
-      return toast.error('Veuillez renseigner votre adresse de livraison complète.');
+      return toast.error(t('checkout.err_address', 'Veuillez renseigner votre adresse de livraison complète.'));
     }
     if (!formData.postalCode.trim() || !formData.city.trim()) {
       setMobileStep(1);
-      return toast.error('Veuillez renseigner votre code postal et ville.');
+      return toast.error(t('checkout.err_city', 'Veuillez renseigner votre code postal et ville.'));
     }
 
     setIsSubmitting(true);
@@ -1630,6 +1630,8 @@ const Checkout = () => {
         if (regRes.success) {
           currentUser = regRes.user;
           try { await sendEmailVerification(currentUser); } catch { }
+        } else if (regRes.error && (regRes.error.includes('email-already-in-use') || regRes.error.includes('auth/email-already-in-use'))) {
+          toast(t('checkout.email_already_exists_notice', 'Diese E-Mail-Adresse ist bereits registriert. Ihre Bestellung wird als Gastbestellung ausgeführt.'), { icon: 'ℹ️' });
         }
       }
 
@@ -1744,7 +1746,7 @@ const Checkout = () => {
       <SEO title={t('checkout.title', 'Paiement sécurisé')} path="/kasse" />
         <PageHeader>
           <Title>{t('checkout.empty_cart_title', 'Votre panier est vide')}</Title>
-          <Subtitle>Ajoutez des produits de qualité à votre panier pour finaliser votre commande.</Subtitle>
+          <Subtitle>{t('checkout.empty_cart_subtitle', 'Ajoutez des produits de qualité à votre panier pour finaliser votre commande.')}</Subtitle>
           <div style={{ marginTop: 24 }}>
             <button
               type="button"
@@ -1760,7 +1762,7 @@ const Checkout = () => {
                 cursor: 'pointer'
               }}
             >
-              Découvrir nos bois & granulés
+              {t('checkout.discover_wood_pellets', 'Découvrir nos bois & granulés')}
             </button>
           </div>
         </PageHeader>
@@ -1776,17 +1778,17 @@ const Checkout = () => {
           <BackToGuestBar>
             <BackToGuestLink type="button" onClick={() => setIsLoginOpen(false)}>
               <FiArrowLeft size={15} />
-              <span>Retour à la commande</span>
+              <span>{t('checkout.back_to_order', 'Retour à la commande')}</span>
             </BackToGuestLink>
             <CartBadgePill>
-              Panier : <strong>{total.toFixed(2)} €</strong> ({totalItemsCount} art.)
+              {t('checkout.cart_badge_label', 'Panier :')} <strong>{total.toFixed(2)} €</strong> ({totalItemsCount} {t('checkout.items_abbr', 'art.')})
             </CartBadgePill>
           </BackToGuestBar>
 
           <PageHeader style={{ marginBottom: 10, textAlign: 'center' }}>
-            <Title style={{ fontSize: 18 }}>Connexion client</Title>
+            <Title style={{ fontSize: 18 }}>{t('checkout.client_login_title', 'Connexion client')}</Title>
             <Subtitle style={{ justifyContent: 'center', fontSize: 12 }}>
-              <span>Retrouvez vos adresses et vos informations en toute sécurité.</span>
+              <span>{t('checkout.client_login_subtitle', 'Retrouvez vos adresses et vos informations en toute sécurité.')}</span>
             </Subtitle>
           </PageHeader>
 
@@ -1795,8 +1797,8 @@ const Checkout = () => {
               <div className="icon-circle">
                 <FiUser size={24} />
               </div>
-              <h2>Identifiez-vous</h2>
-              <p>Saisissez vos identifiants pour accéder à votre compte client.</p>
+              <h2>{t('checkout.identify_title', 'Identifiez-vous')}</h2>
+              <p>{t('checkout.identify_desc', 'Saisissez vos identifiants pour accéder à votre compte client.')}</p>
             </LoginCardHeader>
 
             <form onSubmit={handleQuickLogin}>
@@ -1823,13 +1825,13 @@ const Checkout = () => {
 
               <LoginInputGroup $hasPasswordToggle>
                 <div className="label-row">
-                  <label htmlFor="login-password">Mot de passe</label>
+                  <label htmlFor="login-password">{t('checkout.password', 'Mot de passe')}</label>
                   <button
                     type="button"
                     className="forgot-btn"
                     onClick={handleForgotPassword}
                   >
-                    Mot de passe oublié ?
+                    {t('checkout.forgot_password', 'Mot de passe oublié ?')}
                   </button>
                 </div>
                 <div className="input-with-icon">
@@ -1840,7 +1842,7 @@ const Checkout = () => {
                     id="login-password"
                     type={showLoginPassword ? 'text' : 'password'}
                     autoComplete="current-password"
-                    placeholder="Votre mot de passe"
+                    placeholder={t('checkout.placeholder_password', 'Votre mot de passe')}
                     value={loginFields.password}
                     onChange={(e) => setLoginFields(prev => ({ ...prev, password: e.target.value }))}
                     required
@@ -1849,7 +1851,7 @@ const Checkout = () => {
                     type="button"
                     className="eye-btn"
                     onClick={() => setShowLoginPassword(!showLoginPassword)}
-                    title={showLoginPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                    title={showLoginPassword ? t('checkout.hide_password', 'Masquer le mot de passe') : t('checkout.show_password', 'Afficher le mot de passe')}
                   >
                     {showLoginPassword ? <FiEyeOff size={16} /> : <FiEye size={16} />}
                   </button>
@@ -1858,7 +1860,7 @@ const Checkout = () => {
 
               <LoginSubmitButton type="submit" disabled={loginLoading}>
                 {loginLoading ? (
-                  'Connexion en cours...'
+                  t('checkout.logging_in', 'Connexion en cours...')
                 ) : (
                   <>
                     <span>{t('checkout.login_and_continue', 'Se connecter et continuer')}</span>
@@ -1912,7 +1914,7 @@ const Checkout = () => {
             </ItemThumb>
             <ItemDetails>
               <div className="name" title={item.name}>{item.name}</div>
-              <div className="meta">Qté : {item.quantity} × {Number(item.price || 0).toFixed(2)} €</div>
+              <div className="meta">{t('checkout.qty_abbr', 'Qté')} : {item.quantity} × {Number(item.price || 0).toFixed(2)} €</div>
             </ItemDetails>
             <ItemPrice>{(Number(item.price || 0) * (item.quantity || 1)).toFixed(2)} €</ItemPrice>
           </ItemRow>
@@ -1926,7 +1928,7 @@ const Checkout = () => {
             <FiTag size={14} />
             Code <strong>{appliedCoupon.code}</strong> (-{discount.toFixed(2)} €)
           </span>
-          <button type="button" onClick={handleRemoveCoupon} title="Supprimer le code">
+          <button type="button" onClick={handleRemoveCoupon} title={t('checkout.remove_code', 'Supprimer le code')}>
             <FiX />
           </button>
         </AppliedCouponBadge>
@@ -2151,7 +2153,7 @@ const Checkout = () => {
                           textDecoration: 'underline'
                         }}
                       >
-                        ✓ Conserver cette adresse
+                        ✓ {t('checkout.keep_address', 'Conserver cette adresse')}
                       </button>
                     </div>
                   )}
@@ -2275,13 +2277,13 @@ const Checkout = () => {
                     value={formData.country}
                     onChange={handleChange}
                   >
-                    <option value="France">{t('checkout.france', 'France')}</option>
                     <option value="Allemagne">{t('checkout.germany', 'Allemagne')}</option>
-                    <option value="Belgique">{t('checkout.belgium', 'Belgique')}</option>
-                    <option value="Luxembourg">{t('checkout.luxembourg', 'Luxembourg')}</option>
-                    <option value="Pays-Bas">Pays-Bas</option>
                     <option value="Autriche">{t('checkout.austria', 'Autriche')}</option>
                     <option value="Suisse">{t('checkout.switzerland', 'Suisse')}</option>
+                    <option value="France">{t('checkout.france', 'France')}</option>
+                    <option value="Belgique">{t('checkout.belgium', 'Belgique')}</option>
+                    <option value="Luxembourg">{t('checkout.luxembourg', 'Luxembourg')}</option>
+                    <option value="Pays-Bas">{t('checkout.netherlands', 'Pays-Bas')}</option>
                   </StyledSelect>
                 </CountryInputWrapper>
               </FormGroup>
@@ -2309,7 +2311,7 @@ const Checkout = () => {
                   <InputWrapper>
                     <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <span>
-                        Instructions spécifiques chauffeur <span className="opt">(accès, portail...)</span>
+                        {t('checkout.driver_instruction_label', 'Instructions spécifiques chauffeur')} <span className="opt">{t('checkout.driver_instruction_opt', '(accès, portail...)')}</span>
                       </span>
                       <button
                         type="button"
@@ -2325,12 +2327,12 @@ const Checkout = () => {
                           padding: '0 4px'
                         }}
                       >
-                        − Refermer
+                        − {t('checkout.close', 'Refermer')}
                       </button>
                     </label>
                     <StyledTextarea
                       name="notes"
-                      placeholder="Ex : Accès facile sous abri, largeur portail 3m, déposer le long du garage..."
+                      placeholder={t('checkout.driver_instruction_placeholder', 'Ex : Accès facile sous abri, largeur portail 3m, déposer le long du garage...')}
                       value={formData.notes}
                       onChange={handleChange}
                     />
@@ -2368,11 +2370,11 @@ const Checkout = () => {
                   {createAccount && (
                     <div style={{ marginTop: 10, maxWidth: 320, animation: 'fadeIn 0.2s ease-in-out' }}>
                       <InputWrapper>
-                        <label><span className="req">*</span> Mot de passe souhaité</label>
+                        <label><span className="req">*</span> {t('checkout.desired_password', 'Mot de passe souhaité')}</label>
                         <div style={{ position: 'relative' }}>
                           <StyledInput
                             type={showPassword ? 'text' : 'password'}
-                            placeholder="6 caractères minimum"
+                            placeholder={t('checkout.password_min_chars', '6 caractères minimum')}
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             style={{ paddingRight: 40 }}
@@ -2417,8 +2419,8 @@ const Checkout = () => {
             {/* Sur mobile, rappel de l'adresse choisie avec bouton modifier */}
             <DeliveryRecapChip>
               <div className="info">
-                <div>{t('checkout.delivery', 'Livraison')} : <strong>{formData.firstName || 'Client'} {formData.lastName}</strong></div>
-                <div style={{ color: '#55695a', fontSize: 12 }}>{formData.address || 'Adresse renseignée'}, {formData.postalCode} {formData.city}</div>
+                <div>{t('checkout.delivery', 'Livraison')} : <strong>{formData.firstName || (i18n.language === 'de' ? 'Kunde' : 'Client')} {formData.lastName}</strong></div>
+                <div style={{ color: '#55695a', fontSize: 12 }}>{formData.address || t('checkout.address_set', 'Adresse renseignée')}, {formData.postalCode} {formData.city}</div>
               </div>
               <button type="button" onClick={() => setMobileStep(1)}>
                 <FiEdit2 size={13} />
