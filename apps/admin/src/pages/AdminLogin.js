@@ -214,7 +214,15 @@ const AdminLogin = () => {
         setError('Vérification des droits impossible');
       }
     } catch (e) {
-      setError('Connexion échouée');
+      if (e?.code === 'auth/invalid-credential' || e?.code === 'auth/wrong-password' || e?.code === 'auth/user-not-found') {
+        setError('Email ou mot de passe incorrect');
+      } else if (e?.code === 'auth/too-many-requests') {
+        setError('Trop de tentatives. Veuillez patienter quelques instants avant de réessayer.');
+      } else if (e?.code === 'auth/user-disabled') {
+        setError('Ce compte administrateur a été désactivé');
+      } else {
+        setError(e?.message || 'Connexion échouée');
+      }
     } finally {
       setLoading(false);
     }
