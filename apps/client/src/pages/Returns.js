@@ -65,9 +65,9 @@ const Returns = () => {
   return (
     <Container>
       <SEO 
+        routeKey="returns"
         title={isDe ? 'Widerrufsbelehrung & Rückgabe' : 'Retours & Droit de Rétractation'} 
         description={isDe ? 'Gesetzliche Widerrufsbelehrung und Rückgaberecht für Brennholz- und Pellet-Bestellungen bei brennholzkaufen.' : 'Modalités relatives au droit de rétractation et au retour des produits commandés.'}
-        path="/rueckgabe"
       />
 
       {isDe ? (

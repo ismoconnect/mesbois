@@ -1064,6 +1064,7 @@ const Header = () => {
           <Nav>
             <LocalizedLink routeKey="home" onClick={closeAllOverlays} style={{marginRight: '15px', color: '#333', textDecoration: 'none', fontWeight: '500'}}>{t('nav.home')}</LocalizedLink>
             <LocalizedLink routeKey="products" onClick={closeAllOverlays} style={{marginRight: '15px', color: '#333', textDecoration: 'none', fontWeight: '500'}}>{t('nav.products')}</LocalizedLink>
+            <LocalizedLink routeKey="delivery" onClick={closeAllOverlays} style={{marginRight: '15px', color: '#333', textDecoration: 'none', fontWeight: '500'}}>{t('nav.delivery', 'Lieferung')}</LocalizedLink>
             <LocalizedLink routeKey="about" onClick={closeAllOverlays} style={{marginRight: '15px', color: '#333', textDecoration: 'none', fontWeight: '500'}}>{t('nav.about')}</LocalizedLink>
             <LocalizedLink routeKey="contact" onClick={closeAllOverlays} style={{color: '#333', textDecoration: 'none', fontWeight: '500'}}>{t('nav.contact')}</LocalizedLink>
           </Nav>
@@ -1145,6 +1146,7 @@ const Header = () => {
         <MobileMenu isOpen={isMobileMenuOpen}>
           <LocalizedLink routeKey="home" onClick={closeAllOverlays} style={{display:'block', padding:'15px', color:'#333', textDecoration:'none', borderBottom:'1px solid #eee'}}>{t('nav.home')}</LocalizedLink>
           <LocalizedLink routeKey="products" onClick={closeAllOverlays} style={{display:'block', padding:'15px', color:'#333', textDecoration:'none', borderBottom:'1px solid #eee'}}>{t('nav.products')}</LocalizedLink>
+          <LocalizedLink routeKey="delivery" onClick={closeAllOverlays} style={{display:'block', padding:'15px', color:'#333', textDecoration:'none', borderBottom:'1px solid #eee'}}>{t('nav.delivery', 'Lieferung')}</LocalizedLink>
           <LocalizedLink routeKey="about" onClick={closeAllOverlays} style={{display:'block', padding:'15px', color:'#333', textDecoration:'none', borderBottom:'1px solid #eee'}}>{t('nav.about')}</LocalizedLink>
           <LocalizedLink routeKey="contact" onClick={closeAllOverlays} style={{display:'block', padding:'15px', color:'#333', textDecoration:'none', borderBottom:'1px solid #eee'}}>{t('nav.contact')}</LocalizedLink>
           {!user && (

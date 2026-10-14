@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import routeMapping from '../utils/routeMapping.json';
 
-const SwitcherContainer = styled.div`
+const SwitcherContainer = styled.nav`
   display: flex;
   align-items: center;
   gap: 12px;
@@ -14,9 +14,10 @@ const SwitcherContainer = styled.div`
   border: 1px solid rgba(255, 255, 255, 0.2);
 `;
 
-const LangButton = styled.button`
+const LangLink = styled.a`
   background: none;
   border: none;
+  text-decoration: none;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -43,12 +44,9 @@ const LanguageSwitcher = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const changeLanguage = (lng) => {
-    const currentLang = i18n.language || 'de';
-    if (lng === currentLang) return;
-    
-    i18n.changeLanguage(lng);
+  const currentLang = (i18n.language || 'de').toLowerCase().startsWith('fr') ? 'fr' : 'de';
 
+  const getTargetUrl = (targetLang) => {
     const pathParts = location.pathname.split('/').filter(Boolean);
     let langInUrl = null;
     let restOfPath = pathParts;
@@ -64,42 +62,52 @@ const LanguageSwitcher = () => {
     
     const fullPathStr = restOfPath.join('/');
     for (const [key, mapping] of Object.entries(routeMapping)) {
-      if (mapping[currentLang] === fullPathStr) {
+      if (mapping[currentLang] === fullPathStr || mapping.fr === fullPathStr || mapping.de === fullPathStr) {
         foundRouteKey = key;
         additionalParams = '';
         break;
       }
-      if (currentSlug && mapping[currentLang] === currentSlug) {
+      if (currentSlug && (mapping[currentLang] === currentSlug || mapping.fr === currentSlug || mapping.de === currentSlug)) {
         foundRouteKey = key;
         break;
       }
     }
     
-    const newSlug = routeMapping[foundRouteKey]?.[lng] ?? foundRouteKey;
-    let newPath = `/${lng}`;
+    const newSlug = routeMapping[foundRouteKey]?.[targetLang] ?? foundRouteKey;
+    let newPath = `/${targetLang}`;
     if (newSlug) newPath += `/${newSlug}`;
     if (additionalParams) newPath += `/${additionalParams}`;
-    newPath += location.search;
-    
-    navigate(newPath);
+    if (location.search) newPath += location.search;
+    return newPath;
   };
 
-  const currentLang = i18n.language || 'de';
+  const handleClick = (e, targetLang) => {
+    e.preventDefault();
+    if (targetLang === currentLang) return;
+    i18n.changeLanguage(targetLang);
+    navigate(getTargetUrl(targetLang));
+  };
 
   return (
-    <SwitcherContainer>
-      <LangButton 
-        onClick={() => changeLanguage('fr')} 
-        $active={currentLang.startsWith('fr')}
-      >
-        <span className="flag">🇫🇷</span> FR
-      </LangButton>
-      <LangButton 
-        onClick={() => changeLanguage('de')} 
-        $active={currentLang.startsWith('de')}
+    <SwitcherContainer aria-label="Sprachauswahl / Sélecteur de langue">
+      <LangLink 
+        href={getTargetUrl('de')} 
+        onClick={(e) => handleClick(e, 'de')}
+        $active={currentLang === 'de'}
+        hrefLang="de"
+        aria-label="Deutsch"
       >
         <span className="flag">🇩🇪</span> DE
-      </LangButton>
+      </LangLink>
+      <LangLink 
+        href={getTargetUrl('fr')} 
+        onClick={(e) => handleClick(e, 'fr')}
+        $active={currentLang === 'fr'}
+        hrefLang="fr"
+        aria-label="Français"
+      >
+        <span className="flag">🇫🇷</span> FR
+      </LangLink>
     </SwitcherContainer>
   );
 };

@@ -964,13 +964,24 @@ export default function BankTransfer() {
   const [order, setOrder] = useState(location.state?.orderData || null);
 
   useEffect(() => {
-    if (order && orderId) {
-      trackTikTokEvent('CompletePayment', {
-        content_id: orderId,
-        value: order.total || order.totalPrice || 0,
-        currency: 'EUR',
-        order_id: orderId
-      });
+    if (order && orderId && typeof window !== 'undefined') {
+      const dedupKey = `tt_complete_${orderId}`;
+      if (!sessionStorage.getItem(dedupKey)) {
+        sessionStorage.setItem(dedupKey, '1');
+        trackTikTokEvent('CompletePayment', {
+          event_id: `order_${orderId}`,
+          content_id: orderId,
+          order_id: orderId,
+          value: Number(order.total || order.totalPrice || 0),
+          currency: 'EUR',
+          contents: (order.items || []).map(it => ({
+            content_id: it.id,
+            content_name: it.name,
+            quantity: it.quantity,
+            price: it.price
+          }))
+        });
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [order?.id, orderId]);
@@ -1094,7 +1105,7 @@ Merci !`;
   if (loading) {
     return (
       <PageContainer>
-      <SEO title={t('bank_transfer.title', 'Virement Bancaire')} path="/virement-bancaire" />
+        <SEO routeKey="bankTransfer" title={t('bank_transfer.title', 'Vorkasse / Banküberweisung')} noindex={true} />
         <div style={{
           display: 'flex',
           flexDirection: 'column',
@@ -1127,6 +1138,7 @@ Merci !`;
 
   return (
     <PageContainer>
+      <SEO routeKey="bankTransfer" title={t('bank_transfer.title', 'Vorkasse / Banküberweisung')} noindex={true} />
       {/* En-tête de validation compact sur carte blanche */}
       <HeaderCard>
         <IconBadge>

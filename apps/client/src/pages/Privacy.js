@@ -65,9 +65,9 @@ const Privacy = () => {
   return (
     <Container>
       <SEO 
+        routeKey="privacy"
         title={isDe ? 'Datenschutzerklärung | DSGVO' : 'Politique de Confidentialité | RGPD'} 
         description={isDe ? 'Informationen zur Verarbeitung personenbezogener Daten auf der brennholzkaufen Plattform gemäß Datenschutz-Grundverordnung (DSGVO).' : 'Informations sur le traitement et la protection de vos données personnelles conformément au RGPD.'}
-        path="/datenschutz"
       />
 
       {isDe ? (

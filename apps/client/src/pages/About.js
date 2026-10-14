@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
 import { FiTruck, FiShield, FiUsers, FiAward, FiHeart, FiCheckCircle } from 'react-icons/fi';
 import { FaTree, FaLeaf, FaHandshake } from 'react-icons/fa';
+import SEO from '../components/SEO/SEO';
 
 const AboutContainer = styled.div`
   max-width: 1040px;
@@ -324,6 +325,11 @@ const About = () => {
   const { t } = useTranslation();
   return (
     <AboutContainer>
+      <SEO 
+        routeKey="about"
+        title={t('about.title', 'Über uns')}
+        description={t('about.subtitle', 'Ihr Partner für ofenfertiges Brennholz und zertifizierte Pellets.')}
+      />
       <HeroSection>
         <HeroBadge>
           <FaTree size={11} /> {t('about.badge', 'Spécialiste européen du bois')}

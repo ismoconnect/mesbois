@@ -1328,7 +1328,7 @@ const Home = () => {
 
   return (
     <HomeContainer>
-      <SEO path="/" type="website" />
+      <SEO routeKey="home" path="/" type="website" />
       {/* 1. HERO SECTION */}
       <HeroSection>
         <HeroBadge>

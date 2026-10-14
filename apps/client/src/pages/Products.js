@@ -1636,9 +1636,9 @@ const Products = () => {
   return (
     <ProductsContainer>
       <SEO 
+        routeKey="products"
         title={t("products.title", "Nos Combustibles & Bois de Chauffage")} 
         description={t("products.subtitle", "Sélectionnez vos stères de bois dur fendu (chêne, hêtre, charme) ou vos granulés certifiés DINplus.")}
-        path="/produkte"
       />
       
       {/* 1. HEADER ÉPURÉ & TRUST BAR */}

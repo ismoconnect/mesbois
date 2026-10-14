@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
+import { useTranslation } from 'react-i18next';
+import { grantTikTokConsent } from '../../utils/tiktokPixel';
 
 const BannerContainer = styled.div`
   position: fixed;
@@ -18,7 +20,7 @@ const BannerInner = styled.div`
   margin: 0 16px 16px;
   background: #111827;
   color: #f9fafb;
-  padding: 14px 16px;
+  padding: 14px 18px;
   border-radius: 10px;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
   display: flex;
@@ -42,6 +44,9 @@ const BannerText = styled.p`
 const BannerLink = styled.a`
   color: #bbf7d0;
   text-decoration: underline;
+  &:hover {
+    color: #86efac;
+  }
 `;
 
 const ButtonRow = styled.div`
@@ -52,7 +57,7 @@ const ButtonRow = styled.div`
 const BannerButton = styled.button`
   border-radius: 999px;
   border: none;
-  padding: 8px 14px;
+  padding: 8px 16px;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -81,7 +86,11 @@ const DeclineButton = styled(BannerButton)`
 const COOKIE_KEY = 'cookie-consent';
 
 const CookieBanner = () => {
+  const { i18n } = useTranslation();
   const [visible, setVisible] = useState(false);
+
+  const lang = (i18n.language || 'de').toLowerCase();
+  const isDe = lang.startsWith('de');
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -97,7 +106,11 @@ const CookieBanner = () => {
 
   const handleChoice = (value) => {
     try {
-      window.localStorage.setItem(COOKIE_KEY, value);
+      if (value === 'accepted') {
+        grantTikTokConsent();
+      } else {
+        window.localStorage.setItem(COOKIE_KEY, 'rejected');
+      }
     } catch {
       // ignore
     }
@@ -106,20 +119,30 @@ const CookieBanner = () => {
 
   if (!visible) return null;
 
+  const privacyPath = isDe ? '/de/datenschutz' : '/fr/confidentialite';
+
   return (
     <BannerContainer>
       <BannerInner>
         <BannerText>
-          Nous utilisons des cookies pour améliorer votre expérience, analyser le trafic et personnaliser certains
-          contenus. Vous pouvez accepter ou refuser les cookies non essentiels. Pour en savoir plus, consultez notre{' '}
-          <BannerLink href="/privacy">politique de confidentialité</BannerLink>.
+          {isDe ? (
+            <>
+              Wir verwenden Cookies, um Ihre Nutzererfahrung zu optimieren, Zugriffe zu analysieren und Inhalte zu personalisieren. Sie können nicht zwingend erforderliche Cookies akzeptieren oder ablehnen. Details in unserer{' '}
+              <BannerLink href={privacyPath}>Datenschutzerklärung</BannerLink>.
+            </>
+          ) : (
+            <>
+              Nous utilisons des cookies pour améliorer votre expérience, analyser le trafic et personnaliser certains contenus. Vous pouvez accepter ou refuser les cookies non essentiels. Pour en savoir plus, consultez notre{' '}
+              <BannerLink href={privacyPath}>politique de confidentialité</BannerLink>.
+            </>
+          )}
         </BannerText>
         <ButtonRow>
           <DeclineButton type="button" onClick={() => handleChoice('rejected')}>
-            Refuser
+            {isDe ? 'Ablehnen' : 'Refuser'}
           </DeclineButton>
           <AcceptButton type="button" onClick={() => handleChoice('accepted')}>
-            Accepter
+            {isDe ? 'Akzeptieren' : 'Accepter'}
           </AcceptButton>
         </ButtonRow>
       </BannerInner>

@@ -637,7 +637,7 @@ const Cart = () => {
   if (cartItems.length === 0) {
     return (
       <CartPageContainer>
-      <SEO title={t('cart.title', 'Mon Panier')} path="/warenkorb" />
+        <SEO routeKey="cart" title={t('cart.title', 'Warenkorb')} noindex={true} />
         <CartNavHeader>
           <BackLink routeKey="products">
             <FiArrowLeft size={16} />
@@ -664,6 +664,7 @@ const Cart = () => {
 
   return (
     <CartPageContainer>
+      <SEO routeKey="cart" title={t('cart.title', 'Warenkorb')} noindex={true} />
       {/* En-tête de navigation */}
       <CartNavHeader>
         <BackLink routeKey="products">

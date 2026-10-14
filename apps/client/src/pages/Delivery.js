@@ -108,9 +108,9 @@ const Delivery = () => {
   return (
     <Container>
       <SEO 
+        routeKey="delivery"
         title={isDe ? 'Lieferung & Versandinformationen' : 'Politique de Livraison'} 
         description={isDe ? 'Informationen zur deutschlandweiten Anlieferung von Kaminholz und Pellets mit LKW und Mitnahmestapler direkt an Ihren Lagerplatz.' : 'Modalités de livraison de bois de chauffage et pellets avec chariot embarqué tout-terrain.'}
-        path="/lieferung"
       />
 
       {isDe ? (

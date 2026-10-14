@@ -1672,7 +1672,8 @@ const Checkout = () => {
       const result = await createOrder(orderData);
 
       if (result.success) {
-        trackTikTokEvent('CompletePayment', {
+        trackTikTokEvent('PlaceAnOrder', {
+          event_id: `place_${result.id}`,
           content_id: result.id,
           value: orderData.total,
           currency: 'EUR',
@@ -1743,7 +1744,7 @@ const Checkout = () => {
   if (cartItems.length === 0) {
     return (
       <PageContainer>
-      <SEO title={t('checkout.title', 'Paiement sécurisé')} path="/kasse" />
+        <SEO routeKey="checkout" title={t('checkout.title', 'Kasse & Bestellung')} noindex={true} />
         <PageHeader>
           <Title>{t('checkout.empty_cart_title', 'Votre panier est vide')}</Title>
           <Subtitle>{t('checkout.empty_cart_subtitle', 'Ajoutez des produits de qualité à votre panier pour finaliser votre commande.')}</Subtitle>
@@ -1774,6 +1775,7 @@ const Checkout = () => {
   if (isLoginOpen) {
     return (
       <PageContainer>
+        <SEO routeKey="checkout" title={t('checkout.client_login_title', 'Connexion client')} noindex={true} />
         <LoginViewContainer>
           <BackToGuestBar>
             <BackToGuestLink type="button" onClick={() => setIsLoginOpen(false)}>
@@ -2034,6 +2036,7 @@ const Checkout = () => {
 
   return (
     <PageContainer>
+      <SEO routeKey="checkout" title={t('checkout.title_finalize', 'Finaliser votre commande')} noindex={true} />
       <PageHeader>
         <Title>{t('checkout.title_finalize', 'Finaliser votre commande')}</Title>
         <Subtitle>

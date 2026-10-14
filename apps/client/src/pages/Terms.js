@@ -65,9 +65,9 @@ const Terms = () => {
   return (
     <Container>
       <SEO 
+        routeKey="terms"
         title={isDe ? 'Allgemeine Geschäftsbedingungen (AGB)' : 'Conditions Générales de Vente (CGV)'} 
         description={isDe ? 'Allgemeine Geschäftsbedingungen (AGB) für den Kauf von Kaminholz, Holzpellets und Holzbriketts im Online-Shop brennholzkaufen.' : 'Conditions Générales de Vente régissant les achats de bois de chauffage et pellets sur brennholzkaufen.'}
-        path="/agb"
       />
 
       {isDe ? (

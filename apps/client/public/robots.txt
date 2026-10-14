@@ -1,20 +1,38 @@
 User-agent: *
 Allow: /
 
-# Protection des données et optimisation du crawl budget Google
+# Tunnel de commande et panier (DE & FR)
+Disallow: /*/kasse
+Disallow: /*/commande
+Disallow: /*/warenkorb
+Disallow: /*/panier
+Disallow: /*/zahlung/
+Disallow: /*/paiement/
+Disallow: /kasse
+Disallow: /checkout
+Disallow: /warenkorb
+Disallow: /panier
+Disallow: /cart
+
+# Espace client, profil et facturation (DE & FR)
+Disallow: /*/kundenbereich/
+Disallow: /*/espace-client/
+Disallow: /*/profil
+Disallow: /*/rechnung
+Disallow: /*/facturation
 Disallow: /dashboard/
-Disallow: /checkout/
-Disallow: /kasse/
-Disallow: /panier/
-Disallow: /cart/
-Disallow: /payment/
-Disallow: /virement-bancaire/
-Disallow: /bestellbestaetigung/
-Disallow: /suivi/
-Disallow: /profil/
 Disallow: /profile/
-Disallow: /login/
-Disallow: /connexion/
 Disallow: /billing/
+
+# Authentification et suivi de commande
+Disallow: /*/anmelden
+Disallow: /*/connexion
+Disallow: /*/registrieren
+Disallow: /*/inscription
+Disallow: /*/sendungsverfolgung
+Disallow: /*/suivi
+Disallow: /*/auth/
+Disallow: /login
+Disallow: /suivi
 
 Sitemap: https://www.brennholzkaufen.online/sitemap.xml

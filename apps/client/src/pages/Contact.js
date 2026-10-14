@@ -5,6 +5,7 @@ import { FiMail, FiPhone, FiMapPin, FiClock, FiSend, FiMessageCircle, FiCheckCir
 import { FaTruck, FaShieldAlt } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import { useSiteSettings } from '../contexts/SiteSettingsContext';
+import SEO from '../components/SEO/SEO';
 
 const ContactContainer = styled.div`
   max-width: 1040px;
@@ -519,6 +520,11 @@ const Contact = () => {
 
   return (
     <ContactContainer>
+      <SEO 
+        routeKey="contact"
+        title={t('contact.title', 'Kontakt & Kundenservice')}
+        description={t('contact.subtitle', 'Unser Team berät Sie gerne bei Fragen zu Brennholz, Pellets und Lieferung.')}
+      />
       <ContactHeader>
         <ContactBadge>
           <FiMessageCircle size={12} /> {t('contact.badge', 'Service Client & Devis Gratuit')}

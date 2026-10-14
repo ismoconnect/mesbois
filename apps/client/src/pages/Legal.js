@@ -82,9 +82,9 @@ const Legal = () => {
   return (
     <Container>
       <SEO 
+        routeKey="legal"
         title={isDe ? 'Impressum | Gesetzliche Anbieterkennzeichnung' : 'Mentions Légales'} 
         description={isDe ? 'Gesetzliche Anbieterkennzeichnung und rechtliche Informationen der brennholzkaufen Online-Plattform gemäß § 5 TMG.' : 'Mentions légales et informations relatives à l’éditeur du site brennholzkaufen.'}
-        path="/impressum"
       />
 
       {isDe ? (

@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "react-scripts start",
     "start": "react-scripts start",
-    "build": "cross-env CI=false react-scripts build",
+    "build": "cross-env CI=false react-scripts build && node ../../scripts/generate_sitemap.js && node ../../scripts/prerender.js",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },

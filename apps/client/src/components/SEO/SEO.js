@@ -1,15 +1,104 @@
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getCleanLang } from '../../i18n';
+import routeMapping from '../../utils/routeMapping.json';
 
 const SITE_ORIGIN = 'https://www.brennholzkaufen.online';
 const DEFAULT_IMAGE = `${SITE_ORIGIN}/images/brennholzkaufen_logo_transparent.png`;
 
 /**
+ * Résout les URLs réciproques allemande (de) et française (fr)
+ * de manière 100% cohérente et conforme aux recommandations Google hreflang.
+ */
+function resolveAlternateUrls({ routeKey, path, pathDe, pathFr, product, lang }) {
+  // 1. Si fiches produit
+  if (product && product.id) {
+    const deUrl = `${SITE_ORIGIN}/de/produkt/${product.id}`;
+    const frUrl = `${SITE_ORIGIN}/fr/produit/${product.id}`;
+    return {
+      deUrl,
+      frUrl,
+      canonicalUrl: lang === 'de' ? deUrl : frUrl,
+    };
+  }
+
+  // 2. Si routeKey fournie (ex: 'about', 'legal', 'delivery', etc.)
+  if (routeKey && routeMapping[routeKey]) {
+    const deSlug = routeMapping[routeKey].de;
+    const frSlug = routeMapping[routeKey].fr;
+    const deUrl = `${SITE_ORIGIN}/de${deSlug ? `/${deSlug}` : ''}`;
+    const frUrl = `${SITE_ORIGIN}/fr${frSlug ? `/${frSlug}` : ''}`;
+    return {
+      deUrl,
+      frUrl,
+      canonicalUrl: lang === 'de' ? deUrl : frUrl,
+    };
+  }
+
+  // 3. Si pathDe et pathFr explicites
+  if (pathDe || pathFr) {
+    const deUrl = `${SITE_ORIGIN}/de${pathDe ? (pathDe.startsWith('/') ? pathDe : `/${pathDe}`) : ''}`;
+    const frUrl = `${SITE_ORIGIN}/fr${pathFr ? (pathFr.startsWith('/') ? pathFr : `/${pathFr}`) : ''}`;
+    return {
+      deUrl,
+      frUrl,
+      canonicalUrl: lang === 'de' ? deUrl : frUrl,
+    };
+  }
+
+  // 4. Fallback basé sur path (ex: '/impressum' ou '/de/produkte')
+  const clean = (path || '').replace(/^\/(de|fr)(\/|$)/, '/').replace(/^\//, '');
+  if (!clean) {
+    // Page d'accueil
+    return {
+      deUrl: `${SITE_ORIGIN}/de`,
+      frUrl: `${SITE_ORIGIN}/fr`,
+      canonicalUrl: `${SITE_ORIGIN}/${lang}`,
+    };
+  }
+
+  // Vérifier si clean correspond à un slug existant dans routeMapping
+  for (const mapping of Object.values(routeMapping)) {
+    if (mapping.de === clean || mapping.fr === clean) {
+      const deUrl = `${SITE_ORIGIN}/de${mapping.de ? `/${mapping.de}` : ''}`;
+      const frUrl = `${SITE_ORIGIN}/fr${mapping.fr ? `/${mapping.fr}` : ''}`;
+      return {
+        deUrl,
+        frUrl,
+        canonicalUrl: lang === 'de' ? deUrl : frUrl,
+      };
+    }
+  }
+
+  // Si produit avec slug (ex: 'produkt/123' ou 'produit/123')
+  const prodMatch = clean.match(/^(?:produkt|produit)\/([^/]+)/);
+  if (prodMatch) {
+    const pid = prodMatch[1];
+    const deUrl = `${SITE_ORIGIN}/de/produkt/${pid}`;
+    const frUrl = `${SITE_ORIGIN}/fr/produit/${pid}`;
+    return {
+      deUrl,
+      frUrl,
+      canonicalUrl: lang === 'de' ? deUrl : frUrl,
+    };
+  }
+
+  // Fallback symétrique sécurisé
+  return {
+    deUrl: `${SITE_ORIGIN}/de/${clean}`,
+    frUrl: `${SITE_ORIGIN}/fr/${clean}`,
+    canonicalUrl: `${SITE_ORIGIN}/${lang}/${clean}`,
+  };
+}
+
+/**
  * Composant SEO universel natif (100% compatible React 18 / StrictMode) :
- * Gère <title>, <meta description>, OpenGraph, Twitter Cards, hreflang multilingue
- * et les données structurées Schema.org JSON-LD (Rich Snippets Google).
- * Remplace react-helmet pour supprimer l'avertissement UNSAFE_componentWillMount / SideEffect(NullComponent).
+ * - Balises <title> et <meta description> uniques par route
+ * - URL canonique absolue stricte
+ * - Balises <link rel="alternate" hreflang="..."> réciproques + x-default (DE)
+ * - Données structurées Schema.org JSON-LD (Product, BreadcrumbList, Organization, WebSite)
+ * - OpenGraph & Twitter Cards
+ * - Directives d'indexation (noindex sur checkout/virement/espace privé)
  */
 const SEO = ({
   title,
@@ -17,14 +106,18 @@ const SEO = ({
   keywords,
   image,
   path = '',
+  pathDe,
+  pathFr,
+  routeKey,
   type = 'website',
-  product = null
+  product = null,
+  noindex = false,
 }) => {
   const { i18n } = useTranslation();
   const lang = getCleanLang(i18n.language);
   const isDe = lang === 'de';
 
-  // Valeurs par défaut optimisées pour le référencement
+  // Valeurs par défaut optimisées pour le marché allemand
   const defaultTitle = isDe
     ? 'Brennholz Kaufen | Premium Kaminholz & Holzpellets – Lieferung Deutschland'
     : 'Bois de Chauffage & Granulés Premium | Vente en ligne & Livraison';
@@ -42,18 +135,21 @@ const SEO = ({
   const metaKeywords = keywords || defaultKeywords;
   const metaImage = image || DEFAULT_IMAGE;
 
-  // URLs canoniques et hreflang
-  const cleanPath = path ? (path.startsWith('/') ? path : `/${path}`) : '';
-  const canonicalUrl = `${SITE_ORIGIN}/${lang}${cleanPath}`;
-  const frUrl = `${SITE_ORIGIN}/fr${cleanPath}`;
-  const deUrl = `${SITE_ORIGIN}/de${cleanPath}`;
+  const { deUrl, frUrl, canonicalUrl } = resolveAlternateUrls({
+    routeKey,
+    path,
+    pathDe,
+    pathFr,
+    product,
+    lang,
+  });
 
   useEffect(() => {
-    // 1. Langue et Titre du document
+    // 1. Langue et Titre
     document.documentElement.lang = lang;
     document.title = metaTitle;
 
-    // Helper pour créer ou mettre à jour une balise <meta>
+    // Helper <meta>
     const setMetaTag = (attribute, attrValue, content) => {
       let tag = document.querySelector(`meta[${attribute}="${attrValue}"]`);
       if (!tag) {
@@ -64,7 +160,7 @@ const SEO = ({
       tag.setAttribute('content', content || '');
     };
 
-    // Helper pour créer ou mettre à jour une balise <link>
+    // Helper <link>
     const setLinkTag = (rel, href, hreflang = null) => {
       const selector = hreflang
         ? `link[rel="${rel}"][hreflang="${hreflang}"]`
@@ -72,24 +168,33 @@ const SEO = ({
       let tag = document.querySelector(selector);
       if (!tag) {
         tag = document.createElement('link');
-        tag.setAttribute(rel, rel);
+        tag.setAttribute('rel', rel);
         if (hreflang) tag.setAttribute('hreflang', hreflang);
         document.head.appendChild(tag);
       }
       tag.setAttribute('href', href);
     };
 
-    // Meta descriptions & keywords
+    // 2. Directives robots
+    if (noindex) {
+      setMetaTag('name', 'robots', 'noindex, nofollow');
+    } else {
+      setMetaTag('name', 'robots', 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1');
+    }
+
+    // 3. Description & Mots-clés
     setMetaTag('name', 'description', metaDescription);
     setMetaTag('name', 'keywords', metaKeywords);
 
-    // Balises canoniques & hreflang pour Google
-    setLinkTag('canonical', canonicalUrl);
-    setLinkTag('alternate', deUrl, 'de');
-    setLinkTag('alternate', frUrl, 'fr');
-    setLinkTag('alternate', deUrl, 'x-default');
+    // 4. Balises Canoniques & Hreflang
+    if (!noindex) {
+      setLinkTag('canonical', canonicalUrl);
+      setLinkTag('alternate', deUrl, 'de');
+      setLinkTag('alternate', frUrl, 'fr');
+      setLinkTag('alternate', deUrl, 'x-default');
+    }
 
-    // OpenGraph
+    // 5. OpenGraph
     setMetaTag('property', 'og:type', type === 'product' ? 'product' : 'website');
     setMetaTag('property', 'og:site_name', 'brennholzkaufen');
     setMetaTag('property', 'og:title', metaTitle);
@@ -97,23 +202,75 @@ const SEO = ({
     setMetaTag('property', 'og:url', canonicalUrl);
     setMetaTag('property', 'og:image', metaImage);
 
-    // Twitter Card
+    // 6. Twitter Card
     setMetaTag('name', 'twitter:card', 'summary_large_image');
     setMetaTag('name', 'twitter:title', metaTitle);
     setMetaTag('name', 'twitter:description', metaDescription);
     setMetaTag('name', 'twitter:image', metaImage);
 
-    // Données structurées Schema.org JSON-LD
-    let schemaData = null;
+    // 7. Données structurées Schema.org JSON-LD
+    const schemas = [];
+
+    // Organization & WebSite (sur toutes les pages publiques)
+    schemas.push({
+      '@context': 'https://schema.org',
+      '@type': 'Organization',
+      name: 'brennholzkaufen',
+      url: SITE_ORIGIN,
+      logo: DEFAULT_IMAGE,
+      contactPoint: [{
+        '@type': 'ContactPoint',
+        telephone: '+49 1633637236',
+        contactType: 'customer service',
+        availableLanguage: ['German', 'French'],
+        areaServed: ['DE', 'AT', 'CH', 'LU', 'FR'],
+      }],
+    });
+
+    schemas.push({
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      name: 'brennholzkaufen',
+      url: SITE_ORIGIN,
+      inLanguage: ['de', 'fr'],
+    });
+
+    // BreadcrumbList
     if (type === 'product' && product) {
-      schemaData = {
+      schemas.push({
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          {
+            '@type': 'ListItem',
+            position: 1,
+            name: isDe ? 'Startseite' : 'Accueil',
+            item: `${SITE_ORIGIN}/${lang}`,
+          },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: isDe ? 'Produkte' : 'Produits',
+            item: `${SITE_ORIGIN}/${lang}/${isDe ? 'produkte' : 'produits'}`,
+          },
+          {
+            '@type': 'ListItem',
+            position: 3,
+            name: title || product.name,
+            item: canonicalUrl,
+          },
+        ],
+      });
+
+      // Product Schema (sans fausses notes inventées, conforme Google Merchant)
+      const productSchema = {
         '@context': 'https://schema.org',
         '@type': 'Product',
-        name: metaTitle,
+        name: title || product.name,
         image: [metaImage],
         description: metaDescription,
-        sku: product.id,
-        mpn: product.id,
+        sku: String(product.id || ''),
+        mpn: String(product.id || ''),
         brand: { '@type': 'Brand', name: 'brennholzkaufen' },
         offers: {
           '@type': 'Offer',
@@ -122,43 +279,83 @@ const SEO = ({
           price: product.price ? Number(product.price).toFixed(2) : '0.00',
           priceValidUntil: '2027-12-31',
           itemCondition: 'https://schema.org/NewCondition',
-          availability: (product.stock > 0 || product.stock === undefined)
+          availability: (product.stock > 0 || product.stock === undefined || product.stock === null)
             ? 'https://schema.org/InStock'
             : 'https://schema.org/OutOfStock',
-          seller: { '@type': 'Organization', name: 'brennholzkaufen' }
+          seller: { '@type': 'Organization', name: 'brennholzkaufen' },
+          shippingDetails: {
+            '@type': 'OfferShippingDetails',
+            shippingRate: {
+              '@type': 'MonetaryAmount',
+              value: '0.00',
+              currency: 'EUR',
+            },
+            shippingDestination: {
+              '@type': 'DefinedRegion',
+              addressCountry: 'DE',
+            },
+            deliveryTime: {
+              '@type': 'ShippingDeliveryTime',
+              handlingTime: {
+                '@type': 'QuantitativeValue',
+                minValue: 1,
+                maxValue: 2,
+                unitCode: 'd',
+              },
+              transitTime: {
+                '@type': 'QuantitativeValue',
+                minValue: 2,
+                maxValue: 5,
+                unitCode: 'd',
+              },
+            },
+          },
+          hasMerchantReturnPolicy: {
+            '@type': 'MerchantReturnPolicy',
+            applicableCountry: 'DE',
+            returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
+            merchantReturnDays: 14,
+            returnMethod: 'https://schema.org/ReturnByMail',
+            returnFees: 'https://schema.org/FreeReturn',
+          },
         },
-        aggregateRating: {
+      };
+
+      // Si et seulement si un avis réel vérifié existe
+      if (product.rating && product.reviewCount) {
+        productSchema.aggregateRating = {
           '@type': 'AggregateRating',
-          ratingValue: product.rating || '4.8',
-          reviewCount: '42',
+          ratingValue: String(product.rating),
+          reviewCount: String(product.reviewCount),
           bestRating: '5',
-          worstRating: '1'
-        }
-      };
-    } else {
-      schemaData = {
+          worstRating: '1',
+        };
+      }
+
+      schemas.push(productSchema);
+    } else if (title) {
+      // Breadcrumb pour pages secondaires (ex: Lieferung, Über uns, etc.)
+      schemas.push({
         '@context': 'https://schema.org',
-        '@type': 'OnlineStore',
-        name: 'brennholzkaufen',
-        url: SITE_ORIGIN,
-        logo: DEFAULT_IMAGE,
-        image: DEFAULT_IMAGE,
-        description: defaultDesc,
-        telephone: '+49 1633637236',
-        priceRange: '€€',
-        currenciesAccepted: 'EUR',
-        paymentAccepted: 'Bank Transfer, PayPal, Credit Card',
-        openingHoursSpecification: [
+        '@type': 'BreadcrumbList',
+        itemListElement: [
           {
-            '@type': 'OpeningHoursSpecification',
-            dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
-            opens: '09:00',
-            closes: '18:00'
-          }
-        ]
-      };
+            '@type': 'ListItem',
+            position: 1,
+            name: isDe ? 'Startseite' : 'Accueil',
+            item: `${SITE_ORIGIN}/${lang}`,
+          },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: title,
+            item: canonicalUrl,
+          },
+        ],
+      });
     }
 
+    // Injection JSON-LD
     let scriptTag = document.querySelector('script[data-seo="json-ld"]');
     if (!scriptTag) {
       scriptTag = document.createElement('script');
@@ -166,8 +363,8 @@ const SEO = ({
       scriptTag.setAttribute('data-seo', 'json-ld');
       document.head.appendChild(scriptTag);
     }
-    scriptTag.textContent = JSON.stringify(schemaData);
-  }, [lang, metaTitle, metaDescription, metaKeywords, metaImage, canonicalUrl, deUrl, frUrl, type, product, defaultDesc]);
+    scriptTag.textContent = JSON.stringify(schemas.length === 1 ? schemas[0] : { '@context': 'https://schema.org', '@graph': schemas });
+  }, [lang, isDe, metaTitle, metaDescription, metaKeywords, metaImage, canonicalUrl, deUrl, frUrl, type, product, noindex, title]);
 
   return null;
 };
