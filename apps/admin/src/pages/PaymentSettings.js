@@ -39,50 +39,53 @@ export default function PaymentSettings() {
 
   useEffect(() => {
     (async () => {
-      const useDirect = (process.env.NODE_ENV === 'development') || (String(process.env.REACT_APP_USE_DIRECT_FIRESTORE || '').trim() === 'true');
       try {
-        if (useDirect) {
-          const [ribSnap, ppSnap] = await Promise.all([
-            getDoc(doc(db, 'rib', 'default')),
-            getDoc(doc(db, 'paypal', 'default')),
-          ]);
-          if (ribSnap.exists()) {
-            const d = ribSnap.data() || {};
-            setRib({ 
-              holder: d.holder || '', 
-              iban: d.iban || '', 
-              bic: d.bic || '', 
-              bank: d.bank || '',
-              enabled: (d.enabled === true || d.enabled === 'true'),
-              whatsappNumber: d.whatsappNumber || '+49 1633637236'
-            });
-          }
-          if (ppSnap.exists()) {
-            const d = ppSnap.data() || {};
-            setPp({ email: d.email || '', instructions: d.instructions || '' });
-          }
-        } else {
+        const [ribSnap, ppSnap] = await Promise.all([
+          getDoc(doc(db, 'rib', 'default')),
+          getDoc(doc(db, 'paypal', 'default')),
+        ]);
+        if (ribSnap.exists()) {
+          const d = ribSnap.data() || {};
+          setRib({ 
+            holder: d.holder || '', 
+            iban: d.iban || '', 
+            bic: d.bic || '', 
+            bank: d.bank || '',
+            enabled: (d.enabled === true || d.enabled === 'true'),
+            whatsappNumber: d.whatsappNumber || '+49 1633637236'
+          });
+        }
+        if (ppSnap.exists()) {
+          const d = ppSnap.data() || {};
+          setPp({ email: d.email || '', instructions: d.instructions || '' });
+        }
+      } catch (e) {
+        console.warn('Direct Firestore failed, trying API fallback...', e);
+        try {
           const res = await fetch('/api/settings-payments', {
             headers: {
               'Authorization': `Bearer ${process.env.REACT_APP_ADMIN_API_TOKEN || ''}`,
             }
           });
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          const data = await res.json();
-          const r = data.rib || {};
-          const p = data.paypal || {};
-          setRib({ 
-            holder: r.holder || '', 
-            iban: r.iban || '', 
-            bic: r.bic || '', 
-            bank: r.bank || '',
-            enabled: (r.enabled === true || r.enabled === 'true'),
-            whatsappNumber: r.whatsappNumber || '+49 1633637236'
-          });
-          setPp({ email: p.email || '', instructions: p.instructions || '' });
+          if (res.ok) {
+            const data = await res.json();
+            const r = data.rib || {};
+            const p = data.paypal || {};
+            setRib({ 
+              holder: r.holder || '', 
+              iban: r.iban || '', 
+              bic: r.bic || '', 
+              bank: r.bank || '',
+              enabled: (r.enabled === true || r.enabled === 'true'),
+              whatsappNumber: r.whatsappNumber || '+49 1633637236'
+            });
+            setPp({ email: p.email || '', instructions: p.instructions || '' });
+          } else {
+            setMessage(`Erreur de chargement: ${e?.message || e}`);
+          }
+        } catch (apiErr) {
+          setMessage(`Erreur de chargement: ${e?.message || e}`);
         }
-      } catch (e) {
-        setMessage(`Erreur de chargement: ${e?.message || e}`);
       } finally {
         setLoading(false);
       }
@@ -93,10 +96,10 @@ export default function PaymentSettings() {
     const nextState = !rib.enabled;
     setRib(prev => ({ ...prev, enabled: nextState }));
     try {
-      const useDirect = (process.env.NODE_ENV === 'development') || (String(process.env.REACT_APP_USE_DIRECT_FIRESTORE || '').trim() === 'true');
-      if (useDirect) {
-        await setDoc(doc(db, 'rib', 'default'), { enabled: nextState }, { merge: true });
-      } else {
+      await setDoc(doc(db, 'rib', 'default'), { enabled: nextState }, { merge: true });
+      setMessage(nextState ? '✅ RIB public activé et synchronisé.' : '🟡 Mode WhatsApp Pro activé (RIB masqué sur le site).');
+    } catch (err) {
+      try {
         await fetch('/api/settings-payments', {
           method: 'POST',
           headers: {
@@ -105,10 +108,10 @@ export default function PaymentSettings() {
           },
           body: JSON.stringify({ rib: { ...rib, enabled: nextState }, paypal: pp })
         });
+        setMessage(nextState ? '✅ RIB public activé et synchronisé.' : '🟡 Mode WhatsApp Pro activé (RIB masqué sur le site).');
+      } catch (apiErr) {
+        setMessage(`Erreur de basculement: ${err?.message || err}`);
       }
-      setMessage(nextState ? '✅ RIB public activé et synchronisé.' : '🟡 Mode WhatsApp Pro activé (RIB masqué sur le site).');
-    } catch (err) {
-      setMessage(`Erreur de basculement: ${err?.message || err}`);
     }
   };
 
@@ -116,14 +119,13 @@ export default function PaymentSettings() {
     setSaving(true);
     setMessage('');
     try {
-      const useDirect = (process.env.NODE_ENV === 'development') || (String(process.env.REACT_APP_USE_DIRECT_FIRESTORE || '').trim() === 'true');
-      if (useDirect) {
-        await Promise.all([
-          setDoc(doc(db, 'rib', 'default'), rib, { merge: true }),
-          setDoc(doc(db, 'paypal', 'default'), pp, { merge: true }),
-        ]);
-        setMessage('Enregistré avec succès dans Firestore.');
-      } else {
+      await Promise.all([
+        setDoc(doc(db, 'rib', 'default'), rib, { merge: true }),
+        setDoc(doc(db, 'paypal', 'default'), pp, { merge: true }),
+      ]);
+      setMessage('✅ Enregistré avec succès.');
+    } catch (e) {
+      try {
         const res = await fetch('/api/settings-payments', {
           method: 'POST',
           headers: {
@@ -133,10 +135,10 @@ export default function PaymentSettings() {
           body: JSON.stringify({ rib, paypal: pp })
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        setMessage('Enregistré avec succès.');
+        setMessage('✅ Enregistré avec succès.');
+      } catch (apiErr) {
+        setMessage(`Échec de l'enregistrement: ${e?.message || e}`);
       }
-    } catch (e) {
-      setMessage(`Échec de l'enregistrement: ${e?.message || e}`);
     } finally {
       setSaving(false);
     }

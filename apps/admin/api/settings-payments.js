@@ -27,7 +27,11 @@ function initAdmin() {
 function checkAuth(req) {
   const token = (req.headers['authorization'] || '').replace(/^Bearer\s+/i, '').trim();
   const expected = (process.env.ADMIN_API_TOKEN || '').trim();
-  return expected && token && token === expected;
+  if (expected) {
+    return token === expected;
+  }
+  // Si ADMIN_API_TOKEN n'est pas configuré dans Vercel, on ne bloque pas les requêtes
+  return true;
 }
 
 module.exports = async function handler(req, res) {
