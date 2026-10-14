@@ -1324,7 +1324,8 @@ const parseCustomerNames = (data, authUser) => {
 };
 
 const Checkout = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isDe = i18n.language && i18n.language.startsWith('de');
   const { cartItems, getCartTotal, clearCart } = useCart();
 
   useEffect(() => {
@@ -1358,12 +1359,23 @@ const Checkout = () => {
     address2: '',
     postalCode: '',
     city: '',
-    country: 'France',
+    country: (typeof i18n !== 'undefined' && i18n.language && i18n.language.startsWith('de')) ? 'Allemagne' : 'France',
     notes: '',
     paymentMethod: 'bank' // STRICTEMENT Virement Bancaire
   });
 
   // Gestion connexion client & mot de passe
+  // Synchronisation du pays par defaut selon la langue
+  useEffect(() => {
+    if (!formData.country || formData.country === 'France' || formData.country === 'Allemagne') {
+      setFormData(prev => ({
+        ...prev,
+        country: isDe ? 'Allemagne' : 'France'
+      }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDe]);
+
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [loginFields, setLoginFields] = useState({ email: '', password: '' });
   const [showLoginPassword, setShowLoginPassword] = useState(false);
@@ -1429,19 +1441,19 @@ const Checkout = () => {
   // Passer à l'étape 2 sur mobile
   const handleProceedToPayment = () => {
     if (!formData.firstName.trim() || !formData.lastName.trim()) {
-      return toast.error('Veuillez renseigner vos prénom et nom.');
+      return toast.error(t('checkout.err_name', 'Veuillez renseigner vos prénom et nom.'));
     }
     if (!formData.email.trim() || !formData.email.includes('@')) {
-      return toast.error('Veuillez renseigner une adresse email valide.');
+      return toast.error(t('checkout.err_email', 'Veuillez renseigner une adresse email valide.'));
     }
     if (!formData.phone.trim()) {
-      return toast.error('Veuillez renseigner votre numéro de téléphone.');
+      return toast.error(t('checkout.err_phone', 'Veuillez renseigner votre numéro de téléphone.'));
     }
     if (!formData.address.trim()) {
-      return toast.error('Veuillez renseigner votre adresse de livraison complète.');
+      return toast.error(t('checkout.err_address', 'Veuillez renseigner votre adresse de livraison complète.'));
     }
     if (!formData.postalCode.trim() || !formData.city.trim()) {
-      return toast.error('Veuillez renseigner votre code postal et ville.');
+      return toast.error(t('checkout.err_city', 'Veuillez renseigner votre code postal et ville.'));
     }
 
     setMobileStep(2);
@@ -1454,14 +1466,14 @@ const Checkout = () => {
   const handleQuickLogin = async (e) => {
     e.preventDefault();
     if (!loginFields.email || !loginFields.password) {
-      toast.error('Veuillez renseigner votre email et mot de passe');
+      toast.error(t('checkout.err_login_fields', 'Veuillez renseigner votre email et mot de passe'));
       return;
     }
     try {
       setLoginLoading(true);
       const res = await signInUser(loginFields.email, loginFields.password);
       if (!res.success) {
-        toast.error(res.error || 'Identifiants incorrects');
+        toast.error(res.error || t('checkout.err_invalid_creds', 'Identifiants incorrects'));
         setLoginLoading(false);
         return;
       }
@@ -1505,7 +1517,7 @@ const Checkout = () => {
         toast.success('Connexion réussie ! Veuillez vérifier votre adresse de livraison.');
       }
     } catch {
-      toast.error('Erreur lors de la connexion');
+      toast.error(t('checkout.err_login', 'Erreur lors de la connexion'));
       setLoginLoading(false);
     }
   };
@@ -1532,25 +1544,25 @@ const Checkout = () => {
   // Application code promo
   const handleApplyCoupon = async () => {
     const raw = (couponCode || '').trim();
-    if (!raw) return toast.error('Veuillez saisir un code promo');
+    if (!raw) return toast.error(t('checkout.err_coupon_empty', 'Veuillez saisir un code promo'));
     try {
       setApplyingCoupon(true);
       const res = await getCouponByCode(raw);
       if (!res.success || !res.data) {
         setAppliedCoupon(null);
         setDiscount(0);
-        return toast.error(res.error || 'Code promo invalide');
+        return toast.error(res.error || t('checkout.err_coupon_invalid', 'Code promo invalide'));
       }
       const coupon = res.data;
       const { valid, discount: d, reason } = validateAndComputeDiscount(coupon, subtotal);
       if (!valid) {
         setAppliedCoupon(null);
         setDiscount(0);
-        return toast.error(reason || 'Code promo non applicable');
+        return toast.error(reason || t('checkout.err_coupon_not_applicable', 'Code promo non applicable'));
       }
       setAppliedCoupon(coupon);
       setDiscount(Number(d.toFixed(2)));
-      toast.success(`Code promo "${coupon.code}" appliqué avec succès ! (-${d.toFixed(2)}€)`);
+      toast.success(t('checkout.coupon_applied', 'Code promo appliqué avec succès !'));
     } catch {
       toast.error('Impossible d’appliquer ce code promo');
     } finally {
@@ -1562,7 +1574,7 @@ const Checkout = () => {
     setAppliedCoupon(null);
     setDiscount(0);
     setCouponCode('');
-    toast.success('Code promo retiré');
+    toast.success(t('checkout.coupon_removed', 'Code promo retiré'));
   };
 
   // Validation finale & Enregistrement de commande
@@ -1572,7 +1584,7 @@ const Checkout = () => {
     }
 
     if (!acceptTerms) {
-      return toast.error('Veuillez accepter les conditions générales de vente pour continuer.');
+      return toast.error(t('checkout.err_terms', 'Veuillez accepter les conditions générales de vente pour continuer.'));
     }
 
     // Validation des champs essentiels
@@ -1604,7 +1616,7 @@ const Checkout = () => {
         if (!password || password.length < 6) {
           setIsSubmitting(false);
           setMobileStep(1);
-          return toast.error('Le mot de passe doit comporter au moins 6 caractères.');
+          return toast.error(t('checkout.err_password_len', 'Le mot de passe doit comporter au moins 6 caractères.'));
         }
         const displayName = `${formData.firstName} ${formData.lastName}`.trim();
         const regRes = await createUser(formData.email, password, {
@@ -1716,10 +1728,10 @@ const Checkout = () => {
           }
         });
       } else {
-        toast.error(result.error || 'Erreur lors de la validation de la commande');
+        toast.error(result.error || t('checkout.err_order_failed', 'Erreur lors de la validation de la commande'));
       }
     } catch {
-      toast.error('Une erreur inattendue est survenue.');
+      toast.error(t('checkout.err_unexpected', 'Une erreur inattendue est survenue.'));
     } finally {
       setIsSubmitting(false);
     }
@@ -1849,7 +1861,7 @@ const Checkout = () => {
                   'Connexion en cours...'
                 ) : (
                   <>
-                    <span>Se connecter et continuer</span>
+                    <span>{t('checkout.login_and_continue', 'Se connecter et continuer')}</span>
                     <FiArrowRight size={15} />
                   </>
                 )}
@@ -1857,23 +1869,23 @@ const Checkout = () => {
             </form>
 
             <LoginDivider>
-              <span>ou</span>
+              <span>{t('checkout.or', 'ou')}</span>
             </LoginDivider>
 
             <GuestActionButton type="button" onClick={() => setIsLoginOpen(false)}>
               <div className="btn-text">
-                <span className="main">Commander sans compte</span>
-                <span className="sub">Achat direct rapide sans mot de passe</span>
+                <span className="main">{t('checkout.order_without_account', 'Commander sans compte')}</span>
+                <span className="sub">{t('checkout.direct_buy_no_pw', 'Achat direct rapide sans mot de passe')}</span>
               </div>
               <FiArrowRight size={15} />
             </GuestActionButton>
 
             <LoginSecurityNote>
               <span>
-                <FiShield size={13} color="#27ae60" /> Connexion sécurisée SSL
+                <FiShield size={13} color="#27ae60" /> {t('checkout.ssl_secure_conn', 'Connexion sécurisée SSL')}
               </span>
               <span>
-                <FiLock size={13} color="#2c5530" /> Données protégées
+                <FiLock size={13} color="#2c5530" /> {t('checkout.data_protected', 'Données protégées')}
               </span>
             </LoginSecurityNote>
           </DedicatedLoginCard>
@@ -1985,7 +1997,7 @@ const Checkout = () => {
         disabled={isSubmitting}
       >
         {isSubmitting ? (
-          <>Validation en cours...</>
+          <>{t('checkout.processing', 'Validation en cours...')}</>
         ) : (
           <>
             <span>{t('checkout.confirm_order', 'Confirmer la commande (')}{total.toFixed(2)}&nbsp;€)</span>
@@ -2392,7 +2404,7 @@ const Checkout = () => {
 
               {/* Bouton de passage à l'étape 2 (VISIBLE SUR MOBILE UNIQUEMENT) */}
               <NextStepButton type="button" onClick={handleProceedToPayment}>
-                <span>Passer au paiement (Étape 2/2)</span>
+                <span>{t('checkout.continue_to_payment', 'Passer au paiement (Étape 2/2)')}</span>
                 <FiArrowRight size={15} />
               </NextStepButton>
             </>
