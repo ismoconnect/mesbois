@@ -89,10 +89,19 @@ function buildHtml({
   // Insérer le headSnippet avant </head>
   html = html.replace('</head>', `${headSnippet}\n</head>`);
 
-  // 3. Insérer le contenu sémantique pré-rendu dans <div id="root"></div>
+  // 3. Insérer un loader épuré dans <div id="root"> pour un rendu fluide et sans flash pour les humains
+  // Et placer le contenu sémantique complet dans <noscript> pour les robots sans JavaScript
+  const splashLoader = `
+    <div style="min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#ffffff; font-family:Inter,-apple-system,sans-serif;">
+      <img src="/images/brennholzkaufen_logo_transparent.png" alt="brennholzkaufen" style="height:46px; width:auto; margin-bottom:14px; object-fit:contain;" />
+      <div style="width:28px; height:28px; border:3px solid #e2e8f0; border-top-color:#2c5530; border-radius:50%; animation:bk-spin 0.8s linear infinite;"></div>
+      <style>@keyframes bk-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>
+    </div>
+  `;
+
   html = html.replace(
     /<div id="root"><\/div>/,
-    `<div id="root">${bodyContent}</div>`
+    `<div id="root">${splashLoader}</div>\n    <noscript>${bodyContent}</noscript>`
   );
 
   return html;

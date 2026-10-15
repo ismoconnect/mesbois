@@ -22,15 +22,14 @@ const app = initializeApp(firebaseConfig);
 // d'environnement `REACT_APP_FIRESTORE_FORCE_LONG_POLLING=true`.
 let dbInstance;
 if (process.env.REACT_APP_FIRESTORE_FORCE_LONG_POLLING === 'true') {
-  // initializeFirestore permet de passer des options comme experimentalForceLongPolling
-  // et useFetchStreams. Cela aide souvent dans les environnements d'entreprise où
-  // WebChannel transport échoue (ERR_NAME_NOT_RESOLVED / blocked).
   dbInstance = initializeFirestore(app, {
     experimentalForceLongPolling: true,
     useFetchStreams: false
   });
 } else {
-  dbInstance = getFirestore(app);
+  dbInstance = initializeFirestore(app, {
+    experimentalAutoDetectLongPolling: true
+  });
 }
 
 export const db = dbInstance;
