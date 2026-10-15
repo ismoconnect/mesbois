@@ -810,7 +810,17 @@ const filesToSync = [
   { src: 'public/sitemap.xml', dests: ['sitemap.xml'] },
   { src: 'public/de/sitemap.xml', dests: ['de/sitemap.xml'] },
   { src: 'public/fr/sitemap.xml', dests: ['fr/sitemap.xml'] },
-  { src: 'public/robots.txt', dests: ['robots.txt'] }
+  { src: 'public/robots.txt', dests: ['robots.txt'] },
+  { src: 'public/favicon.ico', dests: ['favicon.ico'] },
+  { src: 'public/favicon.svg', dests: ['favicon.svg'] },
+  { src: 'public/favicon-16x16.png', dests: ['favicon-16x16.png'] },
+  { src: 'public/favicon-32x32.png', dests: ['favicon-32x32.png'] },
+  { src: 'public/favicon-48x48.png', dests: ['favicon-48x48.png'] },
+  { src: 'public/favicon-96x96.png', dests: ['favicon-96x96.png'] },
+  { src: 'public/apple-touch-icon.png', dests: ['apple-touch-icon.png'] },
+  { src: 'public/logo192.png', dests: ['logo192.png'] },
+  { src: 'public/logo512.png', dests: ['logo512.png'] },
+  { src: 'public/manifest.json', dests: ['manifest.json'] }
 ];
 
 for (const item of filesToSync) {
