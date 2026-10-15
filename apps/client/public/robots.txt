@@ -36,3 +36,5 @@ Disallow: /login
 Disallow: /suivi
 
 Sitemap: https://www.brennholzkaufen.online/sitemap.xml
+Sitemap: https://www.brennholzkaufen.online/de/sitemap.xml
+Sitemap: https://www.brennholzkaufen.online/fr/sitemap.xml

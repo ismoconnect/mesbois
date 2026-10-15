@@ -808,6 +808,8 @@ const filesToSync = [
     ]
   },
   { src: 'public/sitemap.xml', dests: ['sitemap.xml'] },
+  { src: 'public/de/sitemap.xml', dests: ['de/sitemap.xml'] },
+  { src: 'public/fr/sitemap.xml', dests: ['fr/sitemap.xml'] },
   { src: 'public/robots.txt', dests: ['robots.txt'] }
 ];
 

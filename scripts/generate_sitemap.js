@@ -3,10 +3,9 @@ const path = require('path');
 const vm = require('vm');
 
 const SITE_ORIGIN = 'https://www.brennholzkaufen.online';
-// Date stable de déploiement pour éviter le churn artificiel de lastmod
 const BASE_MOD_DATE = '2026-10-15';
 
-// Chargement dynamique de la liste des 45 produits depuis products_export.json
+// 1. Chargement dynamique de la liste des 45 produits depuis products_export.json
 const productsFilePath = path.join(__dirname, '../apps/client/products_export.json');
 let productIds = [];
 
@@ -17,7 +16,7 @@ try {
     productIds = products.map((p) => p.id).filter(Boolean);
   }
 } catch (err) {
-  console.warn('⚠️ Impossible de lire products_export.json, fallback sur la liste statique.', err.message);
+  console.warn('⚠️ Impossible de lire products_export.json, fallback statique.', err.message);
 }
 
 if (!productIds.length) {
@@ -37,7 +36,7 @@ if (!productIds.length) {
   ];
 }
 
-// Chargement des slugs de produits
+// 2. Chargement des slugs de mots-clés
 const slugsFilePath = path.join(__dirname, '../apps/client/src/data/productSlugs.js');
 let productSlugs = {};
 try {
@@ -65,74 +64,100 @@ const staticPages = [
   { de: '/de/impressum', fr: '/fr/mentions-legales', priority: '0.5', changefreq: 'monthly' }
 ];
 
-let xml = `<?xml version="1.0" encoding="UTF-8"?>
+function buildUrlEntry(loc, deUrl, frUrl, priority, changefreq) {
+  return `  <url>
+    <loc>${loc}</loc>
+    <lastmod>${BASE_MOD_DATE}</lastmod>
+    <changefreq>${changefreq}</changefreq>
+    <priority>${priority}</priority>
+    <xhtml:link rel="alternate" hreflang="de" href="${deUrl}" />
+    <xhtml:link rel="alternate" hreflang="fr" href="${frUrl}" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="${deUrl}" />
+  </url>
+`;
+}
+
+// -------------------------------------------------------------
+// A. SITEMAP COMPLET UNIFIÉ (108 URLs DE + FR) pour la racine
+// -------------------------------------------------------------
+let unifiedXml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
 `;
 
-// 1. Pages statiques multilingues avec balises alternate hreflang et x-default
+// B. SITEMAP ALLEMAND DÉDIÉ (54 URLs DE) pour la Search Console https://www.brennholzkaufen.online/de/
+let deXml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+`;
+
+// C. SITEMAP FRANÇAIS DÉDIÉ (54 URLs FR) pour le préfixe https://www.brennholzkaufen.online/fr/
+let frXml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+`;
+
+// 1. Pages statiques
 for (const p of staticPages) {
-  // Entrée Allemand
-  xml += `  <url>
-    <loc>${SITE_ORIGIN}${p.de}</loc>
-    <lastmod>${BASE_MOD_DATE}</lastmod>
-    <changefreq>${p.changefreq}</changefreq>
-    <priority>${p.priority}</priority>
-    <xhtml:link rel="alternate" hreflang="de" href="${SITE_ORIGIN}${p.de}" />
-    <xhtml:link rel="alternate" hreflang="fr" href="${SITE_ORIGIN}${p.fr}" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="${SITE_ORIGIN}${p.de}" />
-  </url>
-`;
-  // Entrée Français
-  xml += `  <url>
-    <loc>${SITE_ORIGIN}${p.fr}</loc>
-    <lastmod>${BASE_MOD_DATE}</lastmod>
-    <changefreq>${p.changefreq}</changefreq>
-    <priority>${p.priority}</priority>
-    <xhtml:link rel="alternate" hreflang="de" href="${SITE_ORIGIN}${p.de}" />
-    <xhtml:link rel="alternate" hreflang="fr" href="${SITE_ORIGIN}${p.fr}" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="${SITE_ORIGIN}${p.de}" />
-  </url>
-`;
+  const deLoc = `${SITE_ORIGIN}${p.de}`;
+  const frLoc = `${SITE_ORIGIN}${p.fr}`;
+
+  const deEntry = buildUrlEntry(deLoc, deLoc, frLoc, p.priority, p.changefreq);
+  const frEntry = buildUrlEntry(frLoc, deLoc, frLoc, p.priority, p.changefreq);
+
+  unifiedXml += deEntry;
+  unifiedXml += frEntry;
+
+  deXml += deEntry;
+  frXml += frEntry;
 }
 
-// 2. Fiches des 45 produits avec URLs sémantiques mots-clés (DE et FR)
+// 2. Fiches des 45 produits
 for (const id of productIds) {
   const deSlug = productSlugs[id]?.de || id;
   const frSlug = productSlugs[id]?.fr || id;
-  const deProd = `/de/produkt/${deSlug}`;
-  const frProd = `/fr/produit/${frSlug}`;
+  const deLoc = `${SITE_ORIGIN}/de/produkt/${deSlug}`;
+  const frLoc = `${SITE_ORIGIN}/fr/produit/${frSlug}`;
 
-  xml += `  <url>
-    <loc>${SITE_ORIGIN}${deProd}</loc>
-    <lastmod>${BASE_MOD_DATE}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <xhtml:link rel="alternate" hreflang="de" href="${SITE_ORIGIN}${deProd}" />
-    <xhtml:link rel="alternate" hreflang="fr" href="${SITE_ORIGIN}${frProd}" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="${SITE_ORIGIN}${deProd}" />
-  </url>
-`;
-  xml += `  <url>
-    <loc>${SITE_ORIGIN}${frProd}</loc>
-    <lastmod>${BASE_MOD_DATE}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <xhtml:link rel="alternate" hreflang="de" href="${SITE_ORIGIN}${deProd}" />
-    <xhtml:link rel="alternate" hreflang="fr" href="${SITE_ORIGIN}${frProd}" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="${SITE_ORIGIN}${deProd}" />
-  </url>
-`;
+  const deEntry = buildUrlEntry(deLoc, deLoc, frLoc, '0.8', 'weekly');
+  const frEntry = buildUrlEntry(frLoc, deLoc, frLoc, '0.8', 'weekly');
+
+  unifiedXml += deEntry;
+  unifiedXml += frEntry;
+
+  deXml += deEntry;
+  frXml += frEntry;
 }
 
-xml += `</urlset>\n`;
+unifiedXml += `</urlset>\n`;
+deXml += `</urlset>\n`;
+frXml += `</urlset>\n`;
 
-const sitemapPublicPath = path.join(__dirname, '../apps/client/public/sitemap.xml');
-fs.writeFileSync(sitemapPublicPath, xml, 'utf8');
-
-const sitemapBuildPath = path.join(__dirname, '../apps/client/build/sitemap.xml');
-if (fs.existsSync(path.dirname(sitemapBuildPath))) {
-  fs.writeFileSync(sitemapBuildPath, xml, 'utf8');
+function ensureDir(filePath) {
+  const dir = path.dirname(filePath);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
 }
 
-console.log('✔ sitemap.xml généré avec succès avec slugs de mots-clés :', staticPages.length * 2 + productIds.length * 2, 'URLs canoniques indexables.');
+function safeWrite(relPath, content) {
+  const fullPublic = path.join(__dirname, '../apps/client/public', relPath);
+  ensureDir(fullPublic);
+  fs.writeFileSync(fullPublic, content, 'utf8');
+
+  const fullBuild = path.join(__dirname, '../apps/client/build', relPath);
+  if (fs.existsSync(path.dirname(fullBuild))) {
+    ensureDir(fullBuild);
+    fs.writeFileSync(fullBuild, content, 'utf8');
+  }
+}
+
+// Écriture des 3 sitemaps (Racine, DE et FR)
+safeWrite('sitemap.xml', unifiedXml);
+safeWrite('de/sitemap.xml', deXml);
+safeWrite('fr/sitemap.xml', frXml);
+
+console.log('✔ Sitemaps générés avec succès :');
+console.log('  - /sitemap.xml : 108 URLs canoniques (unifié)');
+console.log('  - /de/sitemap.xml : 54 URLs allemandes canoniques (pour Search Console /de/)');
+console.log('  - /fr/sitemap.xml : 54 URLs françaises canoniques (pour Search Console /fr/)');
