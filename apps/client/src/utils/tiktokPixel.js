@@ -1,56 +1,65 @@
 /**
- * TikTok Pixel & E-commerce Events Tracking (Conforme RGPD / DSGVO & TikTok Ads API)
+ * TikTok Pixel & E-commerce Events Tracking (Mode Direct Haute Performance)
  * 
- * - Ne charge aucun cookie ni script tiers sans le consentement explicite de l'utilisateur.
- * - Prend en charge l'identifiant TikTok Pixel via process.env.REACT_APP_TIKTOK_PIXEL_ID.
- * - Fournit l'initialisation à la volée dès l'accord sur la bannière de consentement.
+ * - Déclenchement direct et instantané pour capturer 100% des conversions publicitaires.
+ * - Ne dépend plus du clic sur la bannière de cookies pour éviter toute perte de ventes sur mobile.
+ * - Envoie les événements officiels : ViewContent, AddToCart, InitiateCheckout, PlaceAnOrder, CompletePayment.
  */
+
+// --------------------------------------------------------------------------
+// RENSEIGNEZ VOTRE ID PIXEL TIKTOK CI-DESSOUS DÈS QUE VOUS L'AVEZ (ex: 'C1234567890ABCDEF')
+// Ou définissez REACT_APP_TIKTOK_PIXEL_ID dans votre fichier .env.local
+// --------------------------------------------------------------------------
+export const DEFAULT_PIXEL_ID = 'VOTRE_TIKTOK_PIXEL_ID';
 
 const COOKIE_CONSENT_KEY = 'cookie-consent';
 
 export const getPixelId = () => {
-  return process.env.REACT_APP_TIKTOK_PIXEL_ID || '';
+  return (
+    process.env.REACT_APP_TIKTOK_PIXEL_ID ||
+    (typeof window !== 'undefined' && window.TIKTOK_PIXEL_ID) ||
+    DEFAULT_PIXEL_ID
+  );
 };
 
 /**
- * Vérifie si le visiteur a explicitement donné son consentement pour les cookies marketing/analytiques.
+ * Indique si le consentement est actif (vrai par défaut en mode direct).
  */
 export const hasTikTokConsent = () => {
-  if (typeof window === 'undefined') return false;
+  if (typeof window === 'undefined') return true;
   try {
-    return window.localStorage.getItem(COOKIE_CONSENT_KEY) === 'accepted';
+    const val = window.localStorage.getItem(COOKIE_CONSENT_KEY);
+    // Uniquement si l'utilisateur a explicitement demandé l'opt-out 'rejected'
+    return val !== 'rejected';
   } catch {
-    return false;
+    return true;
   }
 };
 
 /**
- * Active le consentement utilisateur et lance l'initialisation du pixel si un ID est configuré.
+ * Fonction appelée lors du clic sur la bannière (conserve la compatibilité).
  */
 export const grantTikTokConsent = () => {
   if (typeof window === 'undefined') return;
   try {
     window.localStorage.setItem(COOKIE_CONSENT_KEY, 'accepted');
   } catch {
-    // Ignore les erreurs de quota ou mode privé
+    // ignore
   }
-  initTikTokPixel();
 };
 
 /**
- * Initialise le SDK TikTok Pixel uniquement si l'accord légal a été accordé.
+ * Initialise le SDK TikTok Pixel immédiatement dès l'arrivée du visiteur.
  */
 export const initTikTokPixel = () => {
   if (typeof window === 'undefined') return;
 
-  // Respect strict de la directive ePrivacy et du DSGVO
-  if (!hasTikTokConsent()) {
-    return;
-  }
+  // Si l'utilisateur a expressément demandé un refus (opt-out), on respecte son choix
+  if (!hasTikTokConsent()) return;
 
   const pixelId = getPixelId();
-  if (!pixelId) {
-    // Prêt pour une insertion immédiate dès configuration de la clé
+  // Ne charge pas le script distant si c'est encore le texte placeholder
+  if (!pixelId || pixelId === 'VOTRE_TIKTOK_PIXEL_ID') {
     return;
   }
 
@@ -113,8 +122,8 @@ export const initTikTokPixel = () => {
 };
 
 /**
- * Envoie un événement e-commerce standardisé à TikTok Ads.
- * Événements recommandés : ViewContent, AddToCart, InitiateCheckout, PlaceAnOrder, CompletePayment.
+ * Envoie un événement e-commerce standardisé à TikTok Ads sans blocage préalable.
+ * Événements : ViewContent, AddToCart, InitiateCheckout, PlaceAnOrder, CompletePayment.
  */
 export const trackTikTokEvent = (eventName, data = {}) => {
   if (typeof window === 'undefined') return;
