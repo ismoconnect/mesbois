@@ -12,6 +12,7 @@ import SEO from '../components/SEO/SEO';
 import { getLocalizedProduct } from '../utils/productLocalization';
 import { trackTikTokEvent } from '../utils/tiktokPixel';
 import { products as catalogue } from '../data/catalogue.js';
+import { getProductIdFromSlug, getProductSlug } from '../data/productSlugs';
 
 const ProductDetailContainer = styled.div`
   max-width: 1040px;
@@ -541,6 +542,8 @@ const ProductDetail = () => {
   const { productImages } = useProductImages();
   const { t, i18n } = useTranslation();
 
+  const realProductId = getProductIdFromSlug(id) || id;
+
   // Instant pre-load from sessionStorage cache if available to prevent any flashing
   const [product, setProduct] = useState(() => {
     try {
@@ -548,12 +551,12 @@ const ProductDetail = () => {
         const raw = sessionStorage.getItem('mesbois:fs_products:v2');
         if (raw) {
           const list = JSON.parse(raw);
-          const found = list.find(p => String(p.id) === String(id));
+          const found = list.find(p => String(p.id) === String(realProductId));
           if (found) return found;
         }
       }
     } catch (e) {}
-    const catFound = catalogue.find(p => String(p.id) === String(id));
+    const catFound = catalogue.find(p => String(p.id) === String(realProductId));
     if (catFound) return catFound;
     return null;
   });
@@ -562,12 +565,22 @@ const ProductDetail = () => {
   const [error, setError] = useState(null);
   const [quantity, setQuantity] = useState(1);
 
+  // Redirection transparente et permanente si l'URL courante utilise encore l'ancien ID technique
+  useEffect(() => {
+    const cleanLang = i18n.language && i18n.language.startsWith('fr') ? 'fr' : 'de';
+    const expectedSlug = getProductSlug(realProductId, cleanLang);
+    if (expectedSlug && id !== expectedSlug && !id.startsWith('p-')) {
+      const prefix = cleanLang === 'de' ? 'produkt' : 'produit';
+      navigate(`/${cleanLang}/${prefix}/${expectedSlug}`, { replace: true });
+    }
+  }, [id, realProductId, i18n.language, navigate]);
+
   useEffect(() => {
     let active = true;
     const fetchProduct = async () => {
       try {
         setLoading(true);
-        const result = await getProductById(id);
+        const result = await getProductById(realProductId);
 
         if (!active) return;
 
@@ -606,14 +619,14 @@ const ProductDetail = () => {
           });
 
           let local = null;
-          if (id && id.startsWith('p-')) {
-            const idx = parseInt(id.split('-')[1], 10);
+          if (realProductId && realProductId.startsWith('p-')) {
+            const idx = parseInt(realProductId.split('-')[1], 10);
             if (!Number.isNaN(idx) && idx >= 0 && idx < catalogue.length) {
               local = buildFromCatalogue(catalogue[idx], idx);
             }
           }
           if (!local) {
-            const idx = catalogue.findIndex(p => String(p.id) === String(id));
+            const idx = catalogue.findIndex(p => String(p.id) === String(realProductId));
             if (idx !== -1) local = buildFromCatalogue(catalogue[idx], idx);
           }
 
@@ -632,7 +645,7 @@ const ProductDetail = () => {
 
     fetchProduct();
     return () => { active = false; };
-  }, [id]);
+  }, [realProductId]);
 
   const locProduct = product ? getLocalizedProduct(product, i18n.language) : null;
 
@@ -785,7 +798,7 @@ const ProductDetail = () => {
         title={view.name}
         description={view.description}
         image={productImages[view.id] || view.image}
-        path={`/produkt/${view.id}`}
+        path={`/${i18n.language && i18n.language.startsWith('fr') ? 'produit' : 'produkt'}/${getProductSlug(view.id, i18n.language)}`}
         type="product"
         product={view}
       />

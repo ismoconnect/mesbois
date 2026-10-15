@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import routeMapping from '../utils/routeMapping.json';
+import { getProductSlug, getProductIdFromSlug } from '../data/productSlugs';
 
 const SwitcherContainer = styled.nav`
   display: flex;
@@ -73,6 +74,12 @@ const LanguageSwitcher = () => {
       }
     }
     
+    // Si nous sommes sur une fiche produit, traduire le slug vers la langue cible
+    if (foundRouteKey === 'productDetail' && additionalParams) {
+      const prodId = getProductIdFromSlug(additionalParams) || additionalParams;
+      additionalParams = getProductSlug(prodId, targetLang) || additionalParams;
+    }
+
     const newSlug = routeMapping[foundRouteKey]?.[targetLang] ?? foundRouteKey;
     let newPath = `/${targetLang}`;
     if (newSlug) newPath += `/${newSlug}`;

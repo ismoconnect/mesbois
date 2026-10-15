@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getCleanLang } from '../../i18n';
 import routeMapping from '../../utils/routeMapping.json';
+import { getProductSlug, getProductIdFromSlug } from '../../data/productSlugs';
 
 const SITE_ORIGIN = 'https://www.brennholzkaufen.online';
 const DEFAULT_IMAGE = `${SITE_ORIGIN}/images/brennholzkaufen_logo_transparent.png`;
@@ -13,8 +14,10 @@ const DEFAULT_IMAGE = `${SITE_ORIGIN}/images/brennholzkaufen_logo_transparent.pn
 function resolveAlternateUrls({ routeKey, path, pathDe, pathFr, product, lang }) {
   // 1. Si fiches produit
   if (product && product.id) {
-    const deUrl = `${SITE_ORIGIN}/de/produkt/${product.id}`;
-    const frUrl = `${SITE_ORIGIN}/fr/produit/${product.id}`;
+    const deSlug = getProductSlug(product.id, 'de') || product.id;
+    const frSlug = getProductSlug(product.id, 'fr') || product.id;
+    const deUrl = `${SITE_ORIGIN}/de/produkt/${deSlug}`;
+    const frUrl = `${SITE_ORIGIN}/fr/produit/${frSlug}`;
     return {
       deUrl,
       frUrl,
@@ -70,12 +73,15 @@ function resolveAlternateUrls({ routeKey, path, pathDe, pathFr, product, lang })
     }
   }
 
-  // Si produit avec slug (ex: 'produkt/123' ou 'produit/123')
+  // Si produit avec slug ou ID (ex: 'produkt/kaminholz...' ou 'produit/123')
   const prodMatch = clean.match(/^(?:produkt|produit)\/([^/]+)/);
   if (prodMatch) {
-    const pid = prodMatch[1];
-    const deUrl = `${SITE_ORIGIN}/de/produkt/${pid}`;
-    const frUrl = `${SITE_ORIGIN}/fr/produit/${pid}`;
+    const rawIdOrSlug = prodMatch[1];
+    const realId = getProductIdFromSlug(rawIdOrSlug) || rawIdOrSlug;
+    const deSlug = getProductSlug(realId, 'de') || rawIdOrSlug;
+    const frSlug = getProductSlug(realId, 'fr') || rawIdOrSlug;
+    const deUrl = `${SITE_ORIGIN}/de/produkt/${deSlug}`;
+    const frUrl = `${SITE_ORIGIN}/fr/produit/${frSlug}`;
     return {
       deUrl,
       frUrl,

@@ -1,9 +1,10 @@
 const fs = require('fs');
 const path = require('path');
+const vm = require('vm');
 
 const SITE_ORIGIN = 'https://www.brennholzkaufen.online';
 // Date stable de déploiement pour éviter le churn artificiel de lastmod
-const BASE_MOD_DATE = '2026-10-14';
+const BASE_MOD_DATE = '2026-10-15';
 
 // Chargement dynamique de la liste des 45 produits depuis products_export.json
 const productsFilePath = path.join(__dirname, '../apps/client/products_export.json');
@@ -34,6 +35,22 @@ if (!productIds.length) {
     'x2BPM7eiTq9tmnVAg5Uu', 'xPY8WMqt9rKwFcPYa4hF', 'xnbjMy0At54hQOBVm82Q', 'y0DfnhikbVZZOyXizxVq',
     'yOwHZLQzM7ZBgcfSMymH'
   ];
+}
+
+// Chargement des slugs de produits
+const slugsFilePath = path.join(__dirname, '../apps/client/src/data/productSlugs.js');
+let productSlugs = {};
+try {
+  const code = fs.readFileSync(slugsFilePath, 'utf8')
+    .replace(/export\s+const\s+PRODUCT_SLUGS\s*=/, 'PRODUCT_SLUGS =')
+    .replace(/export\s+const\s+SLUG_TO_ID\s*=/, 'SLUG_TO_ID =')
+    .replace(/export\s+function/g, 'function');
+  const sandbox = {};
+  vm.createContext(sandbox);
+  vm.runInContext(code, sandbox);
+  productSlugs = sandbox.PRODUCT_SLUGS || {};
+} catch (err) {
+  console.warn('⚠️ Impossible de lire productSlugs.js:', err.message);
 }
 
 const staticPages = [
@@ -79,10 +96,12 @@ for (const p of staticPages) {
 `;
 }
 
-// 2. Fiches des 45 produits (DE et FR)
+// 2. Fiches des 45 produits avec URLs sémantiques mots-clés (DE et FR)
 for (const id of productIds) {
-  const deProd = `/de/produkt/${id}`;
-  const frProd = `/fr/produit/${id}`;
+  const deSlug = productSlugs[id]?.de || id;
+  const frSlug = productSlugs[id]?.fr || id;
+  const deProd = `/de/produkt/${deSlug}`;
+  const frProd = `/fr/produit/${frSlug}`;
 
   xml += `  <url>
     <loc>${SITE_ORIGIN}${deProd}</loc>
@@ -108,6 +127,12 @@ for (const id of productIds) {
 
 xml += `</urlset>\n`;
 
-const sitemapPath = path.join(__dirname, '../apps/client/public/sitemap.xml');
-fs.writeFileSync(sitemapPath, xml, 'utf8');
-console.log('✔ sitemap.xml généré avec succès :', staticPages.length * 2 + productIds.length * 2, 'URLs canoniques indexables.');
+const sitemapPublicPath = path.join(__dirname, '../apps/client/public/sitemap.xml');
+fs.writeFileSync(sitemapPublicPath, xml, 'utf8');
+
+const sitemapBuildPath = path.join(__dirname, '../apps/client/build/sitemap.xml');
+if (fs.existsSync(path.dirname(sitemapBuildPath))) {
+  fs.writeFileSync(sitemapBuildPath, xml, 'utf8');
+}
+
+console.log('✔ sitemap.xml généré avec succès avec slugs de mots-clés :', staticPages.length * 2 + productIds.length * 2, 'URLs canoniques indexables.');

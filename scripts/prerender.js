@@ -36,6 +36,21 @@ try {
   console.error('Erreur lecture productTranslations.js:', err.message);
 }
 
+const SLUGS_PATH = path.join(__dirname, '../apps/client/src/data/productSlugs.js');
+let productSlugs = {};
+try {
+  const code = fs.readFileSync(SLUGS_PATH, 'utf8')
+    .replace(/export\s+const\s+PRODUCT_SLUGS\s*=/, 'PRODUCT_SLUGS =')
+    .replace(/export\s+const\s+SLUG_TO_ID\s*=/, 'SLUG_TO_ID =')
+    .replace(/export\s+function/g, 'function');
+  const sandbox = {};
+  vm.createContext(sandbox);
+  vm.runInContext(code, sandbox);
+  productSlugs = sandbox.PRODUCT_SLUGS || {};
+} catch (err) {
+  console.error('Erreur lecture productSlugs.js:', err.message);
+}
+
 /**
  * Génère une page HTML complète avec balises SEO, JSON-LD et snapshot sémantique
  */
@@ -64,6 +79,9 @@ function buildHtml({
     <link rel="alternate" hreflang="de" href="${deUrl}" />
     <link rel="alternate" hreflang="fr" href="${frUrl}" />
     <link rel="alternate" hreflang="x-default" href="${deUrl}" />
+    <!-- Google Search Console Verification -->
+    <meta name="google-site-verification" content="google8ed680060d5c7d96" />
+    <meta name="google-site-verification" content="8ed680060d5c7d96" />
 
     <!-- OpenGraph -->
     <meta property="og:type" content="${type === 'product' ? 'product' : 'website'}" />
@@ -290,7 +308,8 @@ for (const lang of ['de', 'fr']) {
             const name = trans.name || p.name;
             const desc = trans.description || p.description;
             const unit = trans.unit || 'Stück';
-            const prodUrl = isDe ? `/de/produkt/${p.id}` : `/fr/produit/${p.id}`;
+            const slug = productSlugs[p.id]?.[lang] || p.id;
+            const prodUrl = isDe ? `/de/produkt/${slug}` : `/fr/produit/${slug}`;
             return `
               <article style="border:1px solid #e2e8f0; border-radius:10px; overflow:hidden; background:#fff; display:flex; flex-direction:column;">
                 <a href="${prodUrl}" style="text-decoration:none; color:inherit;">
@@ -389,7 +408,8 @@ for (const lang of ['de', 'fr']) {
           const name = trans.name || p.name;
           const desc = trans.description || p.description;
           const unit = trans.unit || 'Stück';
-          const prodUrl = isDe ? `/de/produkt/${p.id}` : `/fr/produit/${p.id}`;
+          const slug = productSlugs[p.id]?.[lang] || p.id;
+          const prodUrl = isDe ? `/de/produkt/${slug}` : `/fr/produit/${slug}`;
           return `
             <article style="border:1px solid #e2e8f0; border-radius:10px; overflow:hidden; background:#fff; display:flex; flex-direction:column;">
               <a href="${prodUrl}" style="text-decoration:none; color:inherit;">
@@ -438,6 +458,9 @@ for (const lang of ['de', 'fr']) {
 
 // C. Fiches des 45 Produits individuels (DE & FR)
 for (const p of products) {
+  const deSlug = productSlugs[p.id]?.de || p.id;
+  const frSlug = productSlugs[p.id]?.fr || p.id;
+
   for (const lang of ['de', 'fr']) {
     const isDe = lang === 'de';
     const trans = productTranslations[p.id]?.[lang] || {};
@@ -445,9 +468,10 @@ for (const p of products) {
     const desc = trans.description || p.description;
     const unit = trans.unit || 'Stück';
     const prodSlug = isDe ? 'produkt' : 'produit';
-    const canonicalUrl = `${SITE_ORIGIN}/${lang}/${prodSlug}/${p.id}`;
-    const deUrl = `${SITE_ORIGIN}/de/produkt/${p.id}`;
-    const frUrl = `${SITE_ORIGIN}/fr/produit/${p.id}`;
+    const currentSlug = isDe ? deSlug : frSlug;
+    const canonicalUrl = `${SITE_ORIGIN}/${lang}/${prodSlug}/${currentSlug}`;
+    const deUrl = `${SITE_ORIGIN}/de/produkt/${deSlug}`;
+    const frUrl = `${SITE_ORIGIN}/fr/produit/${frSlug}`;
 
     const title = `${name} | brennholzkaufen`;
     const description = desc.slice(0, 160);
@@ -575,7 +599,26 @@ for (const p of products) {
       bodyContent
     });
 
-    writePage(`${lang}/${prodSlug}/${p.id}/index.html`, html);
+    // 1. Page officielle avec slug sémantique optimisé SEO
+    writePage(`${lang}/${prodSlug}/${currentSlug}/index.html`, html);
+
+    // 2. Redirection permanente pour l'ancien ID technique (ex: /de/produkt/4xnJQb0VbKjQm2y15VtK)
+    if (p.id !== currentSlug) {
+      const redirectHtml = `<!DOCTYPE html>
+<html lang="${lang}">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="refresh" content="0; url=/${lang}/${prodSlug}/${currentSlug}" />
+    <link rel="canonical" href="${canonicalUrl}" />
+    <script>window.location.replace('/${lang}/${prodSlug}/${currentSlug}');</script>
+    <title>${escapeHtml(name)} | brennholzkaufen</title>
+  </head>
+  <body>
+    <p>Weiterleitung zu <a href="/${lang}/${prodSlug}/${currentSlug}">${escapeHtml(name)}</a>...</p>
+  </body>
+</html>`;
+      writePage(`${lang}/${prodSlug}/${p.id}/index.html`, redirectHtml);
+    }
     generatedCount++;
   }
 }
@@ -751,6 +794,32 @@ for (const cfg of pagesConfig) {
 
     writePage(`${lang}/${slug}/index.html`, html);
     generatedCount++;
+  }
+}
+
+// E. Synchroniser les fichiers essentiels (vérification Google, sitemap, robots) dans build/
+const filesToSync = [
+  {
+    src: 'public/google8ed680060d5c7d96.html',
+    dests: [
+      'google8ed680060d5c7d96.html',
+      'de/google8ed680060d5c7d96.html',
+      'fr/google8ed680060d5c7d96.html'
+    ]
+  },
+  { src: 'public/sitemap.xml', dests: ['sitemap.xml'] },
+  { src: 'public/robots.txt', dests: ['robots.txt'] }
+];
+
+for (const item of filesToSync) {
+  const srcPath = path.join(__dirname, '../apps/client', item.src);
+  if (fs.existsSync(srcPath)) {
+    const data = fs.readFileSync(srcPath);
+    for (const dest of item.dests) {
+      const destPath = path.join(CLIENT_BUILD_DIR, dest);
+      ensureDir(destPath);
+      fs.writeFileSync(destPath, data);
+    }
   }
 }
 
