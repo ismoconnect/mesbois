@@ -1170,7 +1170,7 @@ const Header = () => {
               ) : (
                 cartItems.map((item) => (
                   <CartDrawerItem key={item.id}>
-                    <CartDrawerItemImage src={item.image || 'https://picsum.photos/seed/cart/80/80'} alt={item.name} />
+                    <CartDrawerItemImage src={item.image || 'https://res.cloudinary.com/dkuctstdf/image/upload/v1740924719/pellets_premium_bavaria_5_1_2_w12f3k.webp'} alt={item.name} />
                     <CartDrawerItemInfo>
                       <CartDrawerItemName>{item.name}</CartDrawerItemName>
                       <CartDrawerItemMeta>

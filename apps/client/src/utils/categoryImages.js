@@ -14,5 +14,5 @@ export const getCategoryImage = (category) => {
   };
 
   // Retourne l'image de la catégorie ou une image par défaut si la catégorie n'est pas trouvée.
-  return categoryImageMap[category] || 'https://picsum.photos/seed/mesbois-category-fallback/1600/900';
+  return categoryImageMap[category] || 'https://images.unsplash.com/photo-1527061011665-3652c757a4d7?q=80&w=1600&auto=format&fit=crop';
 };

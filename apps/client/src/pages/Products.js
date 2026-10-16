@@ -1324,7 +1324,7 @@ const Products = () => {
     category: mapMainToCategory(p.category || p.main),
     type: p.type || '',
     stock: typeof p.stock === 'number' ? p.stock : 1,
-    image: p.image || `https://picsum.photos/seed/${p.id}/800/500`,
+    image: p.image || `https://res.cloudinary.com/dkuctstdf/image/upload/v1740924719/pellets_premium_bavaria_5_1_2_w12f3k.webp`,
     rating: typeof p.rating === 'number' ? p.rating : 0,
     reviewCount: typeof p.reviewCount === 'number' ? p.reviewCount : 0,
     sale: p.regularPrice ? (p.price || 0) < p.regularPrice : false,
@@ -1359,12 +1359,12 @@ const Products = () => {
       description: [p.vendor, p.regularPrice ? `(Prix régulier ${p.regularPrice}€)` : null].filter(Boolean).join(' · '),
       price: p.price,
       regularPrice: p.regularPrice,
-      category: mapMainToCategory(p.main),
-      type: '',
-      stock: 1,
-      image: 'https://images.unsplash.com/photo-1520114878144-6123749968dd?q=80&w=800&auto=format&fit=crop',
-      rating: 0,
-      reviewCount: 0,
+      category: p.category || mapMainToCategory(p.main),
+      type: p.type || '',
+      stock: p.stock ?? 10,
+      image: p.image || 'https://images.unsplash.com/photo-1520114878144-6123749968dd?q=80&w=800&auto=format&fit=crop',
+      rating: p.rating || 4.8,
+      reviewCount: p.reviewCount || 14,
       sale: p.regularPrice ? p.price < p.regularPrice : false,
       new: false,
       weight: '',
@@ -1882,10 +1882,10 @@ const Products = () => {
                 >
                   <ProductImageContainer>
                     <ProductImage 
-                      src={productImages[product.id] || product.image || `https://picsum.photos/seed/${product.id}/800/500`} 
+                      src={productImages[product.id] || product.image || `https://res.cloudinary.com/dkuctstdf/image/upload/v1740924719/pellets_premium_bavaria_5_1_2_w12f3k.webp`} 
                       alt={product.name}
                       onError={(e) => {
-                        e.target.src = 'https://picsum.photos/seed/fallback/800/500';
+                        e.target.src = 'https://res.cloudinary.com/dkuctstdf/image/upload/v1740924719/pellets_premium_bavaria_5_1_2_w12f3k.webp';
                       }}
                     />
                     
@@ -1983,14 +1983,14 @@ const Products = () => {
                 >
                   <ProductImageContainer style={{ width: '200px', height: '150px' }}>
                     <ProductImage 
-                      src={productImages[product.id] || product.image || `https://picsum.photos/seed/${product.id}/800/500`} 
+                      src={productImages[product.id] || product.image || `https://res.cloudinary.com/dkuctstdf/image/upload/v1740924719/pellets_premium_bavaria_5_1_2_w12f3k.webp`} 
                       alt={product.name}
                       onError={(e) => {
                         e.target.src = '/placeholder-wood.jpg';
                       }}
                     />
                     {typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('debugImages') === '1' && (
-                      <div style={{ padding: 8, fontSize: 12, color: '#666' }}>{productImages[product.id] || product.image || `https://picsum.photos/seed/${product.id}/800/500`}</div>
+                      <div style={{ padding: 8, fontSize: 12, color: '#666' }}>{productImages[product.id] || product.image || `https://res.cloudinary.com/dkuctstdf/image/upload/v1740924719/pellets_premium_bavaria_5_1_2_w12f3k.webp`}</div>
                     )}
                     <ProductBadges>
                       {product.sale && <Badge type="sale">{t("products.sale")}</Badge>}

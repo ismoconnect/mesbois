@@ -720,7 +720,7 @@ const Cart = () => {
             const itemPrice = Number(item.price) || 0;
             const itemQty = Number(item.quantity) || 1;
             const lineTotal = itemPrice * itemQty;
-            const fallbackImg = 'https://picsum.photos/seed/wood/160/160';
+            const fallbackImg = 'https://res.cloudinary.com/dkuctstdf/image/upload/v1740924719/pellets_premium_bavaria_5_1_2_w12f3k.webp';
 
             return (
               <ProductRow key={itemId}>

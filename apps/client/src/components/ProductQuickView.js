@@ -207,7 +207,7 @@ export default function ProductQuickView({ open, product, onClose, onAddToCart }
 
   // Utiliser l'image centralisée si disponible, sinon l'image du produit
   // Sinon utiliser une image temporaire basée sur l'ID via picsum
-  const imageUrl = productImages[product.id] || product.image || `https://picsum.photos/seed/${product.id}/900/700`;
+  const imageUrl = productImages[product.id] || product.image || `https://res.cloudinary.com/dkuctstdf/image/upload/v1740924719/pellets_premium_bavaria_5_1_2_w12f3k.webp`;
 
   return (
     <Overlay open={open} onClick={onClose}>
@@ -219,7 +219,7 @@ export default function ProductQuickView({ open, product, onClose, onAddToCart }
           <ProductImage
             src={imageUrl}
             alt={product.name}
-            onError={e => { e.currentTarget.src = 'https://picsum.photos/seed/fallback/900/700'; }}
+            onError={e => { e.currentTarget.src = 'https://res.cloudinary.com/dkuctstdf/image/upload/v1740924719/pellets_premium_bavaria_5_1_2_w12f3k.webp'; }}
           />
           
         </Left>

@@ -1293,11 +1293,11 @@ const Home = () => {
           name: p.name,
           price: p.price,
           regularPrice: p.regularPrice,
-          image: idx === 1 
+          image: p.image || (idx === 1 
             ? 'https://images.unsplash.com/photo-1615485737594-3b42cfaa6a8a?q=80&w=600&auto=format&fit=crop'
-            : 'https://images.unsplash.com/photo-1520114878144-6123749968dd?q=80&w=600&auto=format&fit=crop',
-          rating: 4.8,
-          inStock: true
+            : 'https://images.unsplash.com/photo-1520114878144-6123749968dd?q=80&w=600&auto=format&fit=crop'),
+          rating: p.rating || 4.8,
+          inStock: (p.stock ?? 1) > 0
         })));
       }
     };

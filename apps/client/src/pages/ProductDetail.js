@@ -577,6 +577,13 @@ const ProductDetail = () => {
 
   useEffect(() => {
     let active = true;
+
+    // Si le produit n'est pas encore synchronisé avec le realProductId courant, le charger immédiatement depuis catalogue
+    if (!product || String(product.id) !== String(realProductId)) {
+      const instant = catalogue.find(p => String(p.id) === String(realProductId));
+      if (instant) setProduct(instant);
+    }
+
     const fetchProduct = async () => {
       try {
         setLoading(true);
@@ -587,49 +594,8 @@ const ProductDetail = () => {
         if (result.success && result.data) {
           setProduct(result.data);
         } else {
-          // Fallback local catalogue
-          const mapMainToCategory = (main) => {
-            const m = (main || '').toLowerCase();
-            if (['bois', 'bûches', 'buches', 'charbon'].includes(m)) return 'bûches';
-            if (['pellets', 'granulés', 'granules'].includes(m)) return 'pellets';
-            if (['allumage', 'accessoires'].includes(m)) return 'accessoires';
-            if (['poêles', 'poeles'].includes(m)) return 'poêles';
-            if (['bûches densifiées', 'buches densifiees', 'densifiees'].includes(m)) return 'bûches densifiées';
-            return '';
-          };
-
-          const buildFromCatalogue = (p, idx) => ({
-            id: p.id || `p-${idx}`,
-            name: p.name,
-            description: [p.vendor, p.regularPrice ? `(Prix régulier ${p.regularPrice}€)` : null].filter(Boolean).join(' · '),
-            price: p.price,
-            regularPrice: p.regularPrice,
-            category: mapMainToCategory(p.main),
-            type: '',
-            stock: 1,
-            image: `https://picsum.photos/seed/${p.id || `p-${idx}`}/1000/700`,
-            rating: 0,
-            reviewCount: 0,
-            sale: p.regularPrice ? p.price < p.regularPrice : false,
-            new: false,
-            weight: '',
-            dimensions: '',
-            humidity: '',
-            calorificValue: ''
-          });
-
-          let local = null;
-          if (realProductId && realProductId.startsWith('p-')) {
-            const idx = parseInt(realProductId.split('-')[1], 10);
-            if (!Number.isNaN(idx) && idx >= 0 && idx < catalogue.length) {
-              local = buildFromCatalogue(catalogue[idx], idx);
-            }
-          }
-          if (!local) {
-            const idx = catalogue.findIndex(p => String(p.id) === String(realProductId));
-            if (idx !== -1) local = buildFromCatalogue(catalogue[idx], idx);
-          }
-
+          // Fallback direct sur le catalogue officiel synchronisé
+          const local = catalogue.find(p => String(p.id) === String(realProductId));
           if (local) {
             setProduct(local);
           } else {
@@ -645,6 +611,7 @@ const ProductDetail = () => {
 
     fetchProduct();
     return () => { active = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [realProductId]);
 
   const locProduct = product ? getLocalizedProduct(product, i18n.language) : null;
@@ -777,16 +744,25 @@ const ProductDetail = () => {
     );
   }
 
-  const view = locProduct || product || {
-    id,
-    name: 'Produit',
-    description: '',
-    price: '',
-    stock: 0,
-    image: `https://picsum.photos/seed/${id}/1000/700`,
-    rating: 4.5,
-    reviewCount: 0
-  };
+  const view = locProduct || product;
+
+  if (!view) {
+    return (
+      <ProductDetailContainer>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '380px' }}>
+          <div style={{
+            width: '36px',
+            height: '36px',
+            border: '3px solid #e2e8f0',
+            borderTopColor: '#2c5530',
+            borderRadius: '50%',
+            animation: 'spin 0.8s linear infinite'
+          }} />
+          <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+        </div>
+      </ProductDetailContainer>
+    );
+  }
 
   const isInCartItem = product ? isInCart(product.id) : false;
   const cartItem = product ? getCartItem(product.id) : null;
@@ -810,7 +786,7 @@ const ProductDetail = () => {
       <ProductContainer>
         <ProductImageWrapper>
           <ProductImage 
-            src={productImages[view.id] || view.image || `https://picsum.photos/seed/${view.id}/1000/700`} 
+            src={productImages[view.id] || view.image || 'https://res.cloudinary.com/dkuctstdf/image/upload/v1740924719/pellets_premium_bavaria_5_1_2_w12f3k.webp'} 
             alt={view.name}
             onError={(e) => {
               e.target.src = 'https://res.cloudinary.com/dkuctstdf/image/upload/v1740924719/pellets_premium_bavaria_5_1_2_w12f3k.webp';

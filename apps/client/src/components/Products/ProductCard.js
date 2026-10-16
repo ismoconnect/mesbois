@@ -157,7 +157,7 @@ const ProductCard = ({ product }) => {
   const isInCartItem = isInCart(locProduct.id);
   const { productImages } = useProductImages();
 
-  const imageUrl = productImages[locProduct.id] || locProduct.image || getCategoryImage(locProduct.category) || `https://picsum.photos/seed/${locProduct.id}/600/400`;
+  const imageUrl = productImages[locProduct.id] || locProduct.image || getCategoryImage(locProduct.category) || `https://res.cloudinary.com/dkuctstdf/image/upload/v1740924719/pellets_premium_bavaria_5_1_2_w12f3k.webp`;
 
   const handleAddToCart = () => {
     addToCart(locProduct, 1);
@@ -266,7 +266,7 @@ const ProductCard = ({ product }) => {
           src={imageUrl}
           alt={locProduct.name}
           onError={(e) => {
-            e.target.src = 'https://picsum.photos/seed/fallback/600/400';
+            e.target.src = 'https://res.cloudinary.com/dkuctstdf/image/upload/v1740924719/pellets_premium_bavaria_5_1_2_w12f3k.webp';
           }}
         />
         

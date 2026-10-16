@@ -1911,7 +1911,7 @@ const Checkout = () => {
         {cartItems.map((item) => (
           <ItemRow key={item.id}>
             <ItemThumb>
-              <img src={item.image || 'https://picsum.photos/seed/wood/100/100'} alt={item.name} />
+              <img src={item.image || 'https://res.cloudinary.com/dkuctstdf/image/upload/v1740924719/pellets_premium_bavaria_5_1_2_w12f3k.webp'} alt={item.name} />
               <span className="qty-badge">{item.quantity}</span>
             </ItemThumb>
             <ItemDetails>
